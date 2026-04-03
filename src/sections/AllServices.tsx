@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '../components/Card';
-import { services, getServiceImageSlug } from '../sections/Services';
+import { getServices, getServiceImageSlug } from '../sections/Services';
 import Button from '../components/Button';
 import { Calendar, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const AllServices = () => {
+    const { t } = useTranslation();
+    const services = getServices(t);
     const [failedLocalImages, setFailedLocalImages] = useState<Set<string>>(new Set());
     const navigate = useNavigate();
 
-    const getImageSrc = (service: (typeof services)[0]) => {
+    const getImageSrc = (service: any) => {
         if (failedLocalImages.has(service.title)) return service.image;
         return `/images/services/${getServiceImageSlug(service.title)}.png`;
     };
@@ -41,7 +44,7 @@ const AllServices = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {services.map((service, index) => (
+                        {services.map((service: any, index: number) => (
                             <motion.div
                                 key={index}
                                 initial={{ opacity: 0, y: 24 }}
