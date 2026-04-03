@@ -1,0 +1,9 @@
+/* Main App styles */
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: #1E88E5;
+  color: white;
+}

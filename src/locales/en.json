@@ -1,0 +1,358 @@
+{
+  "navbar": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact Us",
+    "services": "Services",
+    "academic": "Academic",
+    "notices": "Notices",
+    "gallery": "Gallery",
+    "downloads": "Downloads",
+    "departments": "Departments",
+    "news": "News",
+    "blog": "Blog",
+    "emergency": "Emergency",
+    "emergency_number": "102",
+    "landline_number": "031-590123",
+    "book_appointment": "Book Appointment",
+    "book_short": "Appointment",
+    "live_updates": "Live Updates",
+    "search_placeholder": "Search doctors, services...",
+    "change_language": "Change language",
+    "lang_en": "ENG",
+    "lang_np": "NEP",
+    "current_language_en": "🇺🇸 English",
+    "current_language_np": "🇳🇵 नेपाली",
+    "language_english": "English",
+    "language_nepali": "नेपाली",
+    "switch_to": "Switch to {{label}}",
+    "landline": "Landline:",
+    "emergency_label": "Emergency:",
+    "search_compact": "Search...",
+    "search_doctors_compact": "Search doctors...",
+    "all_services": "All Services",
+    "appointment_short": "Appointment",
+    "listen_live": "Listen Live",
+    "nav_section": "Navigation",
+    "quick_actions_section": "Quick Actions",
+    "emergency_call": "Emergency",
+    "quick": {
+      "news_events": "News & Events",
+      "check_mail": "Check Mail",
+      "doctor_appointment": "Doctor Appointment",
+      "lab_report": "Lab / Pathology Report",
+      "pharmacy": "Pharmacy",
+      "online_form": "Online Form",
+      "chat": "Chat",
+      "login": "Login"
+    },
+    "marquee": {
+      "line1": "🏥 Dwarika Hospital — Your Health, Our Commitment",
+      "line2": "📋 MBBS Admissions Open for 2025/26 Academic Session",
+      "line3": "🩺 24/7 Emergency & Lab Services Available",
+      "line4": "💊 Pharmacy Home Delivery Now Active",
+      "helpline": "📞 Helpline: 031-590123"
+    },
+    "logo_alt": "Dwarika Hospital",
+    "brand_title": "Dwarika Hospital",
+    "brand_subtitle": "& Medical Academy Pvt. Ltd.",
+    "brand_lockup_en": "Dwarika Hospital & Medical Academy Pvt. Ltd.",
+    "brand_lockup_devanagari": "द्वारिका हस्पिटल एण्ड मेडिकल एकेडेमी प्रा. लि."
+  },
+  "hero": {
+    "badge": "Nepal's Premier Healthcare Destination",
+    "title_part1": "Your Health,",
+    "title_part2": "Our Commitment.",
+    "description": "Experience a new standard of medical excellence. Dwarika Hospital combines world-class clinical expertise with an empathetic heart, powered by advanced technology.",
+    "book_appointment": "Book Appointment",
+    "explore_services": "Explore Services",
+    "stats": {
+      "doctors": "Doctors Board Certified",
+      "emergency": "Emergency Available",
+      "patients": "Patients Served"
+    },
+    "view_profile": "View Profile →",
+    "award_badge_title": "Award Winning",
+    "award_badge_subtitle": "Healthcare 2024",
+    "nmc_no": "NMC No: {{no}}",
+    "featured": {
+      "0": {
+        "specialization": "Senior Interventional Cardiologist",
+        "qualification": "MBBS, MD, DM (Cardiology)"
+      },
+      "1": {
+        "specialization": "Senior Neurologist & Neurosurgeon",
+        "qualification": "MBBS, MD (Neurology), PhD"
+      },
+      "2": {
+        "specialization": "Consultant Pediatrician & Neonatologist",
+        "qualification": "MBBS, MD (Pediatrics), Fellowship in Neonatology"
+      }
+    }
+  },
+  "about": {
+    "title": "About Dwarika Hospital",
+    "tagline": "Building a Legacy of Care",
+    "introduction": "Dwarika Hospital & Medical Academy Pvt. Ltd. is a pioneer in bringing advanced healthcare to the heart of Madhesh Province. Established to bridge the gap in quality medical services, we combine clinical excellence with compassionate service.",
+    "mission_title": "Our Mission",
+    "mission_subtitle": "Patient-Centered Care First",
+    "mission_text": "To provide high-quality, affordable and patient-centered healthcare to our community, ensuring essential services are accessible to all near their homes.",
+    "vision_title": "Our Vision",
+    "vision_subtitle": "Excellence in Medical Education",
+    "vision_text": "To grow into a 100-bed, multi-specialty teaching hospital recognized across Nepal for clinical excellence, modern infrastructure, and strong academic programs.",
+    "values_title": "Our Core Values",
+    "values_subtitle": "Integrity & Compassion",
+    "values_text": "Accessibility, Compassion, and Integrity shape how we care for every patient and family, fostering a partnership for continuous health improvement."
+  },
+  "departments": {
+    "section_title": "Our Departments",
+    "heading_part1": "Specialized care across ",
+    "heading_part2": "every discipline",
+    "description": "A comprehensive infrastructure of medical departments dedicated to delivering precise diagnostics and compassionate care.",
+    "learn_more": "Learn more",
+    "list": {
+      "cardiology": { "title": "Cardiology", "desc": "Heart health consultations, ECG/ECHO support and follow-up care." },
+      "neurology": { "title": "Neurology", "desc": "Diagnosis and care for brain and nervous system conditions." },
+      "paediatrics": { "title": "Paediatrics", "desc": "Child-focused OPD services with compassionate clinical support." },
+      "orthopaedics": { "title": "Orthopaedics", "desc": "Bone & joint care, injury management and rehabilitation guidance." },
+      "emergency": { "title": "Emergency", "desc": "24/7 emergency response with rapid triage and stabilization." },
+      "diagnostics": { "title": "Diagnostics", "desc": "Lab services, digital X-ray, ultrasonography and essential testing." },
+      "gynae_obstetrics": { "title": "Gynae & Obstetrics", "desc": "Maternal care, delivery services and safe motherhood programs." },
+      "general_medicine": { "title": "General Medicine", "desc": "Primary care, chronic disease management and preventive checkups." }
+    }
+  },
+  "services": {
+    "section_title": "Our Services",
+    "heading_part1": "Comprehensive medical ",
+    "heading_part2": "services",
+    "description": "A comprehensive suite of medical services powered by state-of-the-art technology and dedicated clinical professionals.",
+    "show_less": "Show Less",
+    "view_all": "View All Services",
+    "modal": {
+      "request_appointment": "Request Appointment",
+      "disclaimer": "At Dwarika Hospital, we are committed to providing world-class {{service}} supported by modern technology and compassionate nursing care. Our facility is designed to meet international standards for patient safety and clinical excellence."
+    },
+    "list": {
+      "emergency_24h": { "title": "24 Hours Emergency Service", "desc": "Immediate medical attention for critical conditions, available round-the-clock with advanced life support.", "category": "Emergency" },
+      "lab_24h": { "title": "24 Hours Lab Service", "desc": "Fully automated diagnostic laboratory providing accurate and timely test results at any hour.", "category": "Diagnostics" },
+      "pharmacy_24h": { "title": "24 Hours Pharmacy Service", "desc": "Well-stocked pharmacy ensuring availability of all essential medicines and surgical supplies 24/7.", "category": "Support" },
+      "opd": { "title": "OPD Service", "desc": "Outpatient Department with senior consultants available for daily checkups, diagnosis, and follow-ups.", "category": "Clinical" },
+      "inpatient": { "title": "In-Patient Service", "desc": "Inpatient Department with comfortable general wards, private cabins, and 24-hour nursing care.", "category": "Clinical" },
+      "specialist": { "title": "Specialist Service", "desc": "Expert consultations across various medical specialties for holistic and specialized treatment.", "category": "Clinical" },
+      "dental": { "title": "Dental Service", "desc": "Comprehensive dental care including surgeries, implants, orthodontics, and cosmetic dentistry.", "category": "Clinical" },
+      "surgery": { "title": "Surgery Services", "desc": "Advanced surgical procedures performed by expert surgeons using state-of-the-art technology.", "category": "Clinical" },
+      "xray": { "title": "Digital X-Ray", "desc": "High-resolution digital radiography for precise imaging and quick diagnosis with minimal radiation.", "category": "Diagnostics" },
+      "usg": { "title": "USG", "desc": "Advanced Ultrasound (USG) services for abdominal, pelvic, and obstetric imaging.", "category": "Diagnostics" },
+      "ecg": { "title": "ECG", "desc": "Electrocardiogram services to monitor heart rhythm and detect cardiac abnormalities.", "category": "Diagnostics" },
+      "echo": { "title": "ECHO", "desc": "Echocardiography for detailed assessment of heart structure and function.", "category": "Diagnostics" },
+      "ambulance": { "title": "Ambulance Service", "desc": "24/7 ambulance service equipped with oxygen and emergency medical support for rapid transport.", "category": "Emergency" },
+      "parking": { "title": "Parking Facility", "desc": "Spacious, secure, and convenient parking area available for patients and visitors.", "category": "Support" }
+    }
+  },
+  "doctors": {
+    "section_title": "Our Team",
+    "heading_part1": "Meet our medical ",
+    "heading_part2": "specialists",
+    "book_appointment": "Book Appointment",
+    "expert_of": "Dr. {{name}} is a highly skilled specialist with extensive experience in {{category}}.",
+    "patient_centric": "Known for a patient-centric approach, ensuring personalized attention and the highest standard of treatment."
+  },
+  "common": {
+    "all": "All",
+    "read_more": "Read More",
+    "learn_more": "Learn more",
+    "view_all": "View All",
+    "search": "Search",
+    "book_now": "Book Now",
+    "contact_us": "Contact Us",
+    "no_updates": "No Updates Found"
+  },
+  "news": {
+    "section_title": "Latest Updates",
+    "heading_part1": "News, ",
+    "heading_part2": "Events",
+    "heading_part3": " & Media",
+    "up_next": "Up Next",
+    "view_all": "View All News & Events",
+    "category": {
+      "News": "News",
+      "Event": "Event",
+      "Notice": "Notice",
+      "Academic": "Academic",
+      "Strategic": "Strategic"
+    },
+    "type": {
+      "news": "News",
+      "event": "Event",
+      "notice": "Notice",
+      "academic": "Academic",
+      "strategic": "Strategic",
+      "result": "Result",
+      "admission": "Admission",
+      "scholarship": "Scholarship"
+    }
+  },
+  "live_consultation": {
+    "available_now": "Available Now",
+    "heading_part1": "Live Doctor",
+    "heading_part2": "Consultation",
+    "description": "Connect with our specialist doctors from the comfort of your home. Get expert medical advice, prescriptions, and follow-ups via secure high-definition video calls.",
+    "book_consultation": "Book Consultation",
+    "secure_video": "Secure Video",
+    "hd_quality": "HD Quality",
+    "connection": "Connection",
+    "stable_secure": "Stable & Secure"
+  },
+  "patient_experience": {
+    "badge": "Patient First",
+    "heading_part1": "Your Comfort is ",
+    "heading_part2": "Our Priority",
+    "description": "At Dwarika Hospital, we believe healing begins with feeling safe and cared for. From the moment you walk in, every detail of your experience is designed around your comfort and well-being.",
+    "read_story": "Read Our Story",
+    "testimonial": "\"The staff made me feel like family. Truly exceptional care during my recovery.\"",
+    "patient_name": "Rajesh Hamal",
+    "patient_status": "Recovered Patient",
+    "features": {
+      "compassionate": {
+        "title": "Compassionate Care",
+        "desc": "Our nursing staff is trained to treat every patient with empathy and respect, ensuring you feel at home."
+      },
+      "wait_times": {
+        "title": "Minimal Wait Times",
+        "desc": "We value your time. Our streamlined digital appointment system ensures you see your doctor promptly."
+      },
+      "safety": {
+        "title": "Safety First",
+        "desc": "Strict infection control protocols and international safety standards to protect you at every step."
+      },
+      "holistic": {
+        "title": "Holistic Healing",
+        "desc": "Beyond medicine, we focus on mental and emotional well-being with counseling and support groups."
+      }
+    }
+  },
+  "health_tips": {
+    "section_title": "Health Blog",
+    "heading_part1": "Health tips & ",
+    "heading_part2": "expert insights",
+    "view_all": "View all articles"
+  },
+  "stats": {
+    "patients": "Patients Treated",
+    "doctors": "Expert Doctors",
+    "experience": "Years Experience",
+    "academic": "Academic Batches"
+  },
+  "footer": {
+    "brand_desc": "A global-standard healthcare institution dedicated to clinical excellence, compassionate service, and academic growth in Madhesh Province.",
+    "portal_title": "Patient Portal",
+    "links_title": "Quick Links",
+    "touch_title": "Get in Touch",
+    "address": "Kalyanpur, Khadak Municipality,\nWard No.-7, Saptari, Nepal",
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "portal": {
+      "appointment": "Doctor Appointment",
+      "reports": "Lab Reports Online",
+      "pharmacy": "Pharmacy Home Delivery",
+      "feedback": "Patient Feedback Form",
+      "emergency": "Emergency Services"
+    },
+    "links": {
+      "academic": "Academic Programs",
+      "notices": "Notice & Career",
+      "news": "News & Events",
+      "gallery": "Hospital Gallery",
+      "packages": "Health Packages",
+      "downloads": "Downloads",
+      "webmail": "Check Webmail"
+    }
+  },
+  "about_page": {
+    "hero_badge": "About Dwarika Hospital",
+    "hero_heading_part1": "Our Modern ",
+    "hero_heading_part2": "Healthcare Story",
+    "hero_description": "Leading the way in medical excellence and academic growth across Madhesh Province.",
+    "tabs": {
+      "overview": "Overview",
+      "leadership": "Leadership",
+      "team": "Our Team",
+      "awards": "Awards & Accolades"
+    }
+  },
+  "appointment": {
+    "badge": "Online Booking",
+    "heading_part1": "Book an ",
+    "heading_part2": "Appointment",
+    "description": "Schedule a consultation with our expert doctors. Simple, fast, and secure.",
+    "contact_title": "Contact Info",
+    "hotline": "Appointment Hotline",
+    "email_us": "Email Us",
+    "opd_hours": "OPD Hours",
+    "emergency_title": "Need Emergency Care?",
+    "emergency_desc": "For immediate medical attention, please visit our Emergency Department or call our 24/7 emergency line.",
+    "emergency_label": "Emergency: 102",
+    "step1_title": "Step 1: Select Doctor",
+    "step1_desc": "Choose the department and specialist you wish to consult.",
+    "step2_title": "Step 2: Patient Details",
+    "department": "Department",
+    "specialist": "Select Specialist",
+    "any_doctor": "Any Available Doctor",
+    "earliest_slot": "Earliest available slot",
+    "next_details": "Next: Patient Details",
+    "prev_step": "Previous Step",
+    "confirm_request": "Confirm Appointment Request",
+    "errors": {
+      "fullName": "Patient name is required.",
+      "age": "Age is required.",
+      "age_valid": "Please enter a valid age.",
+      "gender": "Please select a gender.",
+      "caste": "Please select a caste.",
+      "phone": "Phone number is required.",
+      "phone_valid": "Please enter a valid phone number.",
+      "province": "Please select a province.",
+      "district": "Please select a district.",
+      "ward": "Ward is required.",
+      "village": "Village / Tole is required.",
+      "address": "Address specification is required.",
+      "email_valid": "Please enter a valid email address.",
+      "date": "Please select an appointment date."
+    },
+    "form": {
+      "name_label": "Patient Name *",
+      "name_placeholder": "Full Name",
+      "age_label": "Age *",
+      "age_placeholder": "Age",
+      "gender_label": "Gender *",
+      "gender_placeholder": "Select Gender",
+      "phone_label": "Phone Number *",
+      "phone_placeholder": "Mobile Number",
+      "email_label": "Email Address",
+      "email_placeholder": "email@example.com",
+      "address_label": "Address *",
+      "village_label": "Village / Tole *",
+      "village_placeholder": "Select Village / Tole",
+      "country_label": "Country *",
+      "district_label": "District *",
+      "district_placeholder": "Select District",
+      "province_label": "Province *",
+      "province_placeholder": "Select Province",
+      "municipality_label": "Municipality Type *",
+      "ward_label": "Ward",
+      "caste_label": "Caste/Ethnicity *",
+      "caste_placeholder": "Select Caste",
+      "shift_label": "Preferred Shift *",
+      "date_label": "Preferred Appointment Date *",
+      "disease_label": "Are you suffering from any Disease (ICD-11)?",
+      "disease_placeholder": "Search or select disease...",
+      "message_label": "Reason for Visit / Symptoms",
+      "message_placeholder": "Briefly describe your symptoms or reason for appointment..."
+    },
+    "success": {
+      "title": "Request Submitted!",
+      "desc": "Thank you, {{name}}. Your appointment request has been received. Our team will contact you shortly at {{phone}} to confirm the schedule.",
+      "return_home": "Return to Home"
+    }
+  }
+}
