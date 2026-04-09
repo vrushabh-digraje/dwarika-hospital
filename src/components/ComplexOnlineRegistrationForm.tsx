@@ -98,7 +98,37 @@ const ComplexOnlineRegistrationForm = () => {
         // Academic Detail
         academicDetails: [
             { level: 'SLC/SEE', degree: '', school: '', university: '', address: '', markGpa: '', division: '', speciality: '', markSheet: null, characterCert: null, provisionalCert: null, extraUploads: [] as (File | null)[] }
-        ]
+        ],
+
+        // Training
+        trainingEntries: [] as {
+            name: string; regNo: string; regDate: string; recognizedBy: string;
+            district: string; municipality: string; ward: string; stateProvince: string; country: string;
+            startDateAD: string; startDateBS: string; endDateAD: string; endDateBS: string;
+            durationYears: string; durationMonths: string; durationDays: string;
+        }[],
+        trainingForm: {
+            name: '', regNo: '', regDate: '', recognizedBy: '',
+            district: '', municipality: '', ward: '', stateProvince: '', country: 'Nepal',
+            startDateAD: '', startDateBS: '', endDateAD: '', endDateBS: '',
+            durationYears: '', durationMonths: '', durationDays: '',
+        },
+        trainingEditIndex: -1,
+
+        // Work Experience
+        workEntries: [] as {
+            organization: string; post: string;
+            district: string; municipality: string; ward: string; stateProvince: string; country: string;
+            startDateAD: string; startDateBS: string; endDateAD: string; endDateBS: string;
+            durationYears: string; durationMonths: string; durationDays: string;
+        }[],
+        workForm: {
+            organization: '', post: '',
+            district: '', municipality: '', ward: '', stateProvince: '', country: 'Nepal',
+            startDateAD: '', startDateBS: '', endDateAD: '', endDateBS: '',
+            durationYears: '', durationMonths: '', durationDays: '',
+        },
+        workEditIndex: -1,
     });
 
     const handleNext = () => setStep(prev => Math.min(prev + 1, STEPS.length - 1));
@@ -683,7 +713,7 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             }
-                case 5: // Council Registration
+            case 5: // Council Registration
                 return (
                     <div className="space-y-8">
                         <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
@@ -738,66 +768,457 @@ const ComplexOnlineRegistrationForm = () => {
                         </p>
                     </div>
                 );
-            case 6: // Training Details
+            case 6: { // Training Details
+                const tf = formData.trainingForm;
+                const updateTF = (field: string, value: string) => {
+                    setFormData(prev => ({ ...prev, trainingForm: { ...prev.trainingForm, [field]: value } }));
+                };
+                const resetTF = () => {
+                    setFormData(prev => ({
+                        ...prev,
+                        trainingForm: { name: '', regNo: '', regDate: '', recognizedBy: '', district: '', municipality: '', ward: '', stateProvince: '', country: 'Nepal', startDateAD: '', startDateBS: '', endDateAD: '', endDateBS: '', durationYears: '', durationMonths: '', durationDays: '' },
+                        trainingEditIndex: -1,
+                    }));
+                };
+                const addTraining = () => {
+                    if (!tf.name) return;
+                    setFormData(prev => {
+                        const entries = [...prev.trainingEntries];
+                        if (prev.trainingEditIndex >= 0) {
+                            entries[prev.trainingEditIndex] = { ...tf };
+                        } else {
+                            entries.push({ ...tf });
+                        }
+                        return {
+                            ...prev,
+                            trainingEntries: entries,
+                            trainingForm: { name: '', regNo: '', regDate: '', recognizedBy: '', district: '', municipality: '', ward: '', stateProvince: '', country: 'Nepal', startDateAD: '', startDateBS: '', endDateAD: '', endDateBS: '', durationYears: '', durationMonths: '', durationDays: '' },
+                            trainingEditIndex: -1,
+                        };
+                    });
+                };
+                const editTraining = (idx: number) => {
+                    setFormData(prev => ({ ...prev, trainingForm: { ...prev.trainingEntries[idx] }, trainingEditIndex: idx }));
+                };
+                const deleteTraining = (idx: number) => {
+                    setFormData(prev => ({ ...prev, trainingEntries: prev.trainingEntries.filter((_, i) => i !== idx) }));
+                };
+
+                const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase";
+                const selectCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none";
+                const labelCls = "text-[10px] font-black text-gray-500 uppercase tracking-widest";
+
                 return (
-                    <div className="space-y-6">
-                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10 mb-8">
+                    <div className="space-y-8">
+                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
                             <h3 className="text-lg font-black uppercase tracking-tight flex items-center gap-3">
-                                <BookOpen className="w-6 h-6 text-blue-300" /> Training Details
+                                <BookOpen className="w-6 h-6 text-blue-300" /> Training
                             </h3>
                             <p className="text-blue-200 text-xs font-medium mt-1 uppercase tracking-widest">Specialized trainings and certifications</p>
                         </div>
 
+                        {/* Training Name */}
+                        <div className="space-y-2">
+                            <label className={labelCls}>Training Name *</label>
+                            <input type="text" value={tf.name} onChange={e => updateTF('name', e.target.value)} className={inputCls} />
+                        </div>
+
+                        {/* Reg No + Date of Registration */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Training Subject / Field *</label>
-                                <input type="text" name="trainingSubject" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
+                                <label className={labelCls}>Training Registered No.</label>
+                                <input type="text" value={tf.regNo} onChange={e => updateTF('regNo', e.target.value)} className={inputCls} />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Institute Name *</label>
-                                <input type="text" name="trainingInstitute" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Duration *</label>
-                                <input type="text" name="trainingDuration" onChange={handleInputChange} placeholder="E.g. 6 months, 2 years" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Year of Completion *</label>
-                                <input type="text" name="trainingYear" onChange={handleInputChange} placeholder="YYYY" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
+                                <label className={labelCls}>Date of Registration</label>
+                                <input type="date" value={tf.regDate} onChange={e => updateTF('regDate', e.target.value)} className={inputCls} />
                             </div>
                         </div>
+
+                        {/* Training Recognized By */}
+                        <div className="space-y-2">
+                            <label className={labelCls}>Training Recognized By</label>
+                            <input type="text" value={tf.recognizedBy} onChange={e => updateTF('recognizedBy', e.target.value)} className={inputCls} />
+                        </div>
+
+                        {/* Training Site: Country -> State/Province -> District -> Municipality -> Ward */}
+                        <div className="space-y-4">
+                            <label className={labelCls}>Training Site</label>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className={labelCls}>Country</label>
+                                    <select value={tf.country} onChange={e => {
+                                        updateTF('country', e.target.value);
+                                        if (e.target.value !== 'Nepal') {
+                                            updateTF('stateProvince', '');
+                                            updateTF('district', '');
+                                            updateTF('municipality', '');
+                                            updateTF('ward', '');
+                                        }
+                                    }} className={selectCls}>
+                                        <option>Nepal</option>
+                                        <option>India</option>
+                                        <option>China</option>
+                                        <option>Bangladesh</option>
+                                        <option>USA</option>
+                                        <option>UK</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className={labelCls}>State/Province</label>
+                                    {tf.country === 'Nepal' ? (
+                                        <select value={tf.stateProvince} onChange={e => updateTF('stateProvince', e.target.value)} className={selectCls}>
+                                            <option value="">Select Province</option>
+                                            {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" value={tf.stateProvince} onChange={e => updateTF('stateProvince', e.target.value)} className={inputCls} />
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <label className={labelCls}>District</label>
+                                    {tf.country === 'Nepal' ? (
+                                        <select value={tf.district} onChange={e => updateTF('district', e.target.value)} className={selectCls}>
+                                            <option value="">Select District</option>
+                                            {(tf.stateProvince ? DISTRICTS_BY_PROVINCE[tf.stateProvince as keyof typeof DISTRICTS_BY_PROVINCE] : Object.values(DISTRICTS_BY_PROVINCE).flat()).map(d => <option key={d} value={d}>{d}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" value={tf.district} onChange={e => updateTF('district', e.target.value)} className={inputCls} />
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <label className={labelCls}>Municipality/GP</label>
+                                    {tf.country === 'Nepal' ? (
+                                        <select value={tf.municipality} onChange={e => updateTF('municipality', e.target.value)} className={selectCls}>
+                                            <option value="">Select Municipality</option>
+                                            {GET_MUNICIPALITIES(tf.district).map(m => <option key={m} value={m}>{m}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" value={tf.municipality} onChange={e => updateTF('municipality', e.target.value)} className={inputCls} />
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <label className={labelCls}>Ward</label>
+                                    {tf.country === 'Nepal' ? (
+                                        <select value={tf.ward} onChange={e => updateTF('ward', e.target.value)} className={selectCls}>
+                                            <option value="">Select Ward</option>
+                                            {WARDS.map(w => <option key={w} value={w}>{w}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" value={tf.ward} onChange={e => updateTF('ward', e.target.value)} className={inputCls} />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Start Date (AD + BS) + End Date (AD + BS) */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="space-y-2">
+                                <label className={labelCls}>Start Date (A.D)</label>
+                                <input type="date" value={tf.startDateAD} onChange={e => updateTF('startDateAD', e.target.value)} className={inputCls} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className={labelCls}>Start Date (B.S)</label>
+                                <input type="text" value={tf.startDateBS} onChange={e => updateTF('startDateBS', e.target.value)} placeholder="YYYY-MM-DD" className={inputCls} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className={labelCls}>End Date (A.D)</label>
+                                <input type="date" value={tf.endDateAD} onChange={e => updateTF('endDateAD', e.target.value)} className={inputCls} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className={labelCls}>End Date (B.S)</label>
+                                <input type="text" value={tf.endDateBS} onChange={e => updateTF('endDateBS', e.target.value)} placeholder="YYYY-MM-DD" className={inputCls} />
+                            </div>
+                        </div>
+
+                        {/* Total Duration */}
+                        <div className="flex items-center gap-4 flex-wrap">
+                            <label className={labelCls}>Total Duration:</label>
+                            <div className="flex items-center gap-2">
+                                <input type="number" min="0" value={tf.durationYears} onChange={e => updateTF('durationYears', e.target.value)} className="w-16 bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold text-center focus:outline-none focus:border-blue-900 transition-all" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Years</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input type="number" min="0" value={tf.durationMonths} onChange={e => updateTF('durationMonths', e.target.value)} className="w-16 bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold text-center focus:outline-none focus:border-blue-900 transition-all" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Months</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input type="number" min="0" value={tf.durationDays} onChange={e => updateTF('durationDays', e.target.value)} className="w-16 bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold text-center focus:outline-none focus:border-blue-900 transition-all" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Days</span>
+                            </div>
+                        </div>
+
+                        {/* Add Button */}
+                        <div className="flex justify-center pt-4">
+                            <button type="button" onClick={addTraining} className="flex items-center gap-2 px-8 py-3 bg-blue-50 text-blue-900 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-100 transition-all border border-blue-100 shadow-sm">
+                                <Plus className="w-4 h-4" /> {formData.trainingEditIndex >= 0 ? 'Update' : 'Add'}
+                            </button>
+                        </div>
+
+                        {/* Training Entries Table */}
+                        {formData.trainingEntries.length > 0 && (
+                            <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-gray-50 border-b border-gray-200">
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">S.No.</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Training Name</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Recognized By</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Registration No.</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Registration Date</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Duration</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {formData.trainingEntries.map((entry, idx) => (
+                                            <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                                <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
+                                                <td className="px-4 py-3 text-sm font-bold text-gray-700">{entry.name}</td>
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-600">{entry.recognizedBy || '-'}</td>
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-600">{entry.regNo || '-'}</td>
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-600">{entry.regDate || '-'}</td>
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-600">
+                                                    {[entry.durationYears && `${entry.durationYears}Y`, entry.durationMonths && `${entry.durationMonths}M`, entry.durationDays && `${entry.durationDays}D`].filter(Boolean).join(' ') || '-'}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <button type="button" onClick={() => editTraining(idx)} className="text-[9px] font-black text-blue-900 uppercase tracking-widest hover:text-blue-700 transition-colors">Edit</button>
+                                                        <button type="button" onClick={() => deleteTraining(idx)} className="text-[9px] font-black text-red-600 uppercase tracking-widest hover:text-red-500 transition-colors">Delete</button>
+                                                        <label className="text-[9px] font-black text-green-700 uppercase tracking-widest hover:text-green-600 transition-colors cursor-pointer">
+                                                            Upload
+                                                            <input type="file" className="hidden" />
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 );
-            case 7: // Work Experience
+            }
+            case 7: { // Work Experience
+                const wf = formData.workForm;
+                const updateWF = (field: string, value: string) => {
+                    setFormData(prev => ({ ...prev, workForm: { ...prev.workForm, [field]: value } }));
+                };
+                const addWork = () => {
+                    if (!wf.organization) return;
+                    setFormData(prev => {
+                        const entries = [...prev.workEntries];
+                        if (prev.workEditIndex >= 0) {
+                            entries[prev.workEditIndex] = { ...wf };
+                        } else {
+                            entries.push({ ...wf });
+                        }
+                        return {
+                            ...prev,
+                            workEntries: entries,
+                            workForm: { organization: '', post: '', district: '', municipality: '', ward: '', stateProvince: '', country: 'Nepal', startDateAD: '', startDateBS: '', endDateAD: '', endDateBS: '', durationYears: '', durationMonths: '', durationDays: '' },
+                            workEditIndex: -1,
+                        };
+                    });
+                };
+                const editWork = (idx: number) => {
+                    setFormData(prev => ({ ...prev, workForm: { ...prev.workEntries[idx] }, workEditIndex: idx }));
+                };
+                const deleteWork = (idx: number) => {
+                    setFormData(prev => ({ ...prev, workEntries: prev.workEntries.filter((_, i) => i !== idx) }));
+                };
+
+                const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase";
+                const selectCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none";
+                const labelCls = "text-[10px] font-black text-gray-500 uppercase tracking-widest";
+
                 return (
-                    <div className="space-y-6">
-                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10 mb-8">
+                    <div className="space-y-8">
+                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
                             <h3 className="text-lg font-black uppercase tracking-tight flex items-center gap-3">
                                 <Briefcase className="w-6 h-6 text-blue-300" /> Work Experience
                             </h3>
-                            <p className="text-blue-200 text-xs font-medium mt-1 uppercase tracking-widest">Your professional history</p>
+                            <p className="text-blue-200 text-xs font-medium mt-1 uppercase tracking-widest">Professional employment history</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Organization Name *</label>
-                                <input type="text" name="workOrganization" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
+                        {/* Organization Name */}
+                        <div className="space-y-2">
+                            <label className={labelCls}>Organization Name *</label>
+                            <input type="text" value={wf.organization} onChange={e => updateWF('organization', e.target.value)} className={inputCls} />
+                        </div>
+
+                        {/* Post / Designation */}
+                        <div className="space-y-2">
+                            <label className={labelCls}>Post / Designation *</label>
+                            <input type="text" value={wf.post} onChange={e => updateWF('post', e.target.value)} className={inputCls} />
+                        </div>
+
+                        {/* Work Site Location */}
+                        <div className="space-y-4">
+                            <label className={labelCls}>Work Site Location</label>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className={labelCls}>Country</label>
+                                    <select value={wf.country} onChange={e => {
+                                        updateWF('country', e.target.value);
+                                        if (e.target.value !== 'Nepal') {
+                                            updateWF('stateProvince', '');
+                                            updateWF('district', '');
+                                            updateWF('municipality', '');
+                                            updateWF('ward', '');
+                                        }
+                                    }} className={selectCls}>
+                                        <option>Nepal</option>
+                                        <option>India</option>
+                                        <option>China</option>
+                                        <option>Bangladesh</option>
+                                        <option>USA</option>
+                                        <option>UK</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className={labelCls}>State/Province</label>
+                                    {wf.country === 'Nepal' ? (
+                                        <select value={wf.stateProvince} onChange={e => updateWF('stateProvince', e.target.value)} className={selectCls}>
+                                            <option value="">Select Province</option>
+                                            {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" value={wf.stateProvince} onChange={e => updateWF('stateProvince', e.target.value)} className={inputCls} />
+                                    )}
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Designation / Post *</label>
-                                <input type="text" name="workDesignation" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Start Date *</label>
-                                <input type="date" name="workStartDate" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">End Date (leave blank if current)</label>
-                                <input type="date" name="workEndDate" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <label className={labelCls}>District</label>
+                                    {wf.country === 'Nepal' ? (
+                                        <select value={wf.district} onChange={e => updateWF('district', e.target.value)} className={selectCls}>
+                                            <option value="">Select District</option>
+                                            {(wf.stateProvince ? DISTRICTS_BY_PROVINCE[wf.stateProvince as keyof typeof DISTRICTS_BY_PROVINCE] : Object.values(DISTRICTS_BY_PROVINCE).flat()).map(d => <option key={d} value={d}>{d}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" value={wf.district} onChange={e => updateWF('district', e.target.value)} className={inputCls} />
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <label className={labelCls}>Municipality/GP</label>
+                                    {wf.country === 'Nepal' ? (
+                                        <select value={wf.municipality} onChange={e => updateWF('municipality', e.target.value)} className={selectCls}>
+                                            <option value="">Select Municipality</option>
+                                            {GET_MUNICIPALITIES(wf.district).map(m => <option key={m} value={m}>{m}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" value={wf.municipality} onChange={e => updateWF('municipality', e.target.value)} className={inputCls} />
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <label className={labelCls}>Ward</label>
+                                    {wf.country === 'Nepal' ? (
+                                        <select value={wf.ward} onChange={e => updateWF('ward', e.target.value)} className={selectCls}>
+                                            <option value="">Select Ward</option>
+                                            {WARDS.map(w => <option key={w} value={w}>{w}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" value={wf.ward} onChange={e => updateWF('ward', e.target.value)} className={inputCls} />
+                                    )}
+                                </div>
                             </div>
                         </div>
+
+                        {/* Tenure Dates (AD + BS) */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="space-y-2">
+                                <label className={labelCls}>Start Date (A.D) *</label>
+                                <input type="date" value={wf.startDateAD} onChange={e => updateWF('startDateAD', e.target.value)} className={inputCls} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className={labelCls}>Start Date (B.S)</label>
+                                <input type="text" value={wf.startDateBS} onChange={e => updateWF('startDateBS', e.target.value)} placeholder="YYYY-MM-DD" className={inputCls} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className={labelCls}>End Date (A.D)</label>
+                                <input type="date" value={wf.endDateAD} onChange={e => updateWF('endDateAD', e.target.value)} placeholder="Blank for current" className={inputCls} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className={labelCls}>End Date (B.S)</label>
+                                <input type="text" value={wf.endDateBS} onChange={e => updateWF('endDateBS', e.target.value)} placeholder="YYYY-MM-DD" className={inputCls} />
+                            </div>
+                        </div>
+
+                        {/* Total Duration */}
+                        <div className="flex items-center gap-4 flex-wrap">
+                            <label className={labelCls}>Total Duration:</label>
+                            <div className="flex items-center gap-2">
+                                <input type="number" min="0" value={wf.durationYears} onChange={e => updateWF('durationYears', e.target.value)} className="w-16 bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold text-center focus:outline-none focus:border-blue-900 transition-all" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Years</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input type="number" min="0" value={wf.durationMonths} onChange={e => updateWF('durationMonths', e.target.value)} className="w-16 bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold text-center focus:outline-none focus:border-blue-900 transition-all" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Months</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input type="number" min="0" value={wf.durationDays} onChange={e => updateWF('durationDays', e.target.value)} className="w-16 bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold text-center focus:outline-none focus:border-blue-900 transition-all" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Days</span>
+                            </div>
+                        </div>
+
+                        {/* Add Button */}
+                        <div className="flex justify-center pt-4">
+                            <button type="button" onClick={addWork} className="flex items-center gap-2 px-8 py-3 bg-blue-50 text-blue-900 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-100 transition-all border border-blue-100 shadow-sm">
+                                <Plus className="w-4 h-4" /> {formData.workEditIndex >= 0 ? 'Update' : 'Add Experience'}
+                            </button>
+                        </div>
+
+                        {/* Work Entries Table */}
+                        {formData.workEntries.length > 0 && (
+                            <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-gray-50 border-b border-gray-200">
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">S.No.</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Organization</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Post / Designation</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Duration</th>
+                                            <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {formData.workEntries.map((entry, idx) => (
+                                            <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                                <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
+                                                <td className="px-4 py-3 text-sm font-bold text-gray-700">{entry.organization}</td>
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-600">{entry.post || '-'}</td>
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-600">
+                                                    {[entry.durationYears && `${entry.durationYears}Y`, entry.durationMonths && `${entry.durationMonths}M`, entry.durationDays && `${entry.durationDays}D`].filter(Boolean).join(' ') || 'Not Spec.'}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <button type="button" onClick={() => editWork(idx)} className="text-[9px] font-black text-blue-900 uppercase tracking-widest hover:text-blue-700 transition-colors">Edit</button>
+                                                        <button type="button" onClick={() => deleteWork(idx)} className="text-[9px] font-black text-red-600 uppercase tracking-widest hover:text-red-500 transition-colors">Delete</button>
+                                                        <label className="text-[9px] font-black text-green-700 uppercase tracking-widest hover:text-green-600 transition-colors cursor-pointer">
+                                                            Upload Exp. Letter
+                                                            <input type="file" className="hidden" />
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 );
+            }
             case 8: // Payment
                 return (
                     <div className="space-y-8">
