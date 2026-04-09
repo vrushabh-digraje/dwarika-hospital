@@ -34,7 +34,7 @@ const Footer = () => {
                                 <p className="text-xs text-slate-300">& Medical Academy Pvt. Ltd.</p>
                             </div>
                         </div>
-                        <p className="text-slate-200 text-sm leading-relaxed">
+                        <p className="text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.85)' }}>
                             {t('footer.brand_desc')}
                         </p>
                         <div className="flex gap-2">
@@ -134,7 +134,7 @@ const Footer = () => {
 
                 {/* Bottom Bar */}
                 <div className="mt-14 pt-6 border-t border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-300 text-xs">
-                    <p>&copy; {new Date().getFullYear()} Dwarika Hospital & Medical Academy Pvt. Ltd. {t('footer.rights')}</p>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.85)' }}>&copy; {new Date().getFullYear()} Dwarika Hospital & Medical Academy Pvt. Ltd. {t('footer.rights')}</p>
                     <div className="flex gap-6">
                         <a href="#" className="hover:text-white transition-colors">{t('footer.privacy')}</a>
                         <a href="#" className="hover:text-white transition-colors">{t('footer.terms')}</a>

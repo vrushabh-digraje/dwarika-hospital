@@ -7,7 +7,7 @@ import {
     QrCode, Plus, CreditCard
 } from 'lucide-react';
 import {
-    PROVINCES, DISTRICTS_BY_PROVINCE,
+    PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES,
     WARDS, BLOOD_GROUPS, RELIGIONS, USER_TYPES
 } from '../constants/nepalData';
 
@@ -67,26 +67,37 @@ const ComplexOnlineRegistrationForm = () => {
         localIdNo: '',
 
         // Address
+        // 1. Permanent (Old)
+        oldDistrict: '',
+        oldMunicipality: '',
+        oldMunicipalityType: 'MUNICIPALITY',
+        oldWard: '',
+        oldStreet: '',
+        oldZone: '',
+        oldCountry: 'Nepal',
+
+        // 2. Permanent (Current)
         permanentDistrict: '',
         permanentMunicipality: '',
+        permanentMunicipalityType: 'MUNICIPALITY',
         permanentWard: '',
         permanentStreet: '',
         permanentProvince: '',
-        currentDistrict: '',
-        currentMunicipality: '',
-        currentWard: '',
-        currentStreet: '',
-        currentProvince: '',
+        permanentCountry: 'Nepal',
+
+        // 3. Mailing
         mailingDistrict: '',
         mailingMunicipality: '',
+        mailingMunicipalityType: 'MUNICIPALITY',
         mailingWard: '',
         mailingStreet: '',
         mailingProvince: '',
-        mailingForeign: '',
+        mailingCountry: 'Nepal',
+        mailingForeignAddress: '',
 
         // Academic Detail
         academicDetails: [
-            { level: 'SLC/SEE', school: '', university: '', address: '', markGpa: '', division: '', markSheet: null, characterCert: null, provisionalCert: null }
+            { level: 'SLC/SEE', degree: '', school: '', university: '', address: '', markGpa: '', division: '', speciality: '', markSheet: null, characterCert: null, provisionalCert: null, extraUploads: [] as (File | null)[] }
         ]
     });
 
@@ -219,14 +230,14 @@ const ComplexOnlineRegistrationForm = () => {
 
                             {/* Main Details */}
                             <div className="w-full md:w-2/3 space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                    <div className="space-y-2">
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <div className="space-y-2 w-full md:w-[76px] shrink-0">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Title *</label>
                                         <select
                                             name="title"
                                             value={formData.title}
                                             onChange={handleInputChange}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-2 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none text-center"
                                         >
                                             <option>Mr.</option>
                                             <option>Mrs.</option>
@@ -234,7 +245,7 @@ const ComplexOnlineRegistrationForm = () => {
                                             <option>Dr.</option>
                                         </select>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 flex-1">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">First Name *</label>
                                         <input
                                             type="text"
@@ -245,7 +256,7 @@ const ComplexOnlineRegistrationForm = () => {
                                             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase"
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 flex-1">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Middle Name</label>
                                         <input
                                             type="text"
@@ -256,7 +267,7 @@ const ComplexOnlineRegistrationForm = () => {
                                             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase"
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 flex-1">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Last Name *</label>
                                         <input
                                             type="text"
@@ -403,214 +414,328 @@ const ComplexOnlineRegistrationForm = () => {
                         <p className="text-gray-400 text-xs mt-2 font-medium">Coming soon: Personal, Address, and Academic sections.</p>
                     </div>
                 );
-            case 3: // Address
-                return (
-                    <div className="space-y-10">
-                        {/* Permanent Address */}
+            case 3: { // Address
+                const AddressBlock = ({ title, prefix }: { title: string, prefix: string }) => {
+                    const isOld = prefix === 'old';
+                    const countryField = `${prefix}Country`;
+                    const provinceField = isOld ? 'oldZone' : `${prefix}Province`;
+                    const districtField = `${prefix}District`;
+                    const selectedCountry = (formData as any)[countryField] || 'Nepal';
+                    const isNepal = selectedCountry === 'Nepal';
+                    const selectedProvince = (formData as any)[provinceField] || '';
+
+                    // Get districts filtered by selected province
+                    const getFilteredDistricts = () => {
+                        if (!isNepal) return [];
+                        if (isOld) return Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
+                        if (selectedProvince && DISTRICTS_BY_PROVINCE[selectedProvince as keyof typeof DISTRICTS_BY_PROVINCE]) {
+                            return DISTRICTS_BY_PROVINCE[selectedProvince as keyof typeof DISTRICTS_BY_PROVINCE];
+                        }
+                        return Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
+                    };
+
+                    return (
                         <div className="space-y-6">
                             <h3 className="text-sm font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2 pb-2 border-b-2 border-blue-900/10">
-                                <MapPin className="w-4 h-4" /> Permanent Address (As per Citizenship)
+                                <MapPin className="w-4 h-4" /> {title}
                             </h3>
+
+                            {/* Row 1: Country → Province/Zone → District */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">District *</label>
-                                    <select name="permanentDistrict" value={formData.permanentDistrict} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 appearance-none">
-                                        <option value="">Select District</option>
-                                        {Object.values(DISTRICTS_BY_PROVINCE).flat().sort().map(d => <option key={d} value={d}>{d}</option>)}
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Country *</label>
+                                    <select name={countryField} value={selectedCountry} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
+                                        <option>Nepal</option>
+                                        <option>India</option>
+                                        <option>China</option>
+                                        <option>Bangladesh</option>
+                                        <option>USA</option>
+                                        <option>UK</option>
+                                        <option>Other</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{isOld ? 'Zone *' : 'Province/State *'}</label>
+                                    {isNepal ? (
+                                        isOld ? (
+                                            <select name="oldZone" value={formData.oldZone} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
+                                                <option value="">Select Zone</option>
+                                                {["Mechi", "Kosi", "Sagarmatha", "Janakpur", "Bagmati", "Narayani", "Gandaki", "Lumbini", "Dhaulagiri", "Rapti", "Bheri", "Karnali", "Seti", "Mahakali"].map(z => <option key={z} value={z}>{z}</option>)}
+                                            </select>
+                                        ) : (
+                                            <select name={`${prefix}Province`} value={(formData as any)[`${prefix}Province`]} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
+                                                <option value="">Select Province</option>
+                                                {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                                            </select>
+                                        )
+                                    ) : (
+                                        <input type="text" name={isOld ? 'oldZone' : `${prefix}Province`} value={(formData as any)[isOld ? 'oldZone' : `${prefix}Province`]} onChange={handleInputChange} placeholder="Type state/province..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">District *</label>
+                                    {isNepal ? (
+                                        <select name={districtField} value={(formData as any)[districtField]} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
+                                            <option value="">Select District</option>
+                                            {getFilteredDistricts().map(d => <option key={d} value={d}>{d}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" name={districtField} value={(formData as any)[districtField]} onChange={handleInputChange} placeholder="Type district/city..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Row 2: Municipality → Ward → Street */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Municipality/VDC *</label>
-                                    <input type="text" name="permanentMunicipality" value={formData.permanentMunicipality} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
+                                    {isNepal ? (
+                                        <select name={`${prefix}Municipality`} value={(formData as any)[`${prefix}Municipality`]} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
+                                            <option value="">Select Municipality</option>
+                                            {GET_MUNICIPALITIES((formData as any)[districtField] || '').map(m => <option key={m} value={m}>{m}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" name={`${prefix}Municipality`} value={(formData as any)[`${prefix}Municipality`]} onChange={handleInputChange} placeholder="Type city/municipality..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                    )}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ward No. *</label>
-                                    <select name="permanentWard" value={formData.permanentWard} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 appearance-none">
-                                        <option value="">Select Ward</option>
-                                        {WARDS.map(w => <option key={w} value={w}>{w}</option>)}
-                                    </select>
+                                    {isNepal ? (
+                                        <select name={`${prefix}Ward`} value={(formData as any)[`${prefix}Ward`]} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
+                                            <option value="">Select Ward</option>
+                                            {WARDS.map(w => <option key={w} value={w}>{w}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input type="text" name={`${prefix}Ward`} value={(formData as any)[`${prefix}Ward`]} onChange={handleInputChange} placeholder="Zip/Postal code" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
+                                    )}
                                 </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Street/Tole *</label>
-                                    <input type="text" name="permanentStreet" value={formData.permanentStreet} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
+                                    <input type="text" name={`${prefix}Street`} value={(formData as any)[`${prefix}Street`]} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                </div>
+                            </div>
+                        </div>
+                    );
+                };
+
+                return (
+                    <div className="space-y-10">
+                        <AddressBlock title="Permanent Address (According to Old Citizenship)" prefix="old" />
+                        <AddressBlock title="Permanent Address" prefix="permanent" />
+                        <AddressBlock title="Mailing Address" prefix="mailing" />
+                    </div>
+                );
+            }
+            case 4: { // Academic Detail
+                const updateAcademic = (level: string, field: string, value: any) => {
+                    const updated = formData.academicDetails.map(a => a.level === level ? { ...a, [field]: value } : a);
+                    setFormData(prev => ({ ...prev, academicDetails: updated }));
+                };
+
+                const ACADEMIC_LEVELS_ORDER = ['SLC/SEE', '+2/Intermediate/Diploma', 'Bachelor', 'Master', 'Master Above or Other Degree'];
+
+                const addMoreLevel = () => {
+                    const existingLevels = formData.academicDetails.map(a => a.level);
+                    const nextLevel = ACADEMIC_LEVELS_ORDER.find(l => !existingLevels.includes(l));
+                    if (nextLevel) {
+                        setFormData(prev => ({
+                            ...prev,
+                            academicDetails: [...prev.academicDetails, { level: nextLevel, degree: '', school: '', university: '', address: '', markGpa: '', division: '', speciality: '', markSheet: null, characterCert: null, provisionalCert: null, extraUploads: [] as (File | null)[] }]
+                        }));
+                    }
+                };
+
+                const hasMoreLevels = ACADEMIC_LEVELS_ORDER.some(l => !formData.academicDetails.map(a => a.level).includes(l));
+
+                const isSLC = (level: string) => level === 'SLC/SEE';
+
+                const renderAcademicCard = (detail: typeof formData.academicDetails[0], idx: number) => (
+                    <div key={idx} className="space-y-6">
+                        <h3 className="text-sm font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2 pb-2 border-b-2 border-blue-900/10">
+                            <BookOpen className="w-4 h-4" /> {detail.level}
+                        </h3>
+
+                        {/* Level & Degree (only for non-SLC) */}
+                        {!isSLC(detail.level) && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Level *</label>
+                                    <input type="text" value={detail.level} onChange={(e) => updateAcademic(detail.level, 'level', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Zone/Province *</label>
-                                    <select name="permanentProvince" value={formData.permanentProvince} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 appearance-none">
-                                        <option value="">Select Province</option>
-                                        {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-                                    </select>
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Degree *</label>
+                                    <input type="text" value={detail.degree} onChange={(e) => updateAcademic(detail.level, 'degree', e.target.value)} placeholder="E.g. MBBS, Health Assistant" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Name of School/College + University */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Name of School/College *</label>
+                                <input type="text" value={detail.school} onChange={(e) => updateAcademic(detail.level, 'school', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">University *</label>
+                                <input type="text" value={detail.university} onChange={(e) => updateAcademic(detail.level, 'university', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
                             </div>
                         </div>
 
-                        {/* Mailing Address */}
-                        <div className="space-y-6 pt-4">
-                            <div className="flex justify-between items-center pb-2 border-b-2 border-blue-900/10">
-                                <h3 className="text-sm font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <Mail className="w-4 h-4" /> Mailing Address
-                                </h3>
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({
-                                        ...prev,
-                                        mailingDistrict: prev.permanentDistrict,
-                                        mailingMunicipality: prev.permanentMunicipality,
-                                        mailingWard: prev.permanentWard,
-                                        mailingStreet: prev.permanentStreet,
-                                        mailingProvince: prev.permanentProvince
-                                    }))}
-                                    className="text-[10px] font-black text-blue-900 uppercase tracking-widest hover:underline"
-                                >
-                                    Same as Permanent?
-                                </button>
+                        {/* School/College Address + Mark Obtained/GPA */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">School/College Address *</label>
+                                <input type="text" value={detail.address} onChange={(e) => updateAcademic(detail.level, 'address', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">District *</label>
-                                    <select name="mailingDistrict" value={formData.mailingDistrict} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 appearance-none">
-                                        <option value="">Select District</option>
-                                        {Object.values(DISTRICTS_BY_PROVINCE).flat().sort().map(d => <option key={d} value={d}>{d}</option>)}
-                                    </select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Municipality/VDC *</label>
-                                    <input type="text" name="mailingMunicipality" value={formData.mailingMunicipality} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ward No. *</label>
-                                    <select name="mailingWard" value={formData.mailingWard} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 appearance-none">
-                                        <option value="">Select Ward</option>
-                                        {WARDS.map(w => <option key={w} value={w}>{w}</option>)}
-                                    </select>
-                                </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Mark Obtained/GPA *</label>
+                                <input type="text" value={detail.markGpa} onChange={(e) => updateAcademic(detail.level, 'markGpa', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
                             </div>
                         </div>
+
+                        {/* Division/Grade + Speciality (non-SLC only) */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Division/Grade *</label>
+                                <input type="text" value={detail.division} onChange={(e) => updateAcademic(detail.level, 'division', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                            </div>
+                            {!isSLC(detail.level) && (
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Speciality</label>
+                                    <input type="text" value={detail.speciality} onChange={(e) => updateAcademic(detail.level, 'speciality', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* File Uploads - Dashed Square Boxes */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {[
+                                { label: isSLC(detail.level) ? 'Marksheet' : 'Marksheet/Transcript', key: 'markSheet' },
+                                { label: 'Character Certificate', key: 'characterCert' },
+                                { label: 'Provisional Certificate', key: 'provisionalCert' },
+                            ].map(upload => (
+                                <div key={upload.key} className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Upload {upload.label} *</label>
+                                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center relative group hover:border-blue-900 transition-all">
+                                        <Upload className="w-6 h-6 text-gray-300 mx-auto mb-2 group-hover:text-blue-900 transition-colors" />
+                                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-wider">
+                                            {(detail as any)[upload.key] ? (detail as any)[upload.key].name : 'Select File'}
+                                        </p>
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => {
+                                            if (e.target.files?.[0]) updateAcademic(detail.level, upload.key, e.target.files[0]);
+                                        }} />
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Extra upload boxes added by "Click Here" */}
+                            {detail.extraUploads.map((file, eIdx) => (
+                                <div key={`extra-${eIdx}`} className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Additional Document {eIdx + 1}</label>
+                                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center relative group hover:border-blue-900 transition-all">
+                                        <Upload className="w-6 h-6 text-gray-300 mx-auto mb-2 group-hover:text-blue-900 transition-colors" />
+                                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-wider">
+                                            {file ? file.name : 'Select File'}
+                                        </p>
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => {
+                                            if (e.target.files?.[0]) {
+                                                const updatedExtras = [...detail.extraUploads];
+                                                updatedExtras[eIdx] = e.target.files[0];
+                                                updateAcademic(detail.level, 'extraUploads', updatedExtras);
+                                            }
+                                        }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Additional Upload Link */}
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                            Additional Upload Please <button type="button" onClick={() => {
+                                const updatedExtras = [...detail.extraUploads, null];
+                                updateAcademic(detail.level, 'extraUploads', updatedExtras);
+                            }} className="underline text-blue-900 hover:text-blue-700 transition-colors">Click Here</button>
+                        </p>
                     </div>
                 );
-            case 4: // Academic Detail
-                const slc = formData.academicDetails.find(a => a.level === 'SLC/SEE');
+
                 return (
-                    <div className="space-y-8">
-                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10 mb-8">
+                    <div className="space-y-10">
+                        {/* Section Banner Header */}
+                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
                             <h3 className="text-lg font-black uppercase tracking-tight flex items-center gap-3">
-                                <BookOpen className="w-6 h-6 text-blue-300" /> Academic Qualifications
+                                <BookOpen className="w-6 h-6 text-blue-300" /> Academic Detail
                             </h3>
                             <p className="text-blue-200 text-xs font-medium mt-1 uppercase tracking-widest">Starting from SLC/SEE onwards</p>
                         </div>
 
-                        <div className="space-y-6">
-                            <h4 className="text-xs font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2 pb-2 border-b border-gray-100">
-                                <CheckCircle2 className="w-4 h-4 text-green-500" /> SLC / SEE Details
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Name of School/College *</label>
-                                    <input
-                                        type="text"
-                                        value={slc?.school}
-                                        onChange={(e) => {
-                                            const updated = formData.academicDetails.map(a => a.level === 'SLC/SEE' ? { ...a, school: e.target.value } : a);
-                                            setFormData(prev => ({ ...prev, academicDetails: updated }));
-                                        }}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Board / University *</label>
-                                    <input
-                                        type="text"
-                                        value={slc?.university}
-                                        onChange={(e) => {
-                                            const updated = formData.academicDetails.map(a => a.level === 'SLC/SEE' ? { ...a, university: e.target.value } : a);
-                                            setFormData(prev => ({ ...prev, academicDetails: updated }));
-                                        }}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase"
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Mark Obtained / GPA *</label>
-                                    <input type="text" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Division / Grade *</label>
-                                    <input type="text" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Passed Year *</label>
-                                    <input type="text" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" placeholder="YYYY" />
-                                </div>
-                            </div>
+                        {/* Render each academic level */}
+                        {formData.academicDetails.map((detail, idx) => renderAcademicCard(detail, idx))}
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-                                {['Marksheet', 'Character', 'Provisional'].map(type => (
-                                    <div key={type} className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Upload {type} *</label>
-                                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center relative group hover:border-blue-900 transition-all">
-                                            <Upload className="w-6 h-6 text-gray-300 mx-auto mb-2 group-hover:text-blue-900" />
-                                            <p className="text-[8px] font-black uppercase text-gray-400 tracking-wider">Select File</p>
-                                            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
-                                        </div>
-                                    </div>
-                                ))}
+                        {/* Add More Button - only shows if there are more levels to add */}
+                        {hasMoreLevels && (
+                            <div className="pt-6 border-t border-gray-100 flex justify-center">
+                                <button type="button" onClick={addMoreLevel} className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-900 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-100 transition-all border border-blue-100 shadow-sm">
+                                    <Plus className="w-4 h-4" /> Add Higher Degree
+                                </button>
                             </div>
-                        </div>
-
-                        <div className="pt-6 border-t border-gray-100 flex justify-center">
-                            <button type="button" className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-900 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-100 transition-all border border-blue-100 shadow-sm">
-                                <Plus className="w-4 h-4" /> Add Higher Degree (+2 / Diploma)
-                            </button>
-                        </div>
+                        )}
                     </div>
                 );
+            }
                 case 5: // Council Registration
                 return (
-                    <div className="space-y-6">
-                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10 mb-8">
+                    <div className="space-y-8">
+                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
                             <h3 className="text-lg font-black uppercase tracking-tight flex items-center gap-3">
-                                <Award className="w-6 h-6 text-blue-300" /> Council Registration Details
+                                <Award className="w-6 h-6 text-blue-300" /> Council Registration Detail
                             </h3>
                             <p className="text-blue-200 text-xs font-medium mt-1 uppercase tracking-widest">Provide your professional council details</p>
                         </div>
 
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Registration No. *</label>
-                                    <input type="text" name="councilRegNo" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Issue Date *</label>
-                                    <input type="date" name="councilIssueDate" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Expiry Date</label>
-                                    <input type="date" name="councilExpiryDate" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
-                                </div>
+                        {/* Row 1: Council Regd. No + Type of Registration */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Council Regd. No. *</label>
+                                <input type="text" name="councilRegNo" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Upload Registration Certificate *</label>
-                                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center relative group hover:border-blue-900 transition-all">
-                                        <Upload className="w-6 h-6 text-gray-300 mx-auto mb-2 group-hover:text-blue-900" />
-                                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-wider">Select File</p>
-                                        <input type="file" name="councilCert" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Upload Renewal Receipt</label>
-                                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center relative group hover:border-blue-900 transition-all">
-                                        <Upload className="w-6 h-6 text-gray-300 mx-auto mb-2 group-hover:text-blue-900" />
-                                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-wider">Select File</p>
-                                        <input type="file" name="councilRenewal" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-                                    </div>
-                                </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Type of Registration *</label>
+                                <select name="councilRegType" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
+                                    <option value="">Select Type</option>
+                                    <option>Temporary</option>
+                                    <option>Permanent</option>
+                                    <option>Renewal</option>
+                                </select>
                             </div>
                         </div>
+
+                        {/* Row 2: Educational Qualification + Council Name */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Educational Qualification *</label>
+                                <input type="text" name="councilEduQualification" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Council Name *</label>
+                                <input type="text" name="councilName" onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                            </div>
+                        </div>
+
+                        {/* Upload Council Registration Certificate */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Upload Council Registration Certificate *</label>
+                            <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center relative group hover:border-blue-900 transition-all">
+                                <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2 group-hover:text-blue-900 transition-colors" />
+                                <p className="text-[9px] font-black uppercase text-gray-400 tracking-wider">Select File</p>
+                                <input type="file" name="councilCert" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                            </div>
+                        </div>
+
+                        {/* Additional Upload */}
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                            Additional Upload Please <button type="button" className="underline text-blue-900 hover:text-blue-700 transition-colors">Click Here</button>
+                        </p>
                     </div>
                 );
             case 6: // Training Details
@@ -762,7 +887,7 @@ const ComplexOnlineRegistrationForm = () => {
                     <div className="bg-blue-900 p-8 text-white relative overflow-hidden flex-shrink-0">
                         <div className="relative z-10 flex justify-between items-center">
                             <div className="rounded-2xl bg-white/[0.04] px-5 py-4 ring-1 ring-white/10 backdrop-blur-[2px]">
-                                <h1 className="text-3xl font-black uppercase tracking-tight leading-none text-white drop-shadow-[0_2px_10px_rgba(15,23,42,0.35)]">
+                                <h1 className="text-3xl font-black uppercase tracking-tight leading-none text-white" style={{ color: '#ffffff' }}>
                                     Registration Portal
                                 </h1>
                                 <p className="text-blue-100 text-sm font-bold mt-2 uppercase tracking-widest flex items-center gap-2">

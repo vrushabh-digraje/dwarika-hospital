@@ -129,8 +129,8 @@ const HeroSection = () => {
                                         <badge.icon className="w-4 h-4 text-primary-light" />
                                     </div>
                                     <div>
-                                        <p className="text-white font-bold text-base leading-none">{badge.value}</p>
-                                        <p className="mt-1 text-white/88 text-sm leading-snug">{badge.label}</p>
+                                        <p className="font-bold text-base leading-none" style={{ color: '#ffffff' }}>{badge.value}</p>
+                                        <p className="mt-1 text-sm leading-snug" style={{ color: '#ffffff', opacity: 0.9 }}>{badge.label}</p>
                                     </div>
                                 </div>
                             ))}
@@ -174,8 +174,8 @@ const HeroSection = () => {
                                         <span className="inline-block px-2.5 py-0.5 bg-primary rounded text-xs font-semibold text-white mb-1.5">
                                             {t(`hero.featured.${DOCTORS[currentDoctorIndex].featuredIndex}.specialization`)}
                                         </span>
-                                        <h3 className="text-lg font-bold text-white">{DOCTORS[currentDoctorIndex].name}</h3>
-                                        <p className="text-white/70 text-sm">{t(`hero.featured.${DOCTORS[currentDoctorIndex].featuredIndex}.qualification`)}</p>
+                                        <h3 className="text-lg font-bold" style={{ color: '#ffffff' }}>{DOCTORS[currentDoctorIndex].name}</h3>
+                                        <p className="text-sm" style={{ color: '#ffffff', opacity: 0.9 }}>{t(`hero.featured.${DOCTORS[currentDoctorIndex].featuredIndex}.qualification`)}</p>
                                     </div>
                                 </div>
 
@@ -238,9 +238,9 @@ const HeroSection = () => {
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent" />
                                 <div className="absolute bottom-0 inset-x-0 p-6">
                                     <span className="inline-block px-3 py-1 bg-primary/80 rounded-md mb-2 text-[13px] font-semibold text-white">{t(`hero.featured.${selectedDoctor.featuredIndex}.specialization`)}</span>
-                                    <h3 className="text-xl font-bold text-white mb-1">{selectedDoctor.name}</h3>
-                                    <p className="text-white/70 text-base">{t(`hero.featured.${selectedDoctor.featuredIndex}.qualification`)}</p>
-                                    <p className="text-white/40 text-sm mt-1">{t('hero.nmc_no', { no: selectedDoctor.nmcNo })}</p>
+                                    <h3 className="text-xl font-bold mb-1" style={{ color: '#ffffff' }}>{selectedDoctor.name}</h3>
+                                    <p className="text-base" style={{ color: '#ffffff', opacity: 0.9 }}>{t(`hero.featured.${selectedDoctor.featuredIndex}.qualification`)}</p>
+                                    <p className="text-sm mt-1" style={{ color: '#ffffff', opacity: 0.7 }}>{t('hero.nmc_no', { no: selectedDoctor.nmcNo })}</p>
                                 </div>
                             </div>
                         </motion.div>

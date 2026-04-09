@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Lock, Mail, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Lock, Mail, ShieldCheck, UserCircle, BriefcaseMedical } from 'lucide-react';
 import { postData } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -39,6 +39,24 @@ const LoginPage = () => {
                         </div>
                         <h1 className="text-3xl font-black tracking-tight text-slate-900">Sign in</h1>
                         <p className="mt-2 text-sm text-slate-500">Use your email and password to access your account.</p>
+
+                        <div className="mt-6 flex rounded-xl bg-slate-100 p-1">
+                            <button
+                                type="button"
+                                className="flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold transition-all bg-white text-blue-900 shadow-sm"
+                            >
+                                <UserCircle className="h-4 w-4" />
+                                Patient
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/online-form')}
+                                className="flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                            >
+                                <BriefcaseMedical className="h-4 w-4" />
+                                Staff
+                            </button>
+                        </div>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-5">
@@ -105,9 +123,6 @@ const LoginPage = () => {
                     </form>
 
                     <div className="mt-8 border-t border-slate-100 pt-6 text-center">
-                        <p className="text-sm text-slate-500">
-                            Need to complete patient registration?
-                        </p>
                         <button
                             onClick={() => navigate('/online-form')}
                             className="mt-3 inline-flex items-center gap-2 text-sm font-black text-blue-900 hover:text-blue-700"

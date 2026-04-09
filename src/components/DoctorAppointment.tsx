@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -9,10 +9,11 @@ import {
 } from 'lucide-react';
 import Button from './Button';
 import { postData } from '../lib/api';
-import { NepaliDatePicker } from 'nepali-datepicker-reactjs';
+import NepaliDatePickerCustom from './NepaliDatePickerCustom';
+import EnglishDatePicker from './EnglishDatePicker';
 import BikramSambat from 'bikram-sambat-js';
-import { PROVINCES, DISTRICTS_BY_PROVINCE, MUNICIPALITY_TYPES, COMMON_VILLAGES, CASTES_BY_GROUP } from '../constants/nepalData';
-import 'nepali-datepicker-reactjs/dist/index.css';
+import { PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES, COMMON_VILLAGES, CASTES_BY_GROUP } from '../constants/nepalData';
+// import 'nepali-datepicker-reactjs/dist/index.css';
 
 const ETHNIC_GROUPS = Object.keys(CASTES_BY_GROUP);
 
@@ -99,9 +100,10 @@ const DoctorAppointment = () => {
         country: 'Nepal',
         province: 'Select Province',
         district: '',
-        municipalityType: 'Municipality',
+        municipality: '',
         ward: '',
         villageTole: '',
+        age: '',
         message: '',
         existingCondition: '',
         diseaseStatus: '',
@@ -114,6 +116,8 @@ const DoctorAppointment = () => {
     const [dobDateBS, setDobDateBS] = useState('');
     const [appointmentDateBS, setAppointmentDateBS] = useState('');
     const [appointmentDateAD, setAppointmentDateAD] = useState('');
+    const [dobDateAD, setDobDateAD] = useState('');
+    const [dobCalendarMode, setDobCalendarMode] = useState<'BS' | 'AD'>('BS');
     const [step, setStep] = useState(1);
     const navigate = useNavigate();
     const location = useLocation();
@@ -127,13 +131,92 @@ const DoctorAppointment = () => {
         window.scrollTo(0, 0);
     }, []);
 
+    const dobSyncSource = useRef<'BS' | 'AD' | null>(null);
+
     useEffect(() => {
-        if (dobDateBS) {
-            try {
-                setFormData(prev => prev.dobBs === dobDateBS ? prev : { ...prev, dobBs: dobDateBS });
-            } catch (e) { /* ignore partial Input */ }
+        if (!dobDateBS) return;
+        if (dobSyncSource.current === 'AD') {
+            dobSyncSource.current = null;
+            return;
         }
+        try {
+            const age = getAgeFromDobBs(dobDateBS);
+            const bs = new BikramSambat(dobDateBS, 'BS');
+            const adDate = bs.toAD();
+            const formattedAD = new Date(adDate).toISOString().split('T')[0];
+            
+            setFormData(prev => ({ 
+                ...prev, 
+                dobBs: dobDateBS,
+                age: age.split('y')[0].trim() || prev.age 
+            }));
+
+            dobSyncSource.current = 'BS';
+            setDobDateAD(formattedAD);
+        } catch (e) { /* ignore */ }
     }, [dobDateBS]);
+
+    useEffect(() => {
+        if (!dobDateAD) return;
+        if (dobSyncSource.current === 'BS') {
+            dobSyncSource.current = null;
+            return;
+        }
+        try {
+            const bsDate = new BikramSambat(dobDateAD, 'AD').toBS();
+            dobSyncSource.current = 'AD';
+            setDobDateBS(bsDate);
+        } catch (e) { /* ignore */ }
+    }, [dobDateAD]);
+
+    const apptSyncSource = useRef<'BS' | 'AD' | null>(null);
+    useEffect(() => {
+        if (!appointmentDateBS) return;
+        if (apptSyncSource.current === 'AD') {
+            apptSyncSource.current = null;
+            return;
+        }
+        try {
+            const bs = new BikramSambat(appointmentDateBS, 'BS');
+            const adDate = bs.toAD();
+            // Ensure YYYY-MM-DD format if library returns differently
+            const formattedAD = new Date(adDate).toISOString().split('T')[0];
+            apptSyncSource.current = 'BS';
+            setAppointmentDateAD(formattedAD);
+        } catch (e) { /* ignore */ }
+    }, [appointmentDateBS]);
+
+    useEffect(() => {
+        if (!appointmentDateAD) return;
+        if (apptSyncSource.current === 'BS') {
+            apptSyncSource.current = null;
+            return;
+        }
+        try {
+            const bsDate = new BikramSambat(appointmentDateAD, 'AD').toBS();
+            apptSyncSource.current = 'AD';
+            setAppointmentDateBS(bsDate);
+        } catch (e) { /* ignore */ }
+    }, [appointmentDateAD]);
+
+    const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newAge = e.target.value;
+        const ageNum = parseInt(newAge);
+        
+        setFormData(prev => ({ ...prev, age: newAge }));
+
+        if (!isNaN(ageNum) && ageNum >= 0 && ageNum < 150) {
+            try {
+                const todayAD = new Date();
+                const todayBS = new BikramSambat(todayAD, 'AD').toBS();
+                const [yearBS, monthBS, dayBS] = todayBS.split('-').map(Number);
+                const birthYearBS = yearBS - ageNum;
+                const newDobBS = `${birthYearBS}-${monthBS.toString().padStart(2, '0')}-${dayBS.toString().padStart(2, '0')}`;
+                
+                setDobDateBS(newDobBS);
+            } catch (e) { /* ignore */ }
+        }
+    };
 
     useEffect(() => {
         if (appointmentDateBS) {
@@ -175,6 +258,7 @@ const DoctorAppointment = () => {
     const availableDistricts = formData.province && formData.province !== 'Select Province'
         ? DISTRICTS_BY_PROVINCE[formData.province as keyof typeof DISTRICTS_BY_PROVINCE] ?? []
         : [];
+    const availableMunicipalities = formData.district ? GET_MUNICIPALITIES(formData.district) : [];
     const combinedPatientName = [formData.firstName, formData.middleName, formData.lastName].filter(Boolean).join(' ').trim();
     const derivedAge = getAgeFromDobBs(dobDateBS || formData.dobBs);
     const langCode = (i18n.resolvedLanguage ?? i18n.language ?? 'en').split('-')[0].toLowerCase();
@@ -203,6 +287,7 @@ const DoctorAppointment = () => {
         if (formData.country === 'Nepal') {
             if (formData.province === 'Select Province') newErrors.province = t('appointment.errors.province') || "Please select a province.";
             if (!formData.district) newErrors.district = t('appointment.errors.district') || "Please select a district.";
+            if (!formData.municipality) newErrors.municipality = "Municipality is required.";
             if (!formData.ward.trim()) newErrors.ward = t('appointment.errors.ward') || "Ward is required.";
             if (!formData.villageTole.trim()) newErrors.villageTole = t('appointment.errors.village') || "Village / Tole is required.";
         } else {
@@ -525,24 +610,52 @@ const DoctorAppointment = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 gap-4 xl:grid-cols-6">
-                                                    <div className="space-y-2 xl:col-span-2">
-                                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-700">DOB (BS) *</label>
-                                                        <NepaliDatePicker
-                                                            value={dobDateBS}
-                                                            onChange={(value: string) => setDobDateBS(value)}
-                                                            options={{ calenderLocale: pickerLocale, valueLocale: pickerLocale }}
-                                                            inputClassName={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.age ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`}
-                                                        />
+                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <label className="text-xs font-bold uppercase tracking-widest text-slate-700">DOB *</label>
+                                                            <div className="flex rounded-md bg-slate-100 p-0.5">
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => setDobCalendarMode('BS')}
+                                                                    className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${dobCalendarMode === 'BS' ? 'bg-white text-blue-900 shadow-sm' : 'text-slate-500'}`}
+                                                                >NEP</button>
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => setDobCalendarMode('AD')}
+                                                                    className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${dobCalendarMode === 'AD' ? 'bg-white text-blue-900 shadow-sm' : 'text-slate-500'}`}
+                                                                >ENG</button>
+                                                            </div>
+                                                        </div>
+                                                        {dobCalendarMode === 'BS' ? (
+                                                            <NepaliDatePickerCustom
+                                                                value={dobDateBS}
+                                                                onChange={(value: string) => setDobDateBS(value)}
+                                                                className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.age ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`}
+                                                            />
+                                                        ) : (
+                                                            <EnglishDatePicker 
+                                                                value={dobDateAD}
+                                                                onChange={(value) => setDobDateAD(value)}
+                                                                className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.age ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`}
+                                                            />
+                                                        )}
                                                         {errors.age && <p className="text-xs text-red-500">{errors.age}</p>}
                                                     </div>
-                                                    <div className="space-y-2 xl:col-span-2">
+                                                    <div className="space-y-2">
                                                         <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Age</label>
-                                                        <div className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
-                                                            {derivedAge || 'Auto-calculated from DOB'}
-                                                        </div>
+                                                        <input 
+                                                            type="number" 
+                                                            name="age" 
+                                                            min="0"
+                                                            onKeyDown={(e) => ['-', '+', 'e', 'E'].includes(e.key) && e.preventDefault()}
+                                                            value={formData.age} 
+                                                            onChange={handleAgeChange}
+                                                            placeholder="Years"
+                                                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" 
+                                                        />
                                                     </div>
-                                                    <div className="space-y-2 xl:col-span-2">
+                                                    <div className="space-y-2">
                                                         <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Gender *</label>
                                                         <select name="gender" value={formData.gender} onChange={handleInputChange} className={`w-full rounded-xl border bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none ${errors.gender ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} style={selectIndicatorStyle}>
                                                             <option disabled>Select Gender</option>
@@ -557,7 +670,21 @@ const DoctorAppointment = () => {
                                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                     <div className="space-y-2">
                                                         <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Religion</label>
-                                                        <input type="text" name="religion" value={formData.religion} onChange={handleInputChange} placeholder="Religion" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                        <select 
+                                                            name="religion" 
+                                                            value={formData.religion} 
+                                                            onChange={handleInputChange} 
+                                                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20"
+                                                            style={selectIndicatorStyle}
+                                                        >
+                                                            <option value="">Select Religion</option>
+                                                            <option value="Hinduism">Hinduism</option>
+                                                            <option value="Buddhism">Buddhism</option>
+                                                            <option value="Islam">Islam</option>
+                                                            <option value="Kirat">Kirat</option>
+                                                            <option value="Christianity">Christianity</option>
+                                                            <option value="Others">Others</option>
+                                                        </select>
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Ethnic Group *</label>
@@ -600,7 +727,7 @@ const DoctorAppointment = () => {
                                                         </div>
                                                         <div className="space-y-2">
                                                             {formData.country === 'Nepal' ? (
-                                                                <select name="district" value={formData.district} onChange={handleInputChange} className={`w-full rounded-xl border bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none ${errors.district ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} style={selectIndicatorStyle} disabled={formData.province === 'Select Province'}>
+                                                                <select name="district" value={formData.district} onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value, municipality: '' }))} className={`w-full rounded-xl border bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none ${errors.district ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} style={selectIndicatorStyle} disabled={formData.province === 'Select Province'}>
                                                                     <option value="" disabled>{formData.province === 'Select Province' ? 'Select province first' : 'Select District'}</option>
                                                                     {availableDistricts.map(district => <option key={district} value={district}>{district}</option>)}
                                                                 </select>
@@ -612,19 +739,34 @@ const DoctorAppointment = () => {
                                                     </div>
 
                                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                                        <select name="municipalityType" value={formData.municipalityType} onChange={handleInputChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" style={selectIndicatorStyle} disabled={formData.country !== 'Nepal'}>
-                                                            {MUNICIPALITY_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
-                                                        </select>
+                                                        <div className="space-y-2">
+                                                            <select 
+                                                                name="municipality" 
+                                                                value={formData.municipality} 
+                                                                onChange={handleInputChange} 
+                                                                className={`w-full rounded-xl border bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} 
+                                                                style={selectIndicatorStyle} 
+                                                                disabled={!formData.district || formData.country !== 'Nepal'}
+                                                            >
+                                                                <option value="" disabled>{formData.district ? 'Select Municipality' : 'Select District first'}</option>
+                                                                {availableMunicipalities.map(m => <option key={m} value={m}>{m}</option>)}
+                                                            </select>
+                                                            {errors.municipality && <p className="text-xs text-red-500">{errors.municipality}</p>}
+                                                        </div>
                                                         <div className="space-y-2">
                                                             <input type="text" name="ward" value={formData.ward} onChange={handleInputChange} placeholder="Ward No." className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.ward ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} />
                                                             {errors.ward && <p className="text-xs text-red-500">{errors.ward}</p>}
                                                         </div>
                                                         <div className="space-y-2">
                                                             {formData.country === 'Nepal' ? (
-                                                                <select name="villageTole" value={formData.villageTole} onChange={handleInputChange} className={`w-full rounded-xl border bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none ${errors.villageTole ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} style={selectIndicatorStyle}>
-                                                                    <option value="" disabled>Select Village / Tole</option>
-                                                                    {COMMON_VILLAGES.map(village => <option key={village} value={village}>{village}</option>)}
-                                                                </select>
+                                                                <input 
+                                                                    type="text" 
+                                                                    name="villageTole" 
+                                                                    value={formData.villageTole} 
+                                                                    onChange={handleInputChange} 
+                                                                    placeholder="Village / Tole" 
+                                                                    className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.villageTole ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} 
+                                                                />
                                                             ) : (
                                                                 <input type="text" name="address" value={formData.address} onChange={handleInputChange} placeholder="Address" className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.address ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} />
                                                             )}
@@ -672,11 +814,11 @@ const DoctorAppointment = () => {
                                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                         <div className="space-y-2">
                                                             <span className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-900/45">Nepali Calendar (BS)</span>
-                                                            <NepaliDatePicker value={appointmentDateBS} onChange={(value: string) => setAppointmentDateBS(value)} options={{ calenderLocale: pickerLocale, valueLocale: pickerLocale }} inputClassName="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                            <NepaliDatePickerCustom value={appointmentDateBS} onChange={(value: string) => setAppointmentDateBS(value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
                                                         </div>
                                                         <div className="space-y-2">
                                                             <span className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-900/45">English Calendar (AD)</span>
-                                                            <NepaliDatePicker value={appointmentDateAD} onChange={(value: string) => setAppointmentDateAD(value)} options={{ calenderLocale: pickerLocale, valueLocale: pickerLocale }} inputClassName="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                            <EnglishDatePicker value={appointmentDateAD} onChange={(value: string) => setAppointmentDateAD(value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
                                                         </div>
                                                     </div>
                                                     {errors.appointmentDates && <p className="text-xs text-red-500">{errors.appointmentDates}</p>}

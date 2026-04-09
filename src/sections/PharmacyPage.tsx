@@ -55,10 +55,10 @@ const PharmacyPage = () => {
                         <div className="flex items-center gap-2 text-blue-300 font-bold uppercase tracking-widest text-xs">
                             <Pill className="w-4 h-4" /> Dwarika Pharmacy
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
-                            Your Trusted Partner for <span className="text-blue-300">Health & Wellness</span>
+                        <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight !text-white">
+                            Your Trusted Partner for <span className="!text-blue-300">Health & Wellness</span>
                         </h1>
-                        <p className="text-blue-100 text-lg max-w-xl leading-relaxed">
+                        <p className="!text-blue-100 text-lg max-w-xl leading-relaxed">
                             We provide a wide range of prescription medicines, OTC products, and surgical supplies with a commitment to quality and care.
                         </p>
                     </div>

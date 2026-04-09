@@ -173,7 +173,7 @@ const ContactUsPage = () => {
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-[0.92fr_1.08fr]">
                     <div className="space-y-8">
                         <div className="rounded-[28px] bg-blue-900 p-8 text-white shadow-xl shadow-blue-900/15">
-                            <h2 className="mb-6 text-lg font-black uppercase tracking-[0.24em] text-white/95">Contact Information</h2>
+                            <h2 className="mb-6 text-lg font-black uppercase tracking-[0.24em] !text-white border-b border-white/20 pb-4">Contact Information</h2>
 
                             <ul className="space-y-6 text-sm">
                                 <li className="flex items-start gap-4">
@@ -181,12 +181,12 @@ const ContactUsPage = () => {
                                         <MapPin className="h-4 w-4 text-white" />
                                     </div>
                                     <div>
-                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] text-blue-200">Address</p>
+                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] !text-blue-200">Address</p>
                                         <a
                                             href="https://maps.google.com/?q=Kalyanpur,+Khadak+Municipality,+Saptari,+Nepal"
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="font-semibold leading-relaxed text-white transition-colors hover:text-blue-100"
+                                            className="font-semibold leading-relaxed !text-white transition-colors hover:text-blue-100"
                                         >
                                             Kalyanpur, Khadak Municipality,
                                             <br />
@@ -202,8 +202,8 @@ const ContactUsPage = () => {
                                         <Phone className="h-4 w-4 text-white" />
                                     </div>
                                     <div>
-                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] text-blue-200">Enquiry</p>
-                                        <a href="tel:031590123" className="font-semibold text-white transition-colors hover:text-blue-100">
+                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] !text-blue-200">Enquiry</p>
+                                        <a href="tel:031590123" className="font-semibold !text-white transition-colors hover:text-blue-100">
                                             031-590123
                                         </a>
                                     </div>
@@ -214,8 +214,8 @@ const ContactUsPage = () => {
                                         <PhoneCall className="h-4 w-4 text-white" />
                                     </div>
                                     <div>
-                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] text-blue-200">Mobile</p>
-                                        <a href="tel:9705490123" className="font-semibold text-white transition-colors hover:text-blue-100">
+                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] !text-blue-200">Mobile</p>
+                                        <a href="tel:9705490123" className="font-semibold !text-white transition-colors hover:text-blue-100">
                                             9705490123
                                         </a>
                                     </div>
@@ -226,8 +226,8 @@ const ContactUsPage = () => {
                                         <Mail className="h-4 w-4 text-white" />
                                     </div>
                                     <div>
-                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] text-blue-200">Email</p>
-                                        <a href="mailto:dwarikahospital15@gmail.com" className="font-semibold text-white transition-colors hover:text-blue-100">
+                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] !text-blue-200">Email</p>
+                                        <a href="mailto:dwarikahospital15@gmail.com" className="font-semibold !text-white transition-colors hover:text-blue-100">
                                             dwarikahospital15@gmail.com
                                         </a>
                                     </div>
@@ -238,12 +238,12 @@ const ContactUsPage = () => {
                                         <Globe className="h-4 w-4 text-white" />
                                     </div>
                                     <div>
-                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] text-blue-200">Website</p>
+                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] !text-blue-200">Website</p>
                                         <a
                                             href="https://www.dhama.com.np"
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="font-semibold text-white transition-colors hover:text-blue-100"
+                                            className="font-semibold !text-white transition-colors hover:text-blue-100"
                                         >
                                             www.dhama.com.np
                                         </a>

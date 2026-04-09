@@ -37,6 +37,29 @@ export const DISTRICTS_BY_PROVINCE: Record<string, string[]> = {
   ],
 };
 
+export const MUNICIPALITIES_BY_DISTRICT: Record<string, string[]> = {
+  "Kathmandu": ["Kathmandu Metropolitan City", "Kirtipur Municipality", "Budhanilkantha Municipality", "Gokarneshwor Municipality", "Tokha Municipality", "Tarakeshwar Municipality", "Nagarjun Municipality", "Chandragiri Municipality", "Dakshinkali Municipality", "Shankharapur Municipality", "Kageshwori Manohara Municipality"],
+  "Lalitpur": ["Lalitpur Metropolitan City", "Mahalaxmi Municipality", "Godawari Municipality", "Konjyosom Rural Municipality", "Bagmati Rural Municipality", "Mahankal Rural Municipality"],
+  "Bhaktapur": ["Bhaktapur Municipality", "Madhyapur Thimi Municipality", "Changunarayan Municipality", "Suryabinayak Municipality"],
+  "Kaski": ["Pokhara Metropolitan City", "Annapurna Rural Municipality", "Machhapuchchhre Rural Municipality", "Madi Rural Municipality", "Rupa Rural Municipality"],
+  "Chitwan": ["Bharatpur Metropolitan City", "Ratnanagar Municipality", "Khairahani Municipality", "Rapti Municipality", "Kalika Municipality", "Madi Municipality", "Ichchhakamana Rural Municipality"],
+  "Morang": ["Biratnagar Metropolitan City", "Belbari Municipality", "Letang Municipality", "Pathari Sanischare Municipality", "Rangeli Municipality", "Ratuwamai Municipality", "Sunawarshi Municipality", "Urlabari Municipality"],
+  "Sunsari": ["Itahari Sub-Metropolitan City", "Dharan Sub-Metropolitan City", "Inaruwa Municipality", "Duhabi Municipality", "Ramdhuni Municipality", "Barahachhetra Municipality"],
+  "Jhapa": ["Birtamod Municipality", "Damak Municipality", "Bhadrapur Municipality", "Mechinagar Municipality", "Arjundhara Municipality", "Kankai Municipality", "Shivasatakshi Municipality", "Gauradaha Municipality"],
+  "Dhanusa": ["Janakpur Sub-Metropolitan City", "Ganeshman Charnath Municipality", "Dhanusadham Municipality", "Dhanauji Rural Municipality"],
+  "Rupandehi": ["Butwal Sub-Metropolitan City", "Siddharthanagar Municipality", "Tilottama Municipality", "Lumbini Sanskritik Municipality", "Devdaha Municipality", "Sainamaina Municipality"],
+  "Banke": ["Nepalgunj Sub-Metropolitan City", "Kohalpur Municipality", "Khajura Rural Municipality"],
+  "Dang": ["Ghorahi Sub-Metropolitan City", "Tulsipur Sub-Metropolitan City", "Lamahi Municipality"],
+  "Surkhet": ["Birendranagar Municipality", "Gurbhakot Municipality", "Panchapuri Municipality", "Bheri Ganga Municipality"],
+  "Kailali": ["Dhangadhi Metropolitan City", "Tikapur Municipality", "Ghoghoda Municipality", "Lamki Chuha Municipality"],
+  // Default for other districts
+  "Other": ["Municipality 1", "Municipality 2", "Rural Municipality 1"]
+};
+
+export const GET_MUNICIPALITIES = (district: string) => {
+  return MUNICIPALITIES_BY_DISTRICT[district] || [`${district} Municipality`, `${district} Rural Municipality`, "Other Local Level"];
+};
+
 export const MUNICIPALITY_TYPES = [
   "Metropolitan City",
   "Sub-Metropolitan City",

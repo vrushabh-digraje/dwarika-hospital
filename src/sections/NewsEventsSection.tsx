@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, ChevronLeft, ChevronRight, Play, X, Activity } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Play, X, ArrowUpRight, Film } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import { useTranslation } from "react-i18next";
@@ -24,7 +24,6 @@ const NewsEventsSection = () => {
     }, [filter]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSlideIndex(0);
     }, [filter]);
 
@@ -46,68 +45,82 @@ const NewsEventsSection = () => {
     const currentVideo = VIDEOS[videoIndex];
 
     return (
-        <section id="news" className="relative px-4 sm:px-6 lg:px-8 py-10 lg:py-14 overflow-hidden">
+        <section id="news" className="relative px-4 sm:px-6 lg:px-8 py-16 lg:py-24 overflow-hidden bg-slate-50/50">
             {/* Background Decorative Elements */}
-            <div className="absolute top-0 right-0 w-1/3 h-1/2 bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-1/4 h-1/3 bg-slate-50/80 blur-[100px] rounded-full translate-y-1/4 -translate-x-1/4" />
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-amber-500/5 blur-[120px] rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none" />
 
-            <div className="home-band-inner premium-surface rounded-[32px] lg:rounded-[40px] px-6 sm:px-8 lg:px-10 py-12 lg:py-16 max-w-7xl mx-auto relative z-10">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10 lg:mb-12">
-                    <div className="section-intro">
-                        <p className="section-label text-primary font-semibold text-sm tracking-wide uppercase">{t('news.section_title')}</p>
-                        <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight leading-[1.1]">
-                            {t('news.heading_part1')}<span className="text-primary">{t('news.heading_part2')}</span>{t('news.heading_part3')}
+            <div className="max-w-[1400px] mx-auto relative z-10">
+                {/* Header Section */}
+                <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10 mb-12 lg:mb-16">
+                    <div className="max-w-2xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-[1px] bg-primary/40"></div>
+                            <p className="text-primary font-semibold text-xs tracking-[0.2em] uppercase">{t('news.section_title')}</p>
+                        </div>
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading font-extrabold text-slate-900 tracking-tight leading-[1.1]">
+                            {t('news.heading_part1')}<span className="text-primary italic px-2">{t('news.heading_part2')}</span>{t('news.heading_part3')}
                         </h2>
                     </div>
 
-                    <div className="flex p-2 bg-white/65 backdrop-blur-md rounded-2xl border border-white/70 shadow-[var(--shadow-soft)]">
+                    {/* Premium Filter Tabs */}
+                    <div className="inline-flex p-1.5 bg-white/80 backdrop-blur-xl rounded-full border border-slate-200/60 shadow-sm overflow-x-auto custom-scrollbar max-w-full">
                         {NEWS_FILTER_KEYS.map((f) => (
                             <button
                                 key={f}
                                 type="button"
                                 onClick={() => setFilter(f)}
-                                className={`px-5 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${filter === f
-                                    ? "bg-white text-primary shadow-sm shadow-slate-200"
-                                    : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
+                                className={`relative px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${filter === f
+                                    ? "text-white shadow-md shadow-primary/20"
+                                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/50"
                                     }`}
                             >
-                                {f === 'All' ? t('common.all') : t(`news.category.${f}`)}
+                                {filter === f && (
+                                    <motion.div
+                                        layoutId="activeNewsFilter"
+                                        className="absolute inset-0 bg-primary rounded-full"
+                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                )}
+                                <span className="relative z-10">{f === 'All' ? t('common.all') : t(`news.category.${f}`)}</span>
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                    {/* News Container - 7 Cols */}
-                    <div className="lg:col-span-7 flex flex-col">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 xl:gap-10 items-stretch">
+                    {/* Featured Editorial News - 7 or 8 Cols */}
+                    <div className="lg:col-span-7 xl:col-span-8 flex flex-col min-h-[500px] xl:min-h-[640px]">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={current?.id || filter}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                transition={{ duration: 0.4, ease: "easeOut" }}
-                                className="relative flex-1 group"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                                className="relative flex-1 group rounded-[2.5rem] bg-slate-100 overflow-hidden shadow-2xl shadow-slate-200/50"
                             >
                                 {current ? (
                                     <div
-                                        className="relative h-full bg-slate-900 rounded-3xl overflow-hidden shadow-[var(--shadow-card)] group cursor-pointer"
+                                        className="absolute inset-0 cursor-pointer"
                                         onClick={() => navigate(current.isSpecial ? '/strategic-vision' : `/news/${current.id}`)}
                                     >
                                         <div className="absolute inset-0">
                                             <img
                                                 src={current.image}
                                                 alt={current.title}
-                                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-[1.05] transition-all duration-1000"
+                                                className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform duration-[1.5s] ease-out will-change-transform"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+                                            {/* Refined gradient overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-slate-900/10 to-transparent" />
                                         </div>
 
-                                        <div className="relative h-full p-6 md:p-8 flex flex-col justify-end min-h-[420px]">
-                                            <div className="mb-6 flex items-center justify-between">
-                                                <div className="flex items-center gap-3 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/10">
-                                                    <Calendar className="w-4 h-4 text-primary" />
-                                                    <span className="text-xs font-semibold text-white uppercase tracking-wider">
+                                        {/* Floating White Content Card */}
+                                        <div className="absolute bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-auto md:w-[85%] xl:w-[70%] bg-white/95 backdrop-blur-2xl rounded-[2rem] p-6 md:p-10 shadow-2xl border border-white/60 transform translate-y-0 group-hover:-translate-y-2 transition-transform duration-500 ease-out">
+                                            <div className="mb-6 flex flex-wrap items-center gap-3">
+                                                <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full">
+                                                    <Calendar className="w-3.5 h-3.5 text-primary" />
+                                                    <span className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">
                                                         {new Date(current.date).toLocaleDateString(i18n.resolvedLanguage ?? i18n.language, {
                                                             month: "long",
                                                             day: "numeric",
@@ -115,34 +128,36 @@ const NewsEventsSection = () => {
                                                         })}
                                                     </span>
                                                 </div>
-                                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white border ${current.isSpecial ? 'bg-orange-500/80 border-orange-400' : (current.type === 'Event' ? 'bg-orange-600/80 border-orange-500' : 'bg-primary/80 border-primary-hover')
+                                                <span className={`px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-widest border ${current.isSpecial ? 'bg-orange-50 text-orange-600 border-orange-200' : (current.type === 'Event' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-primary/5 text-primary border-primary/10')
                                                     }`}>
                                                     {t(`news.type.${current.type.toLowerCase()}`, { defaultValue: current.type })}
                                                 </span>
                                             </div>
 
-                                            <h3 className="text-2xl md:text-3xl font-bold text-white tracking-tight leading-snug mb-4 line-clamp-2 font-heading">
+                                            <h3 className="text-2xl md:text-3xl xl:text-4xl font-heading font-extrabold text-slate-900 tracking-tight leading-[1.2] mb-4 line-clamp-2">
                                                 {current.title}
                                             </h3>
 
-                                            <p className="text-slate-300 font-normal leading-relaxed mb-8 max-w-2xl line-clamp-2">
+                                            <p className="text-slate-600 font-medium leading-relaxed mb-8 line-clamp-2 xl:line-clamp-3 text-sm xl:text-base">
                                                 {current.description}
                                             </p>
 
-                                            <div className="flex items-center justify-between pt-6 border-t border-white/10">
-                                                <Button
-                                                    variant="primary"
+                                            <div className="flex items-center justify-between pt-6 border-t border-slate-100">
+                                                <button
                                                     onClick={(e) => { e.stopPropagation(); navigate(current.isSpecial ? '/strategic-vision' : `/news/${current.id}`); }}
-                                                    className="rounded-xl bg-primary hover:bg-primary-hover py-3.5 px-6 text-xs font-semibold uppercase tracking-wide border-none shadow-md"
+                                                    className="group/btn flex items-center gap-2 text-primary font-bold text-xs xl:text-sm uppercase tracking-widest transition-colors hover:text-primary-hover"
                                                 >
-                                                    {current.isSpecial ? t('about.vision_title') : t('common.read_more')}
-                                                </Button>
+                                                    {current.isSpecial ? t('about.vision_title') : t('common.read_more', 'Read More')}
+                                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover/btn:bg-primary group-hover/btn:text-white transition-all duration-300">
+                                                        <ArrowUpRight className="w-4 h-4" />
+                                                    </div>
+                                                </button>
 
-                                                <div className="flex gap-3">
-                                                    <button onClick={(e) => { e.stopPropagation(); prevSlide(); }} className="w-11 h-11 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white/10 transition-all hover:scale-105">
+                                                <div className="flex gap-2">
+                                                    <button onClick={(e) => { e.stopPropagation(); prevSlide(); }} className="w-12 h-12 rounded-full border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-primary hover:border-primary/20 transition-all">
                                                         <ChevronLeft className="w-5 h-5" />
                                                     </button>
-                                                    <button onClick={(e) => { e.stopPropagation(); nextSlide(); }} className="w-11 h-11 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white/10 transition-all hover:scale-105">
+                                                    <button onClick={(e) => { e.stopPropagation(); nextSlide(); }} className="w-12 h-12 rounded-full border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-primary hover:border-primary/20 transition-all">
                                                         <ChevronRight className="w-5 h-5" />
                                                     </button>
                                                 </div>
@@ -150,7 +165,7 @@ const NewsEventsSection = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="h-full bg-white/70 rounded-3xl flex items-center justify-center border border-white/70 backdrop-blur-sm">
+                                    <div className="h-full bg-white/70 rounded-[2.5rem] flex items-center justify-center border border-white backdrop-blur-sm">
                                         <p className="text-slate-400 font-semibold uppercase tracking-widest">{t('common.no_updates')}</p>
                                     </div>
                                 )}
@@ -158,71 +173,85 @@ const NewsEventsSection = () => {
                         </AnimatePresence>
                     </div>
 
-                    {/* Video Container - 5 Cols */}
-                    <div className="lg:col-span-5 flex flex-col">
-                        <div className="relative flex-1 soft-card rounded-3xl overflow-hidden flex flex-col h-full group">
-                            <div className="relative h-[240px] md:h-[280px] overflow-hidden bg-slate-900 group">
+                    {/* Curated Media/Videos - 5 or 4 Cols */}
+                    <div className="lg:col-span-5 xl:col-span-4 flex flex-col h-full min-h-[500px]">
+                        <div className="flex-1 bg-white border border-slate-100 rounded-[2.5rem] p-4 xl:p-5 shadow-xl shadow-slate-200/40 flex flex-col group/media relative overflow-hidden">
+                            {/* Inner Decorative background */}
+                            <div className="absolute top-0 right-0 w-full h-1/2 bg-gradient-to-br from-slate-50 to-white -z-10 rounded-t-[2.5rem]" />
+                            
+                            <div className="flex items-center justify-between px-3 md:px-4 pt-2 pb-5">
+                                <div className="flex items-center gap-2.5">
+                                    <Film className="w-5 h-5 text-primary" />
+                                    <h4 className="font-heading font-extrabold text-slate-900 text-lg uppercase tracking-wider">{t('news.media_gallery', 'Media Gallery')}</h4>
+                                </div>
+                                <span className="text-xs font-bold text-slate-400 tracking-widest uppercase">
+                                    {videoIndex + 1} / {VIDEOS.length}
+                                </span>
+                            </div>
+
+                            {/* Main Video Area */}
+                            <div className="relative h-[220px] xl:h-[260px] rounded-[1.75rem] overflow-hidden bg-slate-900 shadow-inner shrink-0 isolate">
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={videoIndex}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="h-full w-full"
+                                        initial={{ opacity: 0, scale: 0.98 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 1.02 }}
+                                        transition={{ duration: 0.5, ease: "easeOut" }}
+                                        className="h-full w-full absolute inset-0"
                                     >
                                         {!isVideoPlaying ? (
                                             <div
-                                                className="relative w-full h-full cursor-pointer overflow-hidden"
+                                                className="relative w-full h-full cursor-pointer overflow-hidden group/vid"
                                                 onClick={() => setIsVideoPlaying(true)}
                                             >
                                                 <img
                                                     src={currentVideo.thumbnail}
                                                     alt={currentVideo.title}
-                                                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000"
+                                                    className="w-full h-full object-cover opacity-90 group-hover/vid:opacity-100 group-hover/vid:scale-110 transition-all duration-[1.5s]"
                                                 />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-60" />
-
-                                                {/* Play Button */}
+                                                <div className="absolute inset-0 bg-slate-900/40 group-hover/vid:bg-slate-900/20 transition-colors duration-500" />
+                                                
+                                                {/* Premium Play Button */}
                                                 <div className="absolute inset-0 flex items-center justify-center">
-                                                    <div className="relative group/btn">
-                                                        <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full scale-[2] group-hover/btn:scale-150 transition-transform duration-500 animate-pulse"></div>
-                                                        <div className="relative w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-[var(--shadow-card)] transition-all duration-300 group-hover/btn:scale-110">
-                                                            <Play className="w-7 h-7 text-white fill-white ml-1" />
-                                                        </div>
+                                                    <div className="relative w-20 h-20 flex items-center justify-center">
+                                                        <div className="absolute inset-0 border border-white/30 rounded-full scale-[1.2] group-hover/vid:border-white/60 transition-colors duration-500"></div>
+                                                        <div className="absolute inset-0 bg-white/20 backdrop-blur-md rounded-full group-hover/vid:bg-white/30 transition-colors duration-500"></div>
+                                                        <Play className="w-8 h-8 text-white fill-white ml-1.5 drop-shadow-md z-10" />
                                                     </div>
                                                 </div>
 
-                                                <div className="absolute bottom-6 left-6 right-6">
-                                                    <div className="flex items-center gap-3 mb-3">
-                                                        <span className="px-3 py-1 bg-primary/20 backdrop-blur-md rounded-md text-[10px] font-bold uppercase tracking-wider text-primary-light border border-primary/20">
+                                                <div className="absolute bottom-5 left-5 right-5">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className="px-2.5 py-1 bg-black/40 backdrop-blur-md rounded text-[9px] font-bold uppercase tracking-widest text-white border border-white/20">
                                                             {currentVideo.category}
                                                         </span>
-                                                        <span className="px-3 py-1 bg-slate-900/40 backdrop-blur-md rounded-md text-[10px] font-medium text-slate-300 uppercase tracking-widest border border-white/5">
+                                                        <span className="text-[10px] font-bold text-white/80 shadow-black drop-shadow-md">
                                                             {currentVideo.duration}
                                                         </span>
                                                     </div>
-                                                    <h4 className="text-white text-xl font-bold tracking-tight leading-tight group-hover:text-primary-light transition-colors font-heading line-clamp-2">
+                                                    <h4 className="text-white text-base xl:text-lg font-bold tracking-tight leading-tight line-clamp-1 drop-shadow-md">
                                                         {currentVideo.title}
                                                     </h4>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="w-full h-full relative">
+                                            <div className="w-full h-full relative z-20">
                                                 <iframe
                                                     width="100%"
                                                     height="100%"
                                                     src={`${currentVideo.videoUrl}?autoplay=1&rel=0&modestbranding=1&mute=0`}
                                                     title={currentVideo.title}
                                                     frameBorder="0"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                     allowFullScreen
                                                     className="w-full h-full"
                                                 ></iframe>
                                                 <button
                                                     onClick={() => setIsVideoPlaying(false)}
-                                                    className="absolute top-6 right-6 z-20 w-12 h-12 bg-black/50 hover:bg-red-600/90 text-white rounded-full flex items-center justify-center transition-all backdrop-blur-md border border-white/10 shadow-2xl"
+                                                    className="absolute top-4 right-4 z-30 w-10 h-10 bg-black/60 hover:bg-black text-white rounded-full flex items-center justify-center transition-all backdrop-blur-md border border-white/20"
                                                 >
-                                                    <X className="w-6 h-6" />
+                                                    <X className="w-5 h-5" />
                                                 </button>
                                             </div>
                                         )}
@@ -230,80 +259,84 @@ const NewsEventsSection = () => {
                                 </AnimatePresence>
                             </div>
 
-                            <div className="p-5 md:p-6 flex flex-col justify-between flex-1 bg-white/60 backdrop-blur-sm">
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Activity className="w-4 h-4 text-primary" />
-                                        <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">{t('news.up_next')}</span>
-                                    </div>
-                                    <div className="space-y-3">
-                                        {VIDEOS.map((v, i) => {
-                                            const total = VIDEOS.length;
-                                            const isNext = (i > videoIndex && i <= videoIndex + 3) || (i + total > videoIndex && i + total <= videoIndex + 3);
+                            {/* Upcoming List */}
+                            <div className="mt-5 flex-1 flex flex-col justify-between custom-scrollbar overflow-y-auto pr-1">
+                                <div className="space-y-2.5">
+                                    {VIDEOS.map((v, i) => {
+                                        const total = VIDEOS.length;
+                                        // Show next 3 videos, or 4 depending on spacing
+                                        const isNext = (i > videoIndex && i <= videoIndex + 3) || (i + total > videoIndex && i + total <= videoIndex + 3);
+                                        
+                                        if (!isNext && videoIndex !== i) return null;
+                                        if (videoIndex === i && total > 3) return null; // Hide current from list if plenty available
 
-                                            if (!isNext && videoIndex !== i) return null;
-                                            if (videoIndex === i && total > 3) return null; 
-
-                                            return (
-                                                <button
-                                                    key={v.id}
-                                                    onClick={() => { setVideoIndex(i); setIsVideoPlaying(false); }}
-                                                    className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all duration-300 group/item ${videoIndex === i
-                                                        ? "bg-white/85 border border-white/70 shadow-[var(--shadow-soft)]"
-                                                        : "hover:bg-white/70 border border-transparent"
-                                                        }`}
-                                                >
-                                                    <div className="w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 shadow-sm relative">
-                                                        <img src={v.thumbnail} alt="" className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500" />
-                                                        <div className="absolute inset-0 flex items-center justify-center bg-slate-900/20 group-hover/item:bg-slate-900/10 transition-colors">
-                                                            <Play className="w-5 h-5 text-white fill-white opacity-80" />
-                                                        </div>
+                                        return (
+                                            <button
+                                                key={v.id}
+                                                onClick={() => { setVideoIndex(i); setIsVideoPlaying(false); }}
+                                                className={`w-full flex items-start gap-4 p-3 rounded-2xl transition-all duration-300 group/item text-left ${videoIndex === i
+                                                    ? "bg-slate-50 border border-slate-200"
+                                                    : "hover:bg-slate-50 border border-transparent"
+                                                    }`}
+                                            >
+                                                <div className="w-24 h-16 rounded-[10px] overflow-hidden flex-shrink-0 relative shadow-sm">
+                                                    <img src={v.thumbnail} alt="" className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-700" />
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900/20 group-hover/item:bg-slate-900/10 transition-colors">
+                                                        <Play className="w-5 h-5 text-white/90 fill-white" />
                                                     </div>
-                                                    <div className="text-left min-w-0">
-                                                        <h5 className={`text-sm font-semibold truncate transition-colors font-heading ${i === videoIndex ? 'text-primary' : 'text-slate-900 group-hover/item:text-primary'}`}>
-                                                            {v.title}
-                                                        </h5>
-                                                        <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mt-1">{v.category} • {v.duration}</p>
+                                                </div>
+                                                <div className="min-w-0 flex-1 pt-0.5">
+                                                    <h5 className={`text-sm font-semibold truncate tracking-tight ${i === videoIndex ? 'text-primary' : 'text-slate-700 group-hover/item:text-slate-900'}`}>
+                                                        {v.title}
+                                                    </h5>
+                                                    <div className="flex items-center gap-2 mt-1.5">
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{v.category}</span>
+                                                        <div className="w-1 h-1 rounded-full bg-slate-300"></div>
+                                                        <span className="text-[10px] font-bold text-slate-400 tracking-widest">{v.duration}</span>
                                                     </div>
-                                                </button>
-                                            );
-                                        }).filter(Boolean).slice(0, 3)}
-                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    }).filter(Boolean).slice(0, 3)}
                                 </div>
 
-                                <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
-                                    <div className="flex gap-2">
-                                        <button onClick={prevVideo} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors border border-slate-200">
-                                            <ChevronLeft className="w-5 h-5" />
+                                {/* Video Controls Bottom Row */}
+                                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between pb-1 px-3">
+                                    <button 
+                                        onClick={() => navigate('/videos')}
+                                        className="text-[11px] font-extrabold uppercase tracking-widest text-primary hover:text-primary-hover transition-colors flex items-center gap-1.5"
+                                    >
+                                        {t('common.view_all_videos', 'All Videos')} <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
+                                    
+                                    <div className="flex gap-2.5">
+                                        <button onClick={prevVideo} className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-primary transition-all shadow-sm">
+                                            <ChevronLeft className="w-4 h-4" />
                                         </button>
-                                        <button onClick={nextVideo} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors border border-slate-200">
-                                            <ChevronRight className="w-5 h-5" />
+                                        <button onClick={nextVideo} className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-primary transition-all shadow-sm">
+                                            <ChevronRight className="w-4 h-4" />
                                         </button>
                                     </div>
-                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
-                                        {videoIndex + 1} / {VIDEOS.length}
-                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* View All Button */}
-                <div className="mt-12 text-center">
+                {/* View All Master Button */}
+                <div className="mt-16 sm:mt-20 flex justify-center">
                     <Button
-                        variant="secondary"
+                        variant="primary"
                         onClick={() => navigate('/news-events')}
-                        className="rounded-full bg-slate-900 hover:bg-slate-800 text-white border-none py-4 px-8 text-xs font-semibold uppercase tracking-widest shadow-lg shadow-slate-900/20 group transition-all"
+                        className="rounded-full bg-slate-900 hover:bg-slate-800 text-white border-none py-4 px-10 text-xs font-bold uppercase tracking-[0.2em] shadow-xl shadow-slate-900/10 group transition-all"
                     >
-                        {t('news.view_all')}
-                        <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                        {t('news.view_all', 'View All Updates')}
+                        <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ml-2" />
                     </Button>
                 </div>
             </div>
         </section>
     );
 };
-
 
 export default NewsEventsSection;

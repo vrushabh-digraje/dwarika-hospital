@@ -36,14 +36,14 @@ const LiveConsultation = () => {
                                     <span className="text-sky-400">{t('live_consultation.heading_part2')}</span>
                                 </h2>
                                 
-                                <p className="text-slate-400 text-lg max-w-xl leading-relaxed">
+                                <p className="text-lg max-w-xl leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.85)' }}>
                                     {t('live_consultation.description')}
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">
                                     <Button 
                                         onClick={() => setIsModalOpen(true)}
-                                        className="w-full sm:w-auto text-white font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2 uppercase tracking-wide text-xs transition-all"
+                                        className="w-full sm:w-auto !text-white font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2 uppercase tracking-wide text-xs transition-all"
                                     >
                                         <CalendarCheck className="w-4 h-4" />
                                         {t('live_consultation.book_consultation')}
@@ -53,8 +53,8 @@ const LiveConsultation = () => {
                                             <Video className="w-5 h-5 text-primary" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-semibold text-primary uppercase tracking-widest">{t('live_consultation.secure_video')}</p>
-                                            <p className="text-sm font-bold text-white tracking-wide">{t('live_consultation.hd_quality')}</p>
+                                            <p className="text-[10px] font-semibold !text-blue-100 uppercase tracking-widest">{t('live_consultation.secure_video')}</p>
+                                            <p className="text-sm font-bold !text-white tracking-wide">{t('live_consultation.hd_quality')}</p>
                                         </div>
                                     </div>
                                 </div>
