@@ -34,7 +34,7 @@ const NepaliDatePickerCustom: React.FC<Props> = ({ value, onChange, className })
 
     const getDaysInMonth = (y: number, m: number) => {
         try {
-            const bs = new BikramSambat(`${y}-${m.toString().padStart(2, '0')}-01`, 'BS');
+
             let max = 28;
             for (let d = 29; d <= 32; d++) {
                 try {

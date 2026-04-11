@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    User, Phone, Lock, ArrowRight, ShieldCheck, Mail, CheckCircle2,
-    Loader2, ChevronLeft, Camera, Upload, Calendar, MapPin,
+    User, Lock, ArrowRight, ShieldCheck, Mail, CheckCircle2,
     Smartphone, Hash, UserCircle2, ChevronDown
 } from 'lucide-react';
 import { cn } from '../lib/utils';

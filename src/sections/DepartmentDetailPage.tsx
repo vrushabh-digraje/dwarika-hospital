@@ -7,7 +7,6 @@ import {
   Baby,
   Bone,
   Activity,
-  Microscope,
   Syringe,
   Stethoscope,
   ArrowRight,

@@ -12,7 +12,7 @@ import { postData } from '../lib/api';
 import NepaliDatePickerCustom from './NepaliDatePickerCustom';
 import EnglishDatePicker from './EnglishDatePicker';
 import BikramSambat from 'bikram-sambat-js';
-import { PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES, COMMON_VILLAGES, CASTES_BY_GROUP } from '../constants/nepalData';
+import { PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES, CASTES_BY_GROUP } from '../constants/nepalData';
 // import 'nepali-datepicker-reactjs/dist/index.css';
 
 const ETHNIC_GROUPS = Object.keys(CASTES_BY_GROUP);
@@ -262,7 +262,7 @@ const DoctorAppointment = () => {
     const combinedPatientName = [formData.firstName, formData.middleName, formData.lastName].filter(Boolean).join(' ').trim();
     const derivedAge = getAgeFromDobBs(dobDateBS || formData.dobBs);
     const langCode = (i18n.resolvedLanguage ?? i18n.language ?? 'en').split('-')[0].toLowerCase();
-    const pickerLocale = langCode === 'np' ? 'ne' : 'en';
+
     const selectIndicatorStyle = {
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8L10 12L14 8' stroke='%235D6E8B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
         backgroundRepeat: 'no-repeat',

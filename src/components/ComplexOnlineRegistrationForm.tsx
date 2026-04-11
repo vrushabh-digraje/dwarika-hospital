@@ -811,13 +811,6 @@ const ComplexOnlineRegistrationForm = () => {
                 const updateTF = (field: string, value: string) => {
                     setFormData(prev => ({ ...prev, trainingForm: { ...prev.trainingForm, [field]: value } }));
                 };
-                const resetTF = () => {
-                    setFormData(prev => ({
-                        ...prev,
-                        trainingForm: { name: '', regNo: '', regDate: '', recognizedBy: '', district: '', municipality: '', ward: '', stateProvince: '', country: 'Nepal', startDateAD: '', startDateBS: '', endDateAD: '', endDateBS: '', durationYears: '', durationMonths: '', durationDays: '' },
-                        trainingEditIndex: -1,
-                    }));
-                };
                 const addTraining = () => {
                     if (!tf.name) return;
                     setFormData(prev => {

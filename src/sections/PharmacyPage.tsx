@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
-    Pill, Truck, Clock, ShieldCheck, Send, Loader2, Phone, 
-    MapPin, FileUp, X, Plus, Trash2, Edit2, ChevronDown 
+    Pill, Send, Loader2, 
+    Plus, Trash2, Edit2, ChevronDown, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from '../components/Button';
+
 import { cn } from '../lib/utils';
 
 // Helper to convert number to words
@@ -43,7 +43,7 @@ const PharmacyPage = () => {
     });
 
     const [medicines, setMedicines] = useState<MedicineEntry[]>([]);
-    const [financials, setFinancials] = useState({
+    const [financials] = useState({
         discount: 0,
         adjustment: 0,
         roundOff: 0
