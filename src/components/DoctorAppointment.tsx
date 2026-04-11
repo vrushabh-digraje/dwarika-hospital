@@ -80,7 +80,7 @@ const ICD11_COMMON_DISEASES = [
 ];
 
 const DoctorAppointment = () => {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         firstName: '',
         middleName: '',
