@@ -1,30 +1,8 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown, Loader2, Mail, MapPin, Phone, PhoneCall, Send, Globe } from 'lucide-react';
-import { DISTRICTS_BY_PROVINCE, PROVINCES, WARDS } from '../constants/nepalData';
+import { DISTRICTS_BY_PROVINCE, PROVINCES, WARDS, GET_MUNICIPALITIES } from '../constants/nepalData';
 
 const ALL_DISTRICTS = Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
-const MUNICIPALITIES_BY_DISTRICT: Record<string, string[]> = {
-    Saptari: [
-        'Agnisair Krishnasavaran Rural Municipality',
-        'Balan-Bihul Rural Municipality',
-        'Bishnupur Rural Municipality',
-        'Bodebarsain Municipality',
-        'Chhinnamasta Rural Municipality',
-        'Dakneshwori Municipality',
-        'Hanumannagar Kankalini Municipality',
-        'Kanchanrup Municipality',
-        'Khadak Municipality',
-        'Mahadeva Rural Municipality',
-        'Rajbiraj Municipality',
-        'Rajgadh Rural Municipality',
-        'Rupani Rural Municipality',
-        'Saptakoshi Municipality',
-        'Shambhunath Municipality',
-        'Surunga Municipality',
-        'Tilathi Koiladi Rural Municipality',
-        'Tirhut Rural Municipality',
-    ],
-};
 
 const INITIAL_FORM_DATA = {
     fullName: '',
@@ -60,7 +38,7 @@ const ContactUsPage = () => {
             return [];
         }
 
-        return MUNICIPALITIES_BY_DISTRICT[formData.district] || [];
+        return GET_MUNICIPALITIES(formData.district);
     }, [formData.district]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

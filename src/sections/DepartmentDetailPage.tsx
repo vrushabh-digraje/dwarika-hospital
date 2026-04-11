@@ -1,37 +1,72 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HeartPulse, Brain, Baby, Bone, Activity, Microscope, Syringe, Stethoscope, ArrowRight, Calendar, MapPin, Phone, Mail, Clock, ShieldCheck, Award, Star } from 'lucide-react';
 import Button from '../components/Button';
+import {
+  HeartPulse,
+  Brain,
+  Baby,
+  Bone,
+  Activity,
+  Microscope,
+  Syringe,
+  Stethoscope,
+  ArrowRight,
+  Calendar,
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  ShieldCheck,
+  Award,
+  Star,
+  Scissors,
+  Ear,
+  Smile,
+  Sparkles
+} from 'lucide-react';
 
 const departmentDetails = {
-  cardiology: {
-    title: "Cardiology",
-    icon: HeartPulse,
-    description: "Our Cardiology department is dedicated to providing world-class heart care. From diagnostic services to complex cardiac interventions, we offer comprehensive solutions for all heart-related conditions.",
+  emergency: {
+    title: "Emergency",
+    icon: Activity,
+    description: "Our 24/7 Emergency department is equipped to handle all medical crises with rapid triage and immediate stabilization. Our dedicated team is always ready for life-saving interventions.",
     services: [
-      "Diagnostic ECG & ECHO",
-      "Interventional Cardiology",
-      "Coronary Artery Disease Treatment",
-      "Heart Failure Management",
-      "Hypertension Care"
+      "24/7 Acute Care",
+      "Major Trauma Management",
+      "Poisoning & Toxicology",
+      "Critical Care Support",
+      "Ambulance Services"
     ],
-    doctors: "4 Specialists"
+    doctors: "8 Specialists"
   },
-  neurology: {
-    title: "Neurology",
-    icon: Brain,
-    description: "The Neurology department provides advanced care for brain and nervous system disorders. Our team of neurologists specializes in treating complex conditions with state-of-the-art diagnostic and therapeutic technologies.",
+  "general-medicine": {
+    title: "General Medicine",
+    icon: Stethoscope,
+    description: "The General Medicine department is our primary healthcare hub. We manage chronic diseases and provide preventive checkups along with primary clinical consultations.",
     services: [
-      "Stroke Management",
-      "Epilepsy Treatment",
-      "Neuro-diagnostic Services",
-      "Headache Clinic",
-      "Nerve & Muscle Disorders"
+      "Chronic Disease Management",
+      "Fever & Infectious Diseases",
+      "Health Screenings",
+      "Preventive Medicine",
+      "Geriatric Care"
     ],
-    doctors: "3 Specialists"
+    doctors: "10 Specialists"
+  },
+  surgery: {
+    title: "Surgery",
+    icon: Scissors,
+    description: "Our Surgery department provides a wide range of surgical interventions using advanced techniques and state-of-the-art operation theaters to ensure safety and precision.",
+    services: [
+      "General Surgery",
+      "Laparoscopic Surgery",
+      "Gastrointestinal Surgery",
+      "Tumor & Cyst Removal",
+      "Post-operative Care"
+    ],
+    doctors: "6 Specialists"
   },
   paediatrics: {
-    title: "Paediatrics",
+    title: "Paediatric",
     icon: Baby,
     description: "Our Paediatrics department offers compassionate and comprehensive healthcare for infants, children, and adolescents. We ensure a child-friendly environment to make medical visits stress-free.",
     services: [
@@ -40,6 +75,19 @@ const departmentDetails = {
       "Newborn Care",
       "Developmental Assessment",
       "Pediatric Emergency Care"
+    ],
+    doctors: "5 Specialists"
+  },
+  "gynae-obstetrics": {
+    title: "Gynaecology & Obstetric",
+    icon: Syringe,
+    description: "Our Gynae & Obstetrics department offers comprehensive maternal and reproductive healthcare. We provide safe motherhood programs and delivery services in a secure environment.",
+    services: [
+      "Prenatal & Postnatal Care",
+      "Normal & Caesarean Delivery",
+      "Gynecological Surgery",
+      "Family Planning Services",
+      "Menstrual Health Clinic"
     ],
     doctors: "5 Specialists"
   },
@@ -56,57 +104,70 @@ const departmentDetails = {
     ],
     doctors: "4 Specialists"
   },
-  emergency: {
-    title: "Emergency",
-    icon: Activity,
-    description: "Our 24/7 Emergency department is equipped to handle all medical crises with rapid triage and immediate stabilization. Our dedicated team is always ready for life-saving interventions.",
+  ent: {
+    title: "ENT",
+    icon: Ear,
+    description: "The ENT department specializes in the diagnosis and treatment of ear, nose, and throat disorders. We provide expert care for both adult and pediatric conditions.",
     services: [
-      "24/7 Acute Care",
-      "Major Trauma Management",
-      "Poisoning & Toxicology",
-      "Critical Care Support",
-      "Ambulance Services"
+      "Hearing Assessments",
+      "Sinusitis Treatment",
+      "Tonsillectomy",
+      "Nasal Surgery",
+      "Voice & Swallowing Disorders"
     ],
-    doctors: "8 Specialists"
+    doctors: "3 Specialists"
   },
-  diagnostics: {
-    title: "Diagnostics",
-    icon: Microscope,
-    description: "The Diagnostics department provides essential lab and imaging services with high accuracy. We utilize modern technology for digital X-rays, ultrasonography, and specialized testing.",
+  dental: {
+    title: "Dental",
+    icon: Smile,
+    description: "Our Dental department provides comprehensive oral healthcare, from routine hygiene and preventive care to advanced cosmetic and restorative procedures.",
     services: [
-      "Digital X-ray",
-      "Ultrasonography",
-      "Pathology Lab Services",
-      "Biochemistry Tests",
-      "Standard Screening Packages"
+      "Dental Checkups & Cleaning",
+      "Teeth Whitening",
+      "Root Canal Treatment",
+      "Orthodontics (Braces)",
+      "Dental Implants"
     ],
-    doctors: "6 Specialists"
+    doctors: "4 Specialists"
   },
-  "gynae-obstetrics": {
-    title: "Gynae & Obstetrics",
-    icon: Syringe,
-    description: "Our Gynae & Obstetrics department offers comprehensive maternal and reproductive healthcare. We provide safe motherhood programs and delivery services in a secure environment.",
+  dermatology: {
+    title: "Dermatology & Veneral Disease",
+    icon: Sparkles,
+    description: "The Dermatology department offers expert care for all skin, hair, and nail conditions. We also provide specialized treatment for sexual health concerns with complete confidentiality.",
     services: [
-      "Prenatal & Postnatal Care",
-      "Normal & Caesarean Delivery",
-      "Gynecological Surgery",
-      "Family Planning Services",
-      "Menstrual Health Clinic"
+      "Skin Allergy Treatment",
+      "Acne & Scar Management",
+      "Eczema & Psoriasis Care",
+      "Sexual Health Consultations",
+      "Cosmetic Dermatology"
     ],
-    doctors: "5 Specialists"
+    doctors: "3 Specialists"
   },
-  "general-medicine": {
-    title: "General Medicine",
-    icon: Stethoscope,
-    description: "The General Medicine department is our primary healthcare hub. We manage chronic diseases and provide preventive checkups along with primary clinical consultations.",
+  psychiatry: {
+    title: "Psychiatry",
+    icon: Brain,
+    description: "Our Psychiatry department provides compassionate mental health support. We focus on holistic well-being through professional consultations and personalized treatment plans.",
     services: [
-      "Chronic Disease Management",
-      "Fever & Infectious Diseases",
-      "Health Screenings",
-      "Preventive Medicine",
-      "Geriatric Care"
+      "Mental Health Assessments",
+      "Counseling & Therapy",
+      "Stress Management",
+      "Depression & Anxiety Care",
+      "Child Psychiatry"
     ],
-    doctors: "10 Specialists"
+    doctors: "2 Specialists"
+  },
+  cardiology: {
+    title: "Cardiology",
+    icon: HeartPulse,
+    description: "Our Cardiology department is dedicated to providing world-class heart care. From diagnostic services to complex cardiac interventions, we offer comprehensive solutions for all heart-related conditions.",
+    services: [
+      "Diagnostic ECG & ECHO",
+      "Interventional Cardiology",
+      "Coronary Artery Disease Treatment",
+      "Heart Failure Management",
+      "Hypertension Care"
+    ],
+    doctors: "4 Specialists"
   }
 };
 

@@ -39,28 +39,28 @@ const stats = [
 const programs = [
     {
         icon: Stethoscope,
-        title: "MBBS Programme",
-        duration: "5.5 Years",
-        seats: "100 Seats",
-        desc: "World-class medical education combining cutting-edge theory with hands-on clinical training under expert faculty.",
+        title: "Diploma in General Medicine",
+        duration: "3 Years",
+        seats: "40 Seats",
+        desc: "Foundational clinical education designed to produce skilled Health Assistants capable of providing primary healthcare services.",
         tag: "Medical",
         gradient: "from-blue-900 via-blue-800 to-blue-700",
     },
     {
         icon: HeartPulse,
-        title: "B.Sc. Nursing",
-        duration: "4 Years",
-        seats: "60 Seats",
-        desc: "Comprehensive nursing curriculum designed to shape compassionate and technically proficient nursing professionals.",
+        title: "Diploma in Pharmacy",
+        duration: "3 Years",
+        seats: "40 Seats",
+        desc: "Technical training in pharmaceutical sciences, drug management, and dispensing to ensure safe and effective medication use.",
         tag: "Nursing",
         gradient: "from-red-800 via-red-700 to-rose-600",
     },
     {
         icon: FlaskConical,
-        title: "Paramedical Sciences",
+        title: "Diploma in Laboratory",
         duration: "3 Years",
-        seats: "80 Seats",
-        desc: "Specialized training in diagnostic, therapeutic and rehabilitative healthcare disciplines.",
+        seats: "30 Seats",
+        desc: "Advanced diagnostic training for Laboratory Technicians, focusing on clinical pathology, biochemistry, and microbiology.",
         tag: "Paramedical",
         gradient: "from-emerald-800 via-emerald-700 to-teal-600",
     },
@@ -295,9 +295,9 @@ const ModalForm = ({ type, programTitle, onClose }: ModalFormProps) => {
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/15 transition-all appearance-none"
                                     >
                                         <option value="">Select Program</option>
-                                        <option>MBBS Programme</option>
-                                        <option>B.Sc. Nursing</option>
-                                        <option>Paramedical Sciences</option>
+                                        <option>Diploma in General Medicine</option>
+                                        <option>Diploma in Pharmacy</option>
+                                        <option>Diploma in Laboratory</option>
                                     </select>
                                 </div>
                             )}
@@ -330,9 +330,9 @@ const ModalForm = ({ type, programTitle, onClose }: ModalFormProps) => {
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/15 transition-all appearance-none"
                                     >
                                         <option value="">Select Program</option>
-                                        <option>MBBS Programme</option>
-                                        <option>B.Sc. Nursing</option>
-                                        <option>Paramedical Sciences</option>
+                                        <option>Diploma in General Medicine</option>
+                                        <option>Diploma in Pharmacy</option>
+                                        <option>Diploma in Laboratory</option>
                                         <option>General (All Programs)</option>
                                     </select>
                                 </div>

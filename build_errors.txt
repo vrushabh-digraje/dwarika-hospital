@@ -1,0 +1,60 @@
+
+> hospital-website@0.0.0 build
+> tsc -b && vite build
+
+src/components/DoctorAppointment.tsx(15,64): error TS6133: 'COMMON_VILLAGES' is declared but its value is never read.
+src/components/DoctorAppointment.tsx(265,11): error TS6133: 'pickerLocale' is declared but its value is never read.
+src/components/Navbar.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/Navbar.tsx(4,19): error TS6133: 'Search' is declared but its value is never read.
+src/components/Navbar.tsx(4,27): error TS6133: 'Phone' is declared but its value is never read.
+src/components/Navbar.tsx(4,41): error TS6133: 'Newspaper' is declared but its value is never read.
+src/components/Navbar.tsx(4,52): error TS6133: 'Mail' is declared but its value is never read.
+src/components/Navbar.tsx(4,58): error TS6133: 'Stethoscope' is declared but its value is never read.
+src/components/Navbar.tsx(4,71): error TS6133: 'FlaskConical' is declared but its value is never read.
+src/components/Navbar.tsx(4,85): error TS6133: 'Pill' is declared but its value is never read.
+src/components/Navbar.tsx(4,91): error TS6133: 'FileText' is declared but its value is never read.
+src/components/Navbar.tsx(4,101): error TS6133: 'MessageCircle' is declared but its value is never read.
+src/components/Navbar.tsx(4,116): error TS6133: 'LogIn' is declared but its value is never read.
+src/components/Navbar.tsx(4,123): error TS6133: 'Siren' is declared but its value is never read.
+src/components/Navbar.tsx(7,1): error TS6133: 'RegisterModal' is declared but its value is never read.
+src/components/Navbar.tsx(8,1): error TS6133: 'LoginModal' is declared but its value is never read.
+src/components/Navbar.tsx(9,1): error TS6133: 'ForgotPasswordModal' is declared but its value is never read.
+src/components/Navbar.tsx(10,1): error TS6133: 'ScrollToTopButton' is declared but its value is never read.
+src/components/Navbar.tsx(11,1): error TS6133: 'ChatWidget' is declared but its value is never read.
+src/components/Navbar.tsx(121,22): error TS2304: Cannot find name 'Button'.
+src/components/Navbar.tsx(131,23): error TS2304: Cannot find name 'Button'.
+src/components/Navbar.tsx(178,30): error TS2304: Cannot find name 'Button'.
+src/components/Navbar.tsx(180,31): error TS2304: Cannot find name 'Button'.
+src/components/NepaliDatePickerCustom.tsx(37,19): error TS6133: 'bs' is declared but its value is never read.
+src/sections/Doctors.tsx(2,1): error TS6133: 'Card' is declared but its value is never read.
+src/sections/Doctors.tsx(4,1): error TS6192: All imports in import declaration are unused.
+src/sections/Doctors.tsx(6,1): error TS6133: 'Button' is declared but its value is never read.
+src/sections/HeroSection.tsx(2,19): error TS2304: Cannot find name 'useTranslation'.
+src/sections/HeroSection.tsx(3,45): error TS2304: Cannot find name 'useState'.
+src/sections/HeroSection.tsx(4,22): error TS2552: Cannot find name 'useNavigate'. Did you mean 'navigate'?
+src/sections/HeroSection.tsx(6,5): error TS2304: Cannot find name 'useEffect'.
+src/sections/HeroSection.tsx(7,57): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/sections/HeroSection.tsx(7,78): error TS2304: Cannot find name 'HERO_IMAGES'.
+src/sections/HeroSection.tsx(21,18): error TS2304: Cannot find name 'AnimatePresence'.
+src/sections/HeroSection.tsx(22,22): error TS2304: Cannot find name 'motion'.
+src/sections/HeroSection.tsx(31,34): error TS2304: Cannot find name 'HERO_IMAGES'.
+src/sections/HeroSection.tsx(35,23): error TS2304: Cannot find name 'motion'.
+src/sections/HeroSection.tsx(36,19): error TS2304: Cannot find name 'AnimatePresence'.
+src/sections/HeroSection.tsx(43,18): error TS2304: Cannot find name 'motion'.
+src/sections/HeroSection.tsx(51,26): error TS2304: Cannot find name 'motion'.
+src/sections/HeroSection.tsx(58,27): error TS2304: Cannot find name 'motion'.
+src/sections/HeroSection.tsx(76,26): error TS2304: Cannot find name 'Button'.
+src/sections/HeroSection.tsx(83,27): error TS2304: Cannot find name 'Button'.
+src/sections/HeroSection.tsx(84,26): error TS2304: Cannot find name 'Button'.
+src/sections/HeroSection.tsx(91,27): error TS2304: Cannot find name 'Button'.
+src/sections/HeroSection.tsx(96,43): error TS6133: 'i' is declared but its value is never read.
+src/sections/HeroSection.tsx(97,30): error TS2304: Cannot find name 'motion'.
+src/sections/HeroSection.tsx(103,31): error TS2304: Cannot find name 'motion'.
+src/sections/HeroSection.tsx(106,19): error TS2304: Cannot find name 'motion'.
+src/sections/HeroSection.tsx(110,14): error TS2552: Cannot find name 'motion'. Did you mean 'Option'?
+src/sections/HeroSection.tsx(116,15): error TS2552: Cannot find name 'motion'. Did you mean 'Option'?
+src/sections/NewsEventsSection.tsx(3,56): error TS6133: 'Activity' is declared but its value is never read.
+src/sections/NewsEventsSection.tsx(14,16): error TS6133: 'i18n' is declared but its value is never read.
+src/sections/NewsEventsSection.tsx(36,11): error TS6133: 'nextVideo' is declared but its value is never read.
+src/sections/NewsEventsSection.tsx(41,11): error TS6133: 'prevVideo' is declared but its value is never read.
+src/sections/Services.tsx(23,1): error TS6133: 'Card' is declared but its value is never read.

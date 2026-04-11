@@ -111,14 +111,17 @@
     "description": "A comprehensive infrastructure of medical departments dedicated to delivering precise diagnostics and compassionate care.",
     "learn_more": "Learn more",
     "list": {
-      "cardiology": { "title": "Cardiology", "desc": "Heart health consultations, ECG/ECHO support and follow-up care." },
-      "neurology": { "title": "Neurology", "desc": "Diagnosis and care for brain and nervous system conditions." },
-      "paediatrics": { "title": "Paediatrics", "desc": "Child-focused OPD services with compassionate clinical support." },
-      "orthopaedics": { "title": "Orthopaedics", "desc": "Bone & joint care, injury management and rehabilitation guidance." },
       "emergency": { "title": "Emergency", "desc": "24/7 emergency response with rapid triage and stabilization." },
-      "diagnostics": { "title": "Diagnostics", "desc": "Lab services, digital X-ray, ultrasonography and essential testing." },
-      "gynae_obstetrics": { "title": "Gynae & Obstetrics", "desc": "Maternal care, delivery services and safe motherhood programs." },
-      "general_medicine": { "title": "General Medicine", "desc": "Primary care, chronic disease management and preventive checkups." }
+      "general_medicine": { "title": "General Medicine", "desc": "Primary care, chronic disease management and preventive checkups." },
+      "surgery": { "title": "Surgery", "desc": "Advanced surgical procedures performed by expert surgeons using modern technology." },
+      "paediatrics": { "title": "Paediatric", "desc": "Child-focused OPD services with compassionate clinical support." },
+      "gynae_obstetrics": { "title": "Gynaecology & Obstetric", "desc": "Maternal care, delivery services and safe motherhood programs." },
+      "orthopaedics": { "title": "Orthopaedics", "desc": "Bone & joint care, injury management and rehabilitation guidance." },
+      "ent": { "title": "ENT", "desc": "Specialized care for Ear, Nose, and Throat disorders and surgeries." },
+      "dental": { "title": "Dental", "desc": "Comprehensive oral healthcare from routine checkups to specialized procedures." },
+      "dermatology": { "title": "Dermatology & Veneral Disease", "desc": "Expert treatment for skin conditions and sexual health concerns." },
+      "psychiatry": { "title": "Psychiatry", "desc": "Compassionate mental health support and psychiatric consultations." },
+      "cardiology": { "title": "Cardiology", "desc": "Heart health consultations, ECG/ECHO support and follow-up care." }
     }
   },
   "services": {
