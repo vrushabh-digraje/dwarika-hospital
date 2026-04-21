@@ -21,7 +21,8 @@ import {
   Scissors,
   Ear,
   Smile,
-  Sparkles
+  Sparkles,
+  Scan
 } from 'lucide-react';
 
 const departmentDetails = {
@@ -167,6 +168,19 @@ const departmentDetails = {
       "Hypertension Care"
     ],
     doctors: "4 Specialists"
+  },
+  "radio-imaging": {
+    title: "Radio Imaging",
+    icon: Scan,
+    description: "Our Radio Imaging department is equipped with advanced diagnostic technology, providing high-resolution imaging services essential for accurate diagnosis and effective treatment planning.",
+    services: [
+      "Digital X-Ray",
+      "Ultrasound (USG)",
+      "CT Scan Coordination",
+      "Dental X-Ray",
+      "Image-guided Procedures"
+    ],
+    doctors: "3 Specialists"
   }
 };
 

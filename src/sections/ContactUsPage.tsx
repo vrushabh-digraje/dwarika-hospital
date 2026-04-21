@@ -414,13 +414,13 @@ const ContactUsPage = () => {
                                     </div>
 
                                     <div>
-                                        <label className="mb-2 block text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Place/Street/Tole</label>
+                                        <label className="mb-2 block text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Village / Tole</label>
                                         <input
                                             type="text"
                                             name="placeStreetTole"
                                             value={formData.placeStreetTole}
                                             onChange={handleChange}
-                                            placeholder="Place, street, or tole"
+                                            placeholder="Village / Tole"
                                             className={fieldClassName('placeStreetTole')}
                                         />
                                     </div>

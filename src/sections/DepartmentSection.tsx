@@ -13,7 +13,8 @@ import {
   Smile,
   Sparkles,
   Syringe,
-  ArrowRight
+  ArrowRight,
+  Scan
 } from "lucide-react";
 
 const getDepartments = (t: any) => [
@@ -115,6 +116,15 @@ const getDepartments = (t: any) => [
     color: "bg-rose-50",
     iconColor: "text-rose-500",
     accent: "group-hover:border-rose-200",
+  },
+  {
+    icon: Scan,
+    title: t('departments.list.radio_imaging.title'),
+    slug: "radio-imaging",
+    desc: t('departments.list.radio_imaging.desc'),
+    color: "bg-blue-50",
+    iconColor: "text-blue-500",
+    accent: "group-hover:border-blue-200",
   },
 ];
 

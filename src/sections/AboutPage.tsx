@@ -7,11 +7,13 @@ import AboutLeadership from './AboutLeadership';
 
 import AboutAwards from './AboutAwards';
 import AboutTeam from './AboutTeam';
+import AboutAdministration from './AboutAdministration';
 
 const getTabs = (t: any) => [
     { id: 'overview', label: t('about_page.tabs.overview') },
     { id: 'leadership', label: t('about_page.tabs.leadership') },
     { id: 'team', label: t('about_page.tabs.team') },
+    { id: 'administration', label: t('about_page.tabs.administration') },
     { id: 'awards', label: t('about_page.tabs.awards') },
 
 ];
@@ -140,6 +142,7 @@ const AboutPage = () => {
                         {activeTab === 'overview' && <AboutUsSection />}
                         {activeTab === 'leadership' && <AboutLeadership />}
                         {activeTab === 'team' && <AboutTeam />}
+                        {activeTab === 'administration' && <AboutAdministration />}
 
                         {activeTab === 'awards' && <AboutAwards />}
                     </motion.div>

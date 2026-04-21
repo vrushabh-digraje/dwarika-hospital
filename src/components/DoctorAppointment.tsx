@@ -12,16 +12,17 @@ import { postData } from '../lib/api';
 import NepaliDatePickerCustom from './NepaliDatePickerCustom';
 import EnglishDatePicker from './EnglishDatePicker';
 import BikramSambat from 'bikram-sambat-js';
-import { PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES, CASTES_BY_GROUP } from '../constants/nepalData';
+import { PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES, CASTE_GROUPS, CASTES_BY_GROUP, NATIONALITIES, RELIGIONS } from '../constants/nepalData';
 // import 'nepali-datepicker-reactjs/dist/index.css';
 
-const ETHNIC_GROUPS = Object.keys(CASTES_BY_GROUP);
+const ETHNIC_GROUPS = CASTE_GROUPS;
 
 const getAgeFromDobBs = (dobBs: string) => {
-    if (!dobBs) return '';
+    if (!dobBs || dobBs.length < 10) return '';
 
     try {
-        const adDate = new Date(new BikramSambat(dobBs, 'BS').toAD());
+        const bs = new BikramSambat(dobBs, 'BS');
+        const adDate = new Date(bs.toAD());
         const today = new Date();
 
         let years = today.getFullYear() - adDate.getFullYear();
@@ -30,8 +31,6 @@ const getAgeFromDobBs = (dobBs: string) => {
 
         if (days < 0) {
             months -= 1;
-            const previousMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
-            days += previousMonth;
         }
 
         if (months < 0) {
@@ -39,8 +38,7 @@ const getAgeFromDobBs = (dobBs: string) => {
             months += 12;
         }
 
-        if (years < 0) return '';
-
+        if (years < 0) return '0y 0m';
         return `${years}y ${months}m`;
     } catch {
         return '';
@@ -55,6 +53,7 @@ const DOCTORS_DATA = [
     { name: 'Dr. Michael Chen', specialty: 'Neurology', image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=1528' },
     { name: 'Dr. Emily Williams', specialty: 'Pediatrics', image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=1374' },
     { name: 'Dr. Robert Brown', specialty: 'Orthopedics', image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=1470' },
+    { name: 'Dr. Suman Bhusal', specialty: 'Radio Imaging', image: 'https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=1470' },
 ];
 
 const ICD11_COMMON_DISEASES = [
@@ -90,6 +89,8 @@ const DoctorAppointment = () => {
         religion: '',
         ethnicGroup: '',
         caste: '',
+        casteOther: '',
+        nationality: 'Nepali',
         phoneNumber: '',
         mobileNumber: '',
         email: '',
@@ -104,6 +105,8 @@ const DoctorAppointment = () => {
         ward: '',
         villageTole: '',
         age: '',
+        ageYears: '',
+        ageMonths: '',
         message: '',
         existingCondition: '',
         diseaseStatus: '',
@@ -131,43 +134,123 @@ const DoctorAppointment = () => {
         window.scrollTo(0, 0);
     }, []);
 
-    const dobSyncSource = useRef<'BS' | 'AD' | null>(null);
+    // ── Bidirectional DOB ↔ Age Sync ──────────────────────────────────
+    // Source tracks WHO initiated the change to prevent infinite loops.
+    // Flow: BS date is the "source of truth" for age calculation.
+    //   AD picker → converts to BS → BS effect calculates age + skips AD re-sync
+    //   BS picker → BS effect calculates age + syncs AD
+    //   Age input → calculates BS → BS effect skips age re-calc + syncs AD
+    const dobSyncSource = useRef<'BS' | 'AD' | 'AGE' | null>(null);
 
+    // Effect: When BS date changes → ALWAYS calculate age, sync AD conditionally
     useEffect(() => {
-        if (!dobDateBS) return;
-        if (dobSyncSource.current === 'AD') {
-            dobSyncSource.current = null;
+        if (!dobDateBS || dobDateBS.length < 10) {
+            // If cleared, also clear age and AD
+            if (!dobDateBS) {
+                setFormData(prev => ({ ...prev, ageYears: '', ageMonths: '' }));
+                setDobDateAD('');
+            }
             return;
         }
-        try {
-            const age = getAgeFromDobBs(dobDateBS);
-            const bs = new BikramSambat(dobDateBS, 'BS');
-            const adDate = bs.toAD();
-            const formattedAD = new Date(adDate).toISOString().split('T')[0];
-            
-            setFormData(prev => ({ 
-                ...prev, 
-                dobBs: dobDateBS,
-                age: age.split('y')[0].trim() || prev.age 
-            }));
 
-            dobSyncSource.current = 'BS';
-            setDobDateAD(formattedAD);
-        } catch (e) { /* ignore */ }
+        const source = dobSyncSource.current;
+
+        try {
+            // STEP 1: Always calculate age from BS (unless the age input triggered this)
+            if (source !== 'AGE') {
+                const ageResult = getAgeFromDobBs(dobDateBS);
+                if (ageResult) {
+                    const yrs = ageResult.split('y')[0].trim();
+                    const mths = ageResult.includes('m') ? ageResult.split('y')[1].split('m')[0].trim() : '0';
+                    setFormData(prev => ({
+                        ...prev,
+                        ageYears: yrs,
+                        ageMonths: mths
+                    }));
+                }
+            }
+
+            // STEP 2: Sync AD date (skip only if AD was the original source, to prevent loop)
+            if (source !== 'AD') {
+                const adDate = new BikramSambat(dobDateBS, 'BS').toAD();
+                const adStr = adDate.toISOString().split('T')[0];
+                setDobDateAD(adStr);
+            }
+        } catch (e) { /* invalid BS date, ignore */ }
+
+        // Reset source after processing
+        dobSyncSource.current = null;
     }, [dobDateBS]);
 
+    // Effect: When AD date changes → convert to BS ONLY if user picked an AD date
     useEffect(() => {
         if (!dobDateAD) return;
-        if (dobSyncSource.current === 'BS') {
-            dobSyncSource.current = null;
-            return;
-        }
+
+        // Only act when user explicitly picked an AD date.
+        // Skip cascaded updates (source is null after BS effect, or 'BS'/'AGE').
+        if (dobSyncSource.current !== 'AD') return;
+
         try {
             const bsDate = new BikramSambat(dobDateAD, 'AD').toBS();
-            dobSyncSource.current = 'AD';
+            // Source stays 'AD' so BS effect knows to skip AD re-sync but still calc age
             setDobDateBS(bsDate);
-        } catch (e) { /* ignore */ }
+        } catch (e) { /* invalid AD date, ignore */ }
     }, [dobDateAD]);
+
+    // Handler: User picks BS date
+    const handleDobBSChange = (val: string) => {
+        dobSyncSource.current = 'BS';
+        setDobDateBS(val);
+    };
+
+    // Handler: User picks AD date
+    const handleDobADChange = (val: string) => {
+        dobSyncSource.current = 'AD';
+        setDobDateAD(val);
+    };
+
+    // Handler: User types in Age fields
+    const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+
+        // Update formData immediately
+        const updatedYears = name === 'ageYears' ? value : formData.ageYears;
+        const updatedMonths = name === 'ageMonths' ? value : formData.ageMonths;
+
+        setFormData(prev => ({ ...prev, [name]: value }));
+
+        // If both empty, clear DOB
+        if (updatedYears === '' && updatedMonths === '') {
+            dobSyncSource.current = null;
+            setDobDateBS('');
+            setDobDateAD('');
+            return;
+        }
+
+        const yrs = parseInt(updatedYears || '0');
+        const mths = parseInt(updatedMonths || '0');
+
+        if (!isNaN(yrs) && yrs >= 0 && yrs < 150) {
+            try {
+                const todayBS = new BikramSambat(new Date(), 'AD').toBS();
+                const [currY, currM, currD] = todayBS.split('-').map(Number);
+
+                let bY = currY - yrs;
+                let bM = currM - (isNaN(mths) ? 0 : mths);
+
+                while (bM <= 0) {
+                    bY -= 1;
+                    bM += 12;
+                }
+
+                const newDobBS = `${bY}-${bM.toString().padStart(2, '0')}-${currD.toString().padStart(2, '0')}`;
+                // Mark source as AGE so BS effect skips age re-calculation
+                dobSyncSource.current = 'AGE';
+                setDobDateBS(newDobBS);
+            } catch (e) { /* ignore partial input */ }
+        }
+    };
+
 
     const apptSyncSource = useRef<'BS' | 'AD' | null>(null);
     useEffect(() => {
@@ -198,25 +281,6 @@ const DoctorAppointment = () => {
             setAppointmentDateBS(bsDate);
         } catch (e) { /* ignore */ }
     }, [appointmentDateAD]);
-
-    const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newAge = e.target.value;
-        const ageNum = parseInt(newAge);
-        
-        setFormData(prev => ({ ...prev, age: newAge }));
-
-        if (!isNaN(ageNum) && ageNum >= 0 && ageNum < 150) {
-            try {
-                const todayAD = new Date();
-                const todayBS = new BikramSambat(todayAD, 'AD').toBS();
-                const [yearBS, monthBS, dayBS] = todayBS.split('-').map(Number);
-                const birthYearBS = yearBS - ageNum;
-                const newDobBS = `${birthYearBS}-${monthBS.toString().padStart(2, '0')}-${dayBS.toString().padStart(2, '0')}`;
-                
-                setDobDateBS(newDobBS);
-            } catch (e) { /* ignore */ }
-        }
-    };
 
     useEffect(() => {
         if (appointmentDateBS) {
@@ -515,6 +579,7 @@ const DoctorAppointment = () => {
                                                         <option>Gynecology</option>
                                                         <option>Dermatology</option>
                                                         <option>ENT</option>
+                                                        <option>Radio Imaging</option>
                                                     </select>
                                                 </div>
 
@@ -629,13 +694,13 @@ const DoctorAppointment = () => {
                                                         {dobCalendarMode === 'BS' ? (
                                                             <NepaliDatePickerCustom
                                                                 value={dobDateBS}
-                                                                onChange={(value: string) => setDobDateBS(value)}
+                                                                onChange={handleDobBSChange}
                                                                 className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.age ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`}
                                                             />
                                                         ) : (
                                                             <EnglishDatePicker 
                                                                 value={dobDateAD}
-                                                                onChange={(value) => setDobDateAD(value)}
+                                                                onChange={handleDobADChange}
                                                                 className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.age ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`}
                                                             />
                                                         )}
@@ -643,16 +708,37 @@ const DoctorAppointment = () => {
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Age</label>
-                                                        <input 
-                                                            type="number" 
-                                                            name="age" 
-                                                            min="0"
-                                                            onKeyDown={(e) => ['-', '+', 'e', 'E'].includes(e.key) && e.preventDefault()}
-                                                            value={formData.age} 
-                                                            onChange={handleAgeChange}
-                                                            placeholder="Years"
-                                                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" 
-                                                        />
+                                                        <div className="flex items-center w-full rounded-xl border border-slate-200 bg-slate-50 focus-within:border-blue-900 focus-within:ring-2 focus-within:ring-blue-900/20 transition-all overflow-hidden group">
+                                                            <div className="relative flex-1 flex items-center">
+                                                                <input 
+                                                                    type="number" 
+                                                                    name="ageYears" 
+                                                                    min="0"
+                                                                    max="150"
+                                                                    onKeyDown={(e) => ['-', '+', 'e', 'E'].includes(e.key) && e.preventDefault()}
+                                                                    value={formData.ageYears} 
+                                                                    onChange={handleAgeChange}
+                                                                    placeholder="Years"
+                                                                    className="w-full bg-transparent pl-4 pr-10 py-3 text-sm font-semibold text-slate-700 focus:outline-none placeholder:text-slate-400 placeholder:font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                                                />
+                                                                <span className="absolute right-3 text-[10px] font-black text-slate-400 uppercase pointer-events-none group-focus-within:text-blue-900/40">Yrs</span>
+                                                            </div>
+                                                            <div className="w-[1px] h-6 bg-slate-200 group-focus-within:bg-blue-900/20"></div>
+                                                            <div className="relative flex-1 flex items-center">
+                                                                <input 
+                                                                    type="number" 
+                                                                    name="ageMonths" 
+                                                                    min="0"
+                                                                    max="11"
+                                                                    onKeyDown={(e) => ['-', '+', 'e', 'E'].includes(e.key) && e.preventDefault()}
+                                                                    value={formData.ageMonths} 
+                                                                    onChange={handleAgeChange}
+                                                                    placeholder="Months"
+                                                                    className="w-full bg-transparent pl-4 pr-12 py-3 text-sm font-semibold text-slate-700 focus:outline-none placeholder:text-slate-400 placeholder:font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                                                />
+                                                                <span className="absolute right-4 text-[10px] font-black text-slate-400 uppercase pointer-events-none group-focus-within:text-blue-900/40">Mth</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Gender *</label>
@@ -677,12 +763,20 @@ const DoctorAppointment = () => {
                                                             style={selectIndicatorStyle}
                                                         >
                                                             <option value="">Select Religion</option>
-                                                            <option value="Hinduism">Hinduism</option>
-                                                            <option value="Buddhism">Buddhism</option>
-                                                            <option value="Islam">Islam</option>
-                                                            <option value="Kirat">Kirat</option>
-                                                            <option value="Christianity">Christianity</option>
-                                                            <option value="Others">Others</option>
+                                                            {RELIGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Nationality *</label>
+                                                        <select 
+                                                            name="nationality" 
+                                                            value={formData.nationality} 
+                                                            onChange={handleInputChange} 
+                                                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20"
+                                                            style={selectIndicatorStyle}
+                                                        >
+                                                            <option value="">Select Nationality</option>
+                                                            {NATIONALITIES.map(n => <option key={n} value={n}>{n}</option>)}
                                                         </select>
                                                     </div>
                                                     <div className="space-y-2">
@@ -697,11 +791,24 @@ const DoctorAppointment = () => {
                                                         <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Caste *</label>
                                                         <select name="caste" value={formData.caste} onChange={handleInputChange} className={`w-full rounded-xl border bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none ${errors.caste ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} style={selectIndicatorStyle} disabled={!formData.ethnicGroup}>
                                                             <option value="" disabled>{formData.ethnicGroup ? 'Select Caste' : 'Select ethnic group first'}</option>
-                                                            {availableCastes.map(caste => <option key={caste} value={caste}>{caste}</option>)}
+                                                            {formData.ethnicGroup && CASTES_BY_GROUP[formData.ethnicGroup]?.map(caste => <option key={caste} value={caste}>{caste}</option>)}
                                                             <option value="Other">Other</option>
                                                         </select>
                                                         {errors.caste && <p className="text-xs text-red-500">{errors.caste}</p>}
                                                     </div>
+                                                    {(formData.caste === 'Other' || formData.ethnicGroup === 'Others') && (
+                                                        <div className="space-y-2">
+                                                            <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Specify Caste/Type *</label>
+                                                            <input
+                                                                type="text"
+                                                                name="casteOther"
+                                                                value={formData.casteOther}
+                                                                onChange={handleInputChange}
+                                                                placeholder="Type here..."
+                                                                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20"
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 <div className="space-y-4">
@@ -833,19 +940,19 @@ const DoctorAppointment = () => {
                                                             <option value="Not Sure">Not Sure</option>
                                                         </select>
                                                         <input list="icd11-diseases" name="existingCondition" value={formData.existingCondition} onChange={handleInputChange} placeholder="Select / Type Disease" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
-                                                        <select name="diseaseDuration" value={formData.diseaseDuration} onChange={handleInputChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" style={selectIndicatorStyle}>
-                                                            <option value="">Duration</option>
-                                                            <option value="< 1 week">Less than 1 week</option>
-                                                            <option value="1-4 weeks">1 to 4 weeks</option>
-                                                            <option value="1-6 months">1 to 6 months</option>
-                                                            <option value="> 6 months">More than 6 months</option>
-                                                        </select>
+                                                        <input list="disease-durations" name="diseaseDuration" value={formData.diseaseDuration} onChange={handleInputChange} placeholder="Duration" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
                                                         <input type="text" name="diseaseNote" value={formData.diseaseNote} onChange={handleInputChange} placeholder="Type here..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
                                                     </div>
                                                     <datalist id="icd11-diseases">
                                                         {ICD11_COMMON_DISEASES.map((disease) => (
                                                             <option key={disease} value={disease} />
                                                         ))}
+                                                    </datalist>
+                                                    <datalist id="disease-durations">
+                                                        <option value="Less than 1 week" />
+                                                        <option value="1 to 4 weeks" />
+                                                        <option value="1 to 6 months" />
+                                                        <option value="More than 6 months" />
                                                     </datalist>
                                                 </div>
 

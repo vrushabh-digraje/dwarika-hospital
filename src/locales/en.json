@@ -121,7 +121,8 @@
       "dental": { "title": "Dental", "desc": "Comprehensive oral healthcare from routine checkups to specialized procedures." },
       "dermatology": { "title": "Dermatology & Veneral Disease", "desc": "Expert treatment for skin conditions and sexual health concerns." },
       "psychiatry": { "title": "Psychiatry", "desc": "Compassionate mental health support and psychiatric consultations." },
-      "cardiology": { "title": "Cardiology", "desc": "Heart health consultations, ECG/ECHO support and follow-up care." }
+      "cardiology": { "title": "Cardiology", "desc": "Heart health consultations, ECG/ECHO support and follow-up care." },
+      "radio_imaging": { "title": "Radio Imaging", "desc": "Advanced diagnostic imaging including X-Ray, USG, and specialized scans." }
     }
   },
   "services": {
@@ -281,6 +282,7 @@
       "overview": "Overview",
       "leadership": "Leadership",
       "team": "Our Team",
+      "administration": "Administration",
       "awards": "Awards & Accolades"
     }
   },

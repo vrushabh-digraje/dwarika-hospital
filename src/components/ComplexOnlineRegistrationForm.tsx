@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import {
     PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES,
-    WARDS, BLOOD_GROUPS, RELIGIONS, USER_TYPES
+    WARDS, BLOOD_GROUPS, RELIGIONS, USER_TYPES, NATIONALITIES, CASTE_GROUPS, CASTES_BY_GROUP
 } from '../constants/nepalData';
 
 const STEPS = [
@@ -25,6 +25,30 @@ const STEPS = [
 ];
 
 const ComplexOnlineRegistrationForm = () => {
+    const calculateDateDiff = (start: string, end: string) => {
+        if (!start || !end) return { y: '', m: '', d: '' };
+        const s = new Date(start);
+        const e = new Date(end);
+        if (isNaN(s.getTime()) || isNaN(e.getTime())) return { y: '', m: '', d: '' };
+        if (e < s) return { y: '0', m: '0', d: '0' };
+
+        let years = e.getFullYear() - s.getFullYear();
+        let months = e.getMonth() - s.getMonth();
+        let days = e.getDate() - s.getDate();
+
+        if (days < 0) {
+            months--;
+            const lastMonth = new Date(e.getFullYear(), e.getMonth(), 0);
+            days += lastMonth.getDate();
+        }
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        return { y: String(years), m: String(months), d: String(days) };
+    };
+
     const [step, setStep] = useState(0);
     const [formData, setFormData] = useState({
         // Initial / Security
@@ -47,6 +71,9 @@ const ComplexOnlineRegistrationForm = () => {
         phone: '',
         email: '',
         nationality: 'Nepali',
+        casteGroup: '',
+        caste: '',
+        casteOther: '',
         postApplied: '',
 
         // Personal Details
@@ -99,7 +126,7 @@ const ComplexOnlineRegistrationForm = () => {
 
         // Academic Detail
         academicDetails: [
-            { level: 'SLC/SEE', degree: '', school: '', university: '', address: '', markGpa: '', division: '', speciality: '', markSheet: null, characterCert: null, provisionalCert: null, extraUploads: [] as (File | null)[] }
+            { level: 'SLC/SEE', degree: '', passedYear: '', school: '', university: '', address: '', markGpa: '', division: '', speciality: '', markSheet: null, characterCert: null, provisionalCert: null, extraUploads: [] as (File | null)[] }
         ],
 
         // Training
@@ -381,16 +408,16 @@ const ComplexOnlineRegistrationForm = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-200">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-gray-200">
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Gender *</label>
-                                <div className="flex gap-4">
+                                <div className="flex gap-2">
                                     {['Male', 'Female', 'Other'].map(g => (
                                         <button
                                             key={g}
                                             type="button"
                                             onClick={() => setFormData(prev => ({ ...prev, gender: g }))}
-                                            className={`flex-1 py-3 px-2 rounded-xl text-xs font-black uppercase transition-all border ${formData.gender === g ? 'bg-blue-900 text-white border-blue-900 shadow-md' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                                            className={`flex-1 py-3 px-1 rounded-xl text-[10px] font-black uppercase transition-all border ${formData.gender === g ? 'bg-blue-900 text-white border-blue-900 shadow-md' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
                                                 }`}
                                         >
                                             {g}
@@ -422,6 +449,65 @@ const ComplexOnlineRegistrationForm = () => {
                                     {RELIGIONS.map(r => <option key={r} value={r}>{r}</option>)}
                                 </select>
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Nationality *</label>
+                                <select
+                                    name="nationality"
+                                    value={formData.nationality}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
+                                >
+                                    <option value="">Select Nationality</option>
+                                    {NATIONALITIES.map(n => <option key={n} value={n}>{n}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Ethnic Group *</label>
+                                <select
+                                    name="casteGroup"
+                                    value={formData.casteGroup}
+                                    onChange={(e) => {
+                                        handleInputChange(e);
+                                        setFormData(prev => ({ ...prev, caste: '' }));
+                                    }}
+                                    className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
+                                >
+                                    <option value="">Select Group</option>
+                                    {CASTE_GROUPS.map(cg => <option key={cg} value={cg}>{cg}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Caste *</label>
+                                <select
+                                    name="caste"
+                                    value={formData.caste}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
+                                    disabled={!formData.casteGroup}
+                                >
+                                    <option value="">{formData.casteGroup ? "Select Caste" : "Select Ethnic Group first"}</option>
+                                    {formData.casteGroup && CASTES_BY_GROUP[formData.casteGroup]?.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            {(formData.caste === 'Other' || formData.casteGroup === 'Others') && (
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Specify Caste/Type *</label>
+                                    <input
+                                        type="text"
+                                        name="casteOther"
+                                        value={formData.casteOther}
+                                        onChange={handleInputChange}
+                                        placeholder="Type here..."
+                                        className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all"
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
@@ -548,7 +634,7 @@ const ComplexOnlineRegistrationForm = () => {
                                             {getFilteredDistricts().map(d => <option key={d} value={d}>{d}</option>)}
                                         </select>
                                     ) : (
-                                        <input type="text" name={districtField} value={(formData as any)[districtField]} onChange={handleInputChange} placeholder="Type district/city..." className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                        <input type="text" name={districtField} value={(formData as any)[districtField]} onChange={handleInputChange} placeholder="Type district/city..." className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                                     )}
                                 </div>
                             </div>
@@ -563,7 +649,7 @@ const ComplexOnlineRegistrationForm = () => {
                                             {GET_MUNICIPALITIES((formData as any)[districtField] || '').map(m => <option key={m} value={m}>{m}</option>)}
                                         </select>
                                     ) : (
-                                        <input type="text" name={`${prefix}Municipality`} value={(formData as any)[`${prefix}Municipality`]} onChange={handleInputChange} placeholder="Type city/municipality..." className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                        <input type="text" name={`${prefix}Municipality`} value={(formData as any)[`${prefix}Municipality`]} onChange={handleInputChange} placeholder="Type city/municipality..." className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                                     )}
                                 </div>
                                 <div className="space-y-2">
@@ -578,8 +664,8 @@ const ComplexOnlineRegistrationForm = () => {
                                     )}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Street/Tole *</label>
-                                    <input type="text" name={`${prefix}Street`} value={(formData as any)[`${prefix}Street`]} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Village / Tole *</label>
+                                    <input type="text" name={`${prefix}Street`} value={(formData as any)[`${prefix}Street`]} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" placeholder="Village / Tole" />
                                 </div>
                             </div>
                         </div>
@@ -608,7 +694,7 @@ const ComplexOnlineRegistrationForm = () => {
                     if (nextLevel) {
                         setFormData(prev => ({
                             ...prev,
-                            academicDetails: [...prev.academicDetails, { level: nextLevel, degree: '', school: '', university: '', address: '', markGpa: '', division: '', speciality: '', markSheet: null, characterCert: null, provisionalCert: null, extraUploads: [] as (File | null)[] }]
+                            academicDetails: [...prev.academicDetails, { level: nextLevel, degree: '', passedYear: '', school: '', university: '', address: '', markGpa: '', division: '', speciality: '', markSheet: null, characterCert: null, provisionalCert: null, extraUploads: [] as (File | null)[] }]
                         }));
                     }
                 };
@@ -628,49 +714,53 @@ const ComplexOnlineRegistrationForm = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Level *</label>
-                                    <input type="text" value={detail.level} onChange={(e) => updateAcademic(detail.level, 'level', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                    <input type="text" value={detail.level} onChange={(e) => updateAcademic(detail.level, 'level', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Degree *</label>
-                                    <input type="text" value={detail.degree} onChange={(e) => updateAcademic(detail.level, 'degree', e.target.value)} placeholder="E.g. MBBS, Health Assistant" className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                    <input type="text" value={detail.degree} onChange={(e) => updateAcademic(detail.level, 'degree', e.target.value)} placeholder="E.g. MBBS, Health Assistant" className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                                 </div>
                             </div>
                         )}
 
                         {/* Name of School/College + University */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="space-y-2 md:col-span-2">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div className="space-y-2 md:col-span-3">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Name of School/College *</label>
-                                <input type="text" value={detail.school} onChange={(e) => updateAcademic(detail.level, 'school', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                <input type="text" value={detail.school} onChange={(e) => updateAcademic(detail.level, 'school', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">University *</label>
-                                <input type="text" value={detail.university} onChange={(e) => updateAcademic(detail.level, 'university', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                <input type="text" value={detail.university} onChange={(e) => updateAcademic(detail.level, 'university', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                             </div>
                         </div>
 
-                        {/* School/College Address + Mark Obtained/GPA */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="space-y-2 md:col-span-2">
+                        {/* School/College Address + Passed Year */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div className="space-y-2 md:col-span-3">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">School/College Address *</label>
-                                <input type="text" value={detail.address} onChange={(e) => updateAcademic(detail.level, 'address', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                <input type="text" value={detail.address} onChange={(e) => updateAcademic(detail.level, 'address', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Passed Year *</label>
+                                <input type="text" value={detail.passedYear} onChange={(e) => updateAcademic(detail.level, 'passedYear', e.target.value)} placeholder="YYYY" className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
+                            </div>
+                        </div>
+
+                        {/* Mark Obtained/GPA + Division/Grade + Speciality */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Mark Obtained/GPA *</label>
-                                <input type="text" value={detail.markGpa} onChange={(e) => updateAcademic(detail.level, 'markGpa', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                <input type="text" value={detail.markGpa} onChange={(e) => updateAcademic(detail.level, 'markGpa', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                             </div>
-                        </div>
-
-                        {/* Division/Grade + Speciality (non-SLC only) */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Division/Grade *</label>
-                                <input type="text" value={detail.division} onChange={(e) => updateAcademic(detail.level, 'division', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                <input type="text" value={detail.division} onChange={(e) => updateAcademic(detail.level, 'division', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                             </div>
                             {!isSLC(detail.level) && (
-                                <div className="space-y-2 md:col-span-2">
+                                <div className="space-y-2">
                                     <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Speciality</label>
-                                    <input type="text" value={detail.speciality} onChange={(e) => updateAcademic(detail.level, 'speciality', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                    <input type="text" value={detail.speciality} onChange={(e) => updateAcademic(detail.level, 'speciality', e.target.value)} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
                                 </div>
                             )}
                         </div>
@@ -809,7 +899,16 @@ const ComplexOnlineRegistrationForm = () => {
             case 6: { // Training Details
                 const tf = formData.trainingForm;
                 const updateTF = (field: string, value: string) => {
-                    setFormData(prev => ({ ...prev, trainingForm: { ...prev.trainingForm, [field]: value } }));
+                    setFormData(prev => {
+                        const newForm = { ...prev.trainingForm, [field]: value };
+                        if (field === 'startDateAD' || field === 'endDateAD') {
+                            const diff = calculateDateDiff(newForm.startDateAD, newForm.endDateAD);
+                            newForm.durationYears = diff.y;
+                            newForm.durationMonths = diff.m;
+                            newForm.durationDays = diff.d;
+                        }
+                        return { ...prev, trainingForm: newForm };
+                    });
                 };
                 const addTraining = () => {
                     if (!tf.name) return;
@@ -835,7 +934,7 @@ const ComplexOnlineRegistrationForm = () => {
                     setFormData(prev => ({ ...prev, trainingEntries: prev.trainingEntries.filter((_, i) => i !== idx) }));
                 };
 
-                const inputCls = "w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase";
+                const inputCls = "w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all";
                 const selectCls = "w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none";
                 const labelCls = "text-[11px] font-black text-gray-600 uppercase tracking-widest";
 
@@ -1042,8 +1141,17 @@ const ComplexOnlineRegistrationForm = () => {
             }
             case 7: { // Work Experience
                 const wf = formData.workForm;
-                const updateWF = (field: string, value: string) => {
-                    setFormData(prev => ({ ...prev, workForm: { ...prev.workForm, [field]: value } }));
+                 const updateWF = (field: string, value: string) => {
+                    setFormData(prev => {
+                        const newForm = { ...prev.workForm, [field]: value };
+                        if (field === 'startDateAD' || field === 'endDateAD') {
+                            const diff = calculateDateDiff(newForm.startDateAD, newForm.endDateAD);
+                            newForm.durationYears = diff.y;
+                            newForm.durationMonths = diff.m;
+                            newForm.durationDays = diff.d;
+                        }
+                        return { ...prev, workForm: newForm };
+                    });
                 };
                 const addWork = () => {
                     if (!wf.organization) return;
@@ -1069,7 +1177,7 @@ const ComplexOnlineRegistrationForm = () => {
                     setFormData(prev => ({ ...prev, workEntries: prev.workEntries.filter((_, i) => i !== idx) }));
                 };
 
-                const inputCls = "w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase";
+                const inputCls = "w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all";
                 const selectCls = "w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none";
                 const labelCls = "text-[11px] font-black text-gray-600 uppercase tracking-widest";
 
@@ -1418,6 +1526,10 @@ const ComplexOnlineRegistrationForm = () => {
                                     <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Ward</label>
                                     <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.permanentWard || '—'}</div>
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Village / Tole</label>
+                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.permanentStreet || '—'}</div>
+                                </div>
                             </div>
                         </div>
 
@@ -1444,6 +1556,10 @@ const ComplexOnlineRegistrationForm = () => {
                                     <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Ward</label>
                                     <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mailingWard || '—'}</div>
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Village / Tole</label>
+                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mailingStreet || '—'}</div>
+                                </div>
                             </div>
                         </div>
 
@@ -1456,7 +1572,9 @@ const ComplexOnlineRegistrationForm = () => {
                                         <thead>
                                             <tr className="bg-gray-100 border-b border-gray-300">
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">S.No.</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Level</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Degree</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Passed Year</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">School/College</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">University/Board</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">GPA/Marks</th>
@@ -1467,11 +1585,13 @@ const ComplexOnlineRegistrationForm = () => {
                                             {formData.academicDetails.map((acd, idx) => (
                                                 <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                                                     <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
-                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{acd.level || '-'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.school || '-'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.university || '-'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.markGpa || '-'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.division || '-'}</td>
+                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{acd.level || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.degree || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.passedYear || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.school || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.university || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.markGpa || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.division || '—'}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -1492,18 +1612,22 @@ const ComplexOnlineRegistrationForm = () => {
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Training Name</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Recognized By</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Registration No.</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Duration</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Start Date (A.D)</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">End Date (A.D)</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Total Duration</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {formData.trainingEntries.map((entry, idx) => (
                                                 <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                                                     <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
-                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{entry.name || '-'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.recognizedBy || '-'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.regNo || '-'}</td>
+                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{entry.name || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.recognizedBy || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.regNo || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.startDateAD || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.endDateAD || '—'}</td>
                                                     <td className="px-4 py-3 text-sm font-semibold text-gray-700">
-                                                        {[entry.durationYears && `${entry.durationYears}Y`, entry.durationMonths && `${entry.durationMonths}M`, entry.durationDays && `${entry.durationDays}D`].filter(Boolean).join(' ') || '-'}
+                                                        {[entry.durationYears && `${entry.durationYears}Y`, entry.durationMonths && `${entry.durationMonths}M`, entry.durationDays && `${entry.durationDays}D`].filter(Boolean).join(' ') || '—'}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -1524,19 +1648,23 @@ const ComplexOnlineRegistrationForm = () => {
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">S.No.</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Organization</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Post / Designation</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Address</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Duration</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Start Date (A.D)</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">End Date (A.D)</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Location</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Total Duration</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {formData.workEntries.map((entry, idx) => (
                                                 <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                                                     <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
-                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{entry.organization || '-'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.post || '-'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{[entry.municipality, entry.district].filter(Boolean).join(', ') || '-'}</td>
+                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{entry.organization || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.post || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.startDateAD || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.endDateAD || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{[entry.municipality, entry.district, entry.country].filter(Boolean).join(', ') || '—'}</td>
                                                     <td className="px-4 py-3 text-sm font-semibold text-gray-700">
-                                                        {[entry.durationYears && `${entry.durationYears}Y`, entry.durationMonths && `${entry.durationMonths}M`, entry.durationDays && `${entry.durationDays}D`].filter(Boolean).join(' ') || '-'}
+                                                        {[entry.durationYears && `${entry.durationYears}Y`, entry.durationMonths && `${entry.durationMonths}M`, entry.durationDays && `${entry.durationDays}D`].filter(Boolean).join(' ') || '—'}
                                                     </td>
                                                 </tr>
                                             ))}
