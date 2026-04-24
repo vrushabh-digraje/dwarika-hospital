@@ -71,7 +71,7 @@ const Footer = () => {
                                 </li>
                             ))}
                             <li>
-                                <a href="tel:102" className="group flex items-center justify-between text-sm text-red-400 hover:text-red-300 transition-colors py-0.5">
+                                <a href="tel:103" className="group flex items-center justify-between text-sm text-red-400 hover:text-red-300 transition-colors py-0.5">
                                     <span>{t('footer.portal.emergency')}</span>
                                     <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                                 </a>

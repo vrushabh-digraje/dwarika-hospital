@@ -328,8 +328,8 @@ const DepartmentDetailPage = () => {
                 <h4 className="font-black text-xs uppercase tracking-[0.2em] text-red-500">Emergency Case?</h4>
                 <p className="text-sm text-white/60 leading-relaxed">For immediate medical attention, call our specialized unit directly.</p>
                 <div className="space-y-2">
-                  <a href="tel:+977" className="flex items-center gap-3 text-sm font-bold hover:text-red-500 transition-colors">
-                    <Phone className="w-4 h-4" /> +977-XX-XXXXXX
+                  <a href="tel:103" className="flex items-center gap-3 text-sm font-bold hover:text-red-500 transition-colors">
+                    <Phone className="w-4 h-4" /> 103
                   </a>
                   <a href="mailto:info@" className="flex items-center gap-3 text-sm font-bold hover:text-red-500 transition-colors">
                     <Mail className="w-4 h-4" /> info@dwarikahospital.com

@@ -505,7 +505,7 @@ const DoctorAppointment = () => {
                         >
                             <h4 className="font-bold text-gray-800 mb-2">{t('appointment.emergency_title')}</h4>
                             <p className="text-sm text-gray-600 mb-4">{t('appointment.emergency_desc')}</p>
-                            <a href="tel:+977XXXXXXXX" className="flex items-center justify-center gap-2 w-full py-3 bg-white text-red-600 font-black uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all">
+                            <a href="tel:103" className="flex items-center justify-center gap-2 w-full py-3 bg-white text-red-600 font-black uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all">
                                 <Phone className="w-4 h-4" /> {t('appointment.emergency_label')}
                             </a>
                         </motion.div>
