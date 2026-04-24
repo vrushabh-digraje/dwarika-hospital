@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronDown, Loader2, Mail, MapPin, Phone, PhoneCall, Send, Globe } from 'lucide-react';
+import { ChevronDown, Loader2, Mail, MapPin, Phone, PhoneCall, Send, Globe, MessageCircle } from 'lucide-react';
 import { DISTRICTS_BY_PROVINCE, PROVINCES, WARDS, GET_MUNICIPALITIES } from '../constants/nepalData';
 
 const ALL_DISTRICTS = Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
@@ -183,6 +183,18 @@ const ContactUsPage = () => {
                                         <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] !text-blue-200">Enquiry</p>
                                         <a href="tel:031590123" className="font-semibold !text-white transition-colors hover:text-blue-100">
                                             031-590123
+                                        </a>
+                                    </div>
+                                </li>
+
+                                <li className="flex items-start gap-4">
+                                    <div className="rounded-xl bg-white/10 p-3">
+                                        <MessageCircle className="h-4 w-4 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.24em] !text-blue-200">What's App</p>
+                                        <a href="https://wa.me/9779705490123" target="_blank" rel="noopener noreferrer" className="font-semibold !text-white transition-colors hover:text-blue-100">
+                                            +977-9705490123
                                         </a>
                                     </div>
                                 </li>

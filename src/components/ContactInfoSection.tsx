@@ -71,7 +71,7 @@ const ContactInfoSection = () => {
             </h3>
             <ul className="space-y-3 text-sm text-slate-600">
               <li>
-                <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-primary transition-colors">
+                <a href="https://www.facebook.com/61573322175633/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-primary transition-colors">
                   <Facebook className="w-4 h-4" /> Facebook
                 </a>
               </li>
@@ -81,7 +81,7 @@ const ContactInfoSection = () => {
                 </a>
               </li>
               <li>
-                <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-pink-600 transition-colors">
+                <a href="https://www.instagram.com/dwarikahospital15/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-pink-600 transition-colors">
                   <Instagram className="w-4 h-4" /> Instagram
                 </a>
               </li>
