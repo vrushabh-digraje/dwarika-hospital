@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
     Pill, Send, Loader2, 
-    Plus, Trash2, Edit2, ChevronDown, Upload, Camera, FileText, CheckCircle2, AlertCircle, Info, Hash, Phone, User, MapPin
+    Plus, Trash2, Edit2, Upload, CheckCircle2, Info, Hash, Phone, User, MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

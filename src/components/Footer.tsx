@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, ExternalLink, ArrowRight, Globe, MessageCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Instagram, Linkedin, ExternalLink, ArrowRight, Globe } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 

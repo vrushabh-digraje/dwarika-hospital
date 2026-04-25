@@ -173,7 +173,7 @@ const DoctorAppointment = () => {
             // STEP 2: Sync AD date (skip only if AD was the original source, to prevent loop)
             if (source !== 'AD') {
                 const adDate = new BikramSambat(dobDateBS, 'BS').toAD();
-                const adStr = adDate.toISOString().split('T')[0];
+                const adStr = new Date(adDate).toISOString().split('T')[0];
                 setDobDateAD(adStr);
             }
         } catch (e) { /* invalid BS date, ignore */ }
@@ -318,7 +318,6 @@ const DoctorAppointment = () => {
         }
     }, [location.state]);
 
-    const availableCastes = formData.ethnicGroup ? CASTES_BY_GROUP[formData.ethnicGroup as keyof typeof CASTES_BY_GROUP] ?? [] : [];
     const availableDistricts = formData.province && formData.province !== 'Select Province'
         ? DISTRICTS_BY_PROVINCE[formData.province as keyof typeof DISTRICTS_BY_PROVINCE] ?? []
         : [];
