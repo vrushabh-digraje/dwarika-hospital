@@ -4,13 +4,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
     Clock, Phone, Mail,
-    ArrowLeft, ArrowRight, CheckCircle,
+    ArrowLeft, ArrowRight, CheckCircle, AlertCircle,
     Stethoscope
 } from 'lucide-react';
 import Button from './Button';
 import { postData } from '../lib/api';
 import NepaliDatePickerCustom from './NepaliDatePickerCustom';
 import EnglishDatePicker from './EnglishDatePicker';
+import DoctorScheduleModal from './DoctorScheduleModal';
 import BikramSambat from 'bikram-sambat-js';
 import { PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES, CASTE_GROUPS, CASTES_BY_GROUP, NATIONALITIES, RELIGIONS } from '../constants/nepalData';
 // import 'nepali-datepicker-reactjs/dist/index.css';
@@ -38,8 +39,8 @@ const getAgeFromDobBs = (dobBs: string) => {
             months += 12;
         }
 
-        if (years < 0) return '0y 0m';
-        return `${years}y ${months}m`;
+        if (years < 0) return '0y 0m 0d';
+        return `${years}y ${months}m ${days}d`;
     } catch {
         return '';
     }
@@ -107,6 +108,7 @@ const DoctorAppointment = () => {
         age: '',
         ageYears: '',
         ageMonths: '',
+        ageDays: '',
         message: '',
         existingCondition: '',
         diseaseStatus: '',
@@ -122,6 +124,7 @@ const DoctorAppointment = () => {
     const [dobDateAD, setDobDateAD] = useState('');
     const [dobCalendarMode, setDobCalendarMode] = useState<'BS' | 'AD'>('BS');
     const [step, setStep] = useState(1);
+    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -147,7 +150,7 @@ const DoctorAppointment = () => {
         if (!dobDateBS || dobDateBS.length < 10) {
             // If cleared, also clear age and AD
             if (!dobDateBS) {
-                setFormData(prev => ({ ...prev, ageYears: '', ageMonths: '' }));
+                setFormData(prev => ({ ...prev, ageYears: '', ageMonths: '', ageDays: '' }));
                 setDobDateAD('');
             }
             return;
@@ -161,11 +164,13 @@ const DoctorAppointment = () => {
                 const ageResult = getAgeFromDobBs(dobDateBS);
                 if (ageResult) {
                     const yrs = ageResult.split('y')[0].trim();
-                    const mths = ageResult.includes('m') ? ageResult.split('y')[1].split('m')[0].trim() : '0';
+                    const mths = ageResult.split('y')[1].split('m')[0].trim();
+                    const days = ageResult.split('m')[1].split('d')[0].trim();
                     setFormData(prev => ({
                         ...prev,
                         ageYears: yrs,
-                        ageMonths: mths
+                        ageMonths: mths,
+                        ageDays: days
                     }));
                 }
             }
@@ -216,11 +221,12 @@ const DoctorAppointment = () => {
         // Update formData immediately
         const updatedYears = name === 'ageYears' ? value : formData.ageYears;
         const updatedMonths = name === 'ageMonths' ? value : formData.ageMonths;
+        const updatedDays = name === 'ageDays' ? value : formData.ageDays;
 
         setFormData(prev => ({ ...prev, [name]: value }));
 
-        // If both empty, clear DOB
-        if (updatedYears === '' && updatedMonths === '') {
+        // If all empty, clear DOB
+        if (updatedYears === '' && updatedMonths === '' && updatedDays === '') {
             dobSyncSource.current = null;
             setDobDateBS('');
             setDobDateAD('');
@@ -229,6 +235,7 @@ const DoctorAppointment = () => {
 
         const yrs = parseInt(updatedYears || '0');
         const mths = parseInt(updatedMonths || '0');
+        const ddays = parseInt(updatedDays || '0');
 
         if (!isNaN(yrs) && yrs >= 0 && yrs < 150) {
             try {
@@ -237,13 +244,24 @@ const DoctorAppointment = () => {
 
                 let bY = currY - yrs;
                 let bM = currM - (isNaN(mths) ? 0 : mths);
+                let bD = currD - (isNaN(ddays) ? 0 : ddays);
+
+                while (bD <= 0) {
+                    bM -= 1;
+                    if (bM <= 0) {
+                        bY -= 1;
+                        bM += 12;
+                    }
+                    // Approx days in month for reverse calc
+                    bD += 30; 
+                }
 
                 while (bM <= 0) {
                     bY -= 1;
                     bM += 12;
                 }
 
-                const newDobBS = `${bY}-${bM.toString().padStart(2, '0')}-${currD.toString().padStart(2, '0')}`;
+                const newDobBS = `${bY}-${bM.toString().padStart(2, '0')}-${bD.toString().padStart(2, '0')}`;
                 // Mark source as AGE so BS effect skips age re-calculation
                 dobSyncSource.current = 'AGE';
                 setDobDateBS(newDobBS);
@@ -305,6 +323,14 @@ const DoctorAppointment = () => {
             } catch (e) { /* ignore partial Input */ }
         }
     }, [appointmentDateAD, appointmentDateBS]);
+
+    const handleSlotSelection = (date: string, shiftId: string, time: string) => {
+        setAppointmentDateAD(date);
+        setFormData(prev => ({
+            ...prev,
+            shift: `${shiftId} (${time})`
+        }));
+    };
 
     useEffect(() => {
         if (location.state) {
@@ -673,8 +699,8 @@ const DoctorAppointment = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                                    <div className="space-y-2">
+                                                <div className="grid grid-cols-1 gap-6 md:grid-cols-12 items-end">
+                                                    <div className="md:col-span-4 space-y-2">
                                                         <div className="flex items-center gap-2">
                                                             <label className="text-xs font-bold uppercase tracking-widest text-slate-700">DOB *</label>
                                                             <div className="flex rounded-md bg-slate-100 p-0.5">
@@ -694,60 +720,73 @@ const DoctorAppointment = () => {
                                                             <NepaliDatePickerCustom
                                                                 value={dobDateBS}
                                                                 onChange={handleDobBSChange}
-                                                                className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.age ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`}
+                                                                className={`w-full rounded-2xl border bg-slate-50 px-4 py-3.5 text-sm font-semibold text-blue-950 ${errors.age ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-4 focus:ring-blue-900/10 transition-all`}
                                                             />
                                                         ) : (
                                                             <EnglishDatePicker 
                                                                 value={dobDateAD}
                                                                 onChange={handleDobADChange}
-                                                                className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm font-medium ${errors.age ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`}
+                                                                className={`w-full rounded-2xl border bg-slate-50 px-4 py-3.5 text-sm font-semibold text-blue-950 ${errors.age ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-4 focus:ring-blue-900/10 transition-all`}
                                                             />
                                                         )}
-                                                        {errors.age && <p className="text-xs text-red-500">{errors.age}</p>}
+                                                        {errors.age && <p className="text-xs text-red-500 font-bold">{errors.age}</p>}
                                                     </div>
-                                                    <div className="space-y-2">
-                                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Age</label>
-                                                        <div className="flex items-center w-full rounded-xl border border-slate-200 bg-slate-50 focus-within:border-blue-900 focus-within:ring-2 focus-within:ring-blue-900/20 transition-all overflow-hidden group">
-                                                            <div className="relative flex-1 flex items-center">
+
+                                                    <div className="md:col-span-8 space-y-3">
+                                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-700 block pl-1">Age (Yrs / Mths / Days)</label>
+                                                        <div className="flex items-center gap-3">
+                                                            {/* Year Input */}
+                                                            <div className="relative group flex-1">
                                                                 <input 
                                                                     type="number" 
                                                                     name="ageYears" 
-                                                                    min="0"
-                                                                    max="150"
-                                                                    onKeyDown={(e) => ['-', '+', 'e', 'E'].includes(e.key) && e.preventDefault()}
                                                                     value={formData.ageYears} 
                                                                     onChange={handleAgeChange}
-                                                                    placeholder="Years"
-                                                                    className="w-full bg-transparent pl-4 pr-10 py-3 text-sm font-semibold text-slate-700 focus:outline-none placeholder:text-slate-400 placeholder:font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                                                    placeholder="00"
+                                                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-blue-950 focus:outline-none focus:border-blue-900 focus:ring-4 focus:ring-blue-900/10 transition-all placeholder:text-slate-300 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                 />
-                                                                <span className="absolute right-3 text-[10px] font-black text-slate-400 uppercase pointer-events-none group-focus-within:text-blue-900/40">Yrs</span>
+                                                                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-black text-slate-400 uppercase tracking-widest">Years</span>
                                                             </div>
-                                                            <div className="w-[1px] h-6 bg-slate-200 group-focus-within:bg-blue-900/20"></div>
-                                                            <div className="relative flex-1 flex items-center">
+
+                                                            {/* Month Input */}
+                                                            <div className="relative group flex-1">
                                                                 <input 
                                                                     type="number" 
                                                                     name="ageMonths" 
-                                                                    min="0"
-                                                                    max="11"
-                                                                    onKeyDown={(e) => ['-', '+', 'e', 'E'].includes(e.key) && e.preventDefault()}
                                                                     value={formData.ageMonths} 
                                                                     onChange={handleAgeChange}
-                                                                    placeholder="Months"
-                                                                    className="w-full bg-transparent pl-4 pr-12 py-3 text-sm font-semibold text-slate-700 focus:outline-none placeholder:text-slate-400 placeholder:font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                                                    placeholder="00"
+                                                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-blue-950 focus:outline-none focus:border-blue-900 focus:ring-4 focus:ring-blue-900/10 transition-all placeholder:text-slate-300 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                 />
-                                                                <span className="absolute right-4 text-[10px] font-black text-slate-400 uppercase pointer-events-none group-focus-within:text-blue-900/40">Mth</span>
+                                                                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-black text-slate-400 uppercase tracking-widest">Months</span>
+                                                            </div>
+
+                                                            {/* Day Input */}
+                                                            <div className="relative group flex-1">
+                                                                <input 
+                                                                    type="number" 
+                                                                    name="ageDays" 
+                                                                    value={formData.ageDays} 
+                                                                    onChange={handleAgeChange}
+                                                                    placeholder="00"
+                                                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-blue-950 focus:outline-none focus:border-blue-900 focus:ring-4 focus:ring-blue-900/10 transition-all placeholder:text-slate-300 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                />
+                                                                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-black text-slate-400 uppercase tracking-widest">Days</span>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-3 pt-6">
                                                     <div className="space-y-2">
                                                         <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Gender *</label>
-                                                        <select name="gender" value={formData.gender} onChange={handleInputChange} className={`w-full rounded-xl border bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none ${errors.gender ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20`} style={selectIndicatorStyle}>
+                                                        <select name="gender" value={formData.gender} onChange={handleInputChange} className={`w-full rounded-2xl border bg-slate-50 px-4 pr-12 py-3.5 text-sm font-semibold appearance-none ${errors.gender ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:border-blue-900 focus:ring-4 focus:ring-blue-900/10 transition-all`} style={selectIndicatorStyle}>
                                                             <option disabled>Select Gender</option>
                                                             <option>Male</option>
                                                             <option>Female</option>
                                                             <option>Other</option>
                                                         </select>
-                                                        {errors.gender && <p className="text-xs text-red-500">{errors.gender}</p>}
+                                                        {errors.gender && <p className="text-xs text-red-500 font-bold">{errors.gender}</p>}
                                                     </div>
                                                 </div>
 
@@ -908,7 +947,11 @@ const DoctorAppointment = () => {
                                                         </select>
                                                     </div>
                                                     <div className="flex items-end">
-                                                        <button type="button" className="w-full rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-bold uppercase tracking-wide text-blue-900 transition-colors hover:bg-blue-100">
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => setIsScheduleModalOpen(true)}
+                                                            className="w-full rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-bold uppercase tracking-wide text-blue-900 transition-colors hover:bg-blue-100"
+                                                        >
                                                             See Doctor Weekly Schedule
                                                         </button>
                                                     </div>
@@ -926,6 +969,36 @@ const DoctorAppointment = () => {
                                                             <EnglishDatePicker value={appointmentDateAD} onChange={(value: string) => setAppointmentDateAD(value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
                                                         </div>
                                                     </div>
+                                                    {appointmentDateAD && (
+                                                        <motion.div 
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            className={`p-4 rounded-2xl flex items-center gap-3 border transition-all ${
+                                                                // Mock logic: available on even days
+                                                                parseInt(appointmentDateAD.split('-')[2]) % 2 === 0 
+                                                                ? 'bg-green-50 border-green-100 text-green-700' 
+                                                                : 'bg-red-50 border-red-100 text-red-700'
+                                                            }`}
+                                                        >
+                                                            {parseInt(appointmentDateAD.split('-')[2]) % 2 === 0 ? (
+                                                                <>
+                                                                    <CheckCircle className="w-5 h-5 shrink-0" />
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-black uppercase tracking-wider mb-0.5">Availability Confirmed</p>
+                                                                        <p className="text-sm font-bold opacity-90">Doctor is available for the selected week/date.</p>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <AlertCircle className="w-5 h-5 shrink-0" />
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-black uppercase tracking-wider mb-0.5">Limited Availability</p>
+                                                                        <p className="text-sm font-bold opacity-90">Doctor might not be available. Please check the weekly schedule for exact slots.</p>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </motion.div>
+                                                    )}
                                                     {errors.appointmentDates && <p className="text-xs text-red-500">{errors.appointmentDates}</p>}
                                                 </div>
 
@@ -977,6 +1050,14 @@ const DoctorAppointment = () => {
                     </div>
                 </div>
             </div>
+            
+            <DoctorScheduleModal 
+                isOpen={isScheduleModalOpen} 
+                onClose={() => setIsScheduleModalOpen(false)} 
+                department={formData.department}
+                doctorName={formData.doctor}
+                onSelectSlot={handleSlotSelection}
+            />
         </div>
     );
 };
