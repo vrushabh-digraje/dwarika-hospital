@@ -217,7 +217,7 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                                                 <td className="p-6 border-b border-r border-slate-200 font-black text-slate-600 text-xs uppercase tracking-widest">
                                                     {shift.label}
                                                 </td>
-                                                {days.map((day, dIdx) => {
+                                                {days.map((_day, dIdx) => {
                                                     const time = MOCK_SLOTS[shift.id]?.[dIdx];
                                                     const isSelected = selectedSlot?.dayIdx === dIdx && selectedSlot?.shiftId === shift.id;
                                                     
