@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -58,25 +58,50 @@ const DOCTORS_DATA = [
 ];
 
 const ICD11_COMMON_DISEASES = [
-    "1A00 Cholera",
-    "1A01 Typhoid fever",
-    "1B10 Tuberculosis",
-    "1D01 Influenza",
-    "5A10 Type 1 diabetes mellitus",
-    "5A11 Type 2 diabetes mellitus",
-    "8A80 Epilepsy",
-    "BA00 Essential hypertension",
-    "BA01 Hypertensive heart disease",
-    "CA20 Pneumonia",
-    "CA23 Asthma",
-    "CB00 Chronic obstructive pulmonary disease",
-    "DA93 Gastritis",
-    "FB32 Osteoarthritis",
-    "GC08 Urinary tract infection",
-    "ME01 Migraine",
-    "NC72 Low back pain",
-    "XR28 COVID-19",
-    "None / Other"
+    // --- 01 Infectious or parasitic diseases ---
+    "1A00 Cholera", "1A01 Typhoid fever", "1B10 Tuberculosis", "1B11 Silicotuberculosis", "1D01 Influenza", "1D00 Seasonal influenza, virus identified", "1F01 Dengue fever", "1F02 Zika virus disease", "1C10 HIV disease", "1A20 Amoebiasis", "1A22 Giardiasis", "1E30 Herpes simplex infections", "1E31 Varicella", "1E32 Zoster", "1F00 Yellow fever", "XR28 COVID-19", "1D0Z Respiratory infection, unspecified", "1A40 Bacterial intestinal infection", "1G40 Sepsis",
+
+    // --- 02 Neoplasms ---
+    "2C61 Malignant neoplasms of breast", "2C25 Malignant neoplasms of bronchus or lung", "2D50 Malignant neoplasms of colon", "2D10 Malignant neoplasms of stomach", "2C91 Malignant neoplasms of prostate", "2C70 Malignant neoplasms of ovary", "2E60 Malignant melanoma of skin", "2A00 Malignant neoplasm of lip", "2D14 Malignant neoplasm of pancreas", "2C30 Malignant neoplasm of thymus", "2B50 Malignant neoplasm of thyroid gland", "3A70 Leukaemia", "3B00 Lymphoma",
+
+    // --- 03 Diseases of the blood or blood-forming organs ---
+    "3A00 Iron deficiency anaemia", "3A01 Vitamin B12 deficiency anaemia", "3A02 Folate deficiency anaemia", "3A05 Haemolytic anaemia", "3A50 Aplastic anaemia", "3B20 Haemophilia", "3B24 Von Willebrand disease",
+
+    // --- 05 Endocrine, nutritional or metabolic diseases ---
+    "5A10 Type 1 diabetes mellitus", "5A11 Type 2 diabetes mellitus", "5A80 Hypothyroidism", "5A02 Hyperthyroidism", "5A13 Gestational diabetes mellitus", "5B50 Obesity", "5B51 Overweight", "5B80 Vitamin D deficiency", "5B81 Vitamin A deficiency", "5C50 Hypercholesterolaemia", "5C51 Hypertriglyceridaemia", "5C52 Mixed hyperlipidaemia", "5A00 Goitre",
+
+    // --- 06 Mental, behavioural or neurodevelopmental disorders ---
+    "6A70 Single episode depressive disorder", "6A71 Recurrent depressive disorder", "6A40 Generalized anxiety disorder", "6A41 Panic disorder", "6A43 Social anxiety disorder", "6A20 Schizophrenia", "6C40 Alcohol use disorder", "6C41 Cannabis use disorder", "6C44 Opioid use disorder", "6A02 Autism spectrum disorder", "6A05 Attention deficit hyperactivity disorder", "6B00 Obsessive-compulsive disorder", "6B40 Post traumatic stress disorder", "6B60 Dissociative identity disorder", "6D70 Dementia",
+
+    // --- 08 Diseases of the nervous system ---
+    "8A80 Epilepsy", "8A00 Alzheimer disease", "8A01 Vascular dementia", "8A02 Dementia with Lewy bodies", "8B00 Stroke", "8B01 Ischaemic stroke", "8B02 Haemorrhagic stroke", "8C00 Multiple sclerosis", "8C40 Parkinson disease", "ME01 Migraine", "8D42 Tension-type headache", "8A40 Meningitis", "8A41 Encephalitis", "8B20 Transient ischaemic attack",
+
+    // --- 09 Diseases of the visual system ---
+    "9A10 Cataract", "9C61 Glaucoma", "9C80 Macular degeneration", "9A60 Conjunctivitis", "9D40 Myopia", "9D41 Hypermetropia", "9D42 Astigmatism",
+
+    // --- 11 Diseases of the circulatory system ---
+    "BA00 Essential hypertension", "BA01 Hypertensive heart disease", "BA40 Ischaemic heart disease", "BA41 Myocardial infarction", "BA42 Heart failure", "BA60 Atrial fibrillation", "BA80 Angina pectoris", "BC40 Valvular heart disease", "BD50 Varicose veins", "BD71 Deep vein thrombosis", "BC80 Myocarditis", "BC81 Pericarditis", "BD10 Atherosclerosis",
+
+    // --- 12 Diseases of the respiratory system ---
+    "CA20 Pneumonia", "CA23 Asthma", "CB00 Chronic obstructive pulmonary disease (COPD)", "CB01 Bronchitis", "CB02 Emphysema", "CA00 Acute upper respiratory infection", "CA01 Acute nasopharyngitis (common cold)", "CA02 Acute sinusitis", "CA03 Acute pharyngitis", "CA05 Acute laryngitis", "CA40 Pleural effusion", "CA60 Pulmonary oedema",
+
+    // --- 13 Diseases of the digestive system ---
+    "DA93 Gastritis", "DA94 Duodenitis", "DA90 Gastro-oesophageal reflux disease (GERD)", "DA92 Peptic ulcer", "DB10 Appendicitis", "DB30 Inguinal hernia", "DB90 Crohn disease", "DB91 Ulcerative colitis", "DB94 Irritable bowel syndrome", "DC30 Cirrhosis of liver", "DC31 Alcoholic liver disease", "DC10 Fatty liver disease", "DC50 Cholelithiasis (Gallstones)", "DC51 Cholecystitis", "DB50 Haemorrhoids",
+
+    // --- 14 Diseases of the skin ---
+    "EB90 Eczema / Atopic dermatitis", "ED90 Psoriasis", "EE10 Urticaria", "EF00 Acne", "EF02 Rosacea", "EK10 Cellulitis", "EK70 Impetigo", "EK12 Abscess", "EE40 Contact dermatitis", "EH60 Alopecia areata",
+
+    // --- 15 Diseases of the musculoskeletal system ---
+    "FB32 Osteoarthritis", "FA01 Rheumatoid arthritis", "FB80 Osteoporosis", "NC72 Low back pain", "FB70 Gout", "FA80 Ankylosing spondylitis", "FB50 Fibromyalgia", "FB54 Tendinitis", "FB55 Bursitis", "FC00 Osteomyelitis",
+
+    // --- 16 Diseases of the genitourinary system ---
+    "GC08 Urinary tract infection", "GB04 Chronic kidney disease", "GB00 Acute kidney failure", "GB70 Nephrolithiasis (Kidney stones)", "GB71 Cystitis", "GB90 Benign prostatic hyperplasia", "GA00 Endometriosis", "GA10 Polycystic ovary syndrome", "GA30 Uterine fibroids", "GC00 Pelvic inflammatory disease",
+
+    // --- 17 Conditions related to sexual health ---
+    "HA00 Syphilis", "HA01 Gonococcal infection", "HA02 Chlamydial infection", "HA40 Sexual dysfunction",
+
+    // --- 21 Symptoms, signs or clinical findings ---
+    "MG30 Pain, not elsewhere classified", "MG20 Fatigue", "MD10 Fever", "MC80 Cough", "MD30 Oedema", "ME00 Headache", "MA00 Nausea and vomiting"
 ];
 
 const DoctorAppointment = () => {
@@ -1002,19 +1027,57 @@ const DoctorAppointment = () => {
                                                     {errors.appointmentDates && <p className="text-xs text-red-500">{errors.appointmentDates}</p>}
                                                 </div>
 
-                                                <div className="space-y-4 border-t border-slate-200 pt-6">
-                                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Are you suffering from any disease (ICD-11)?</label>
-                                                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
-                                                        <select name="diseaseStatus" value={formData.diseaseStatus} onChange={handleInputChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" style={selectIndicatorStyle}>
-                                                            <option value="">Select Status</option>
-                                                            <option value="No">No</option>
-                                                            <option value="Yes">Yes</option>
-                                                            <option value="Not Sure">Not Sure</option>
-                                                        </select>
-                                                        <input list="icd11-diseases" name="existingCondition" value={formData.existingCondition} onChange={handleInputChange} placeholder="Select / Type Disease" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
-                                                        <input list="disease-durations" name="diseaseDuration" value={formData.diseaseDuration} onChange={handleInputChange} placeholder="Duration" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
-                                                        <input type="text" name="diseaseNote" value={formData.diseaseNote} onChange={handleInputChange} placeholder="Type here..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                <div className="space-y-6 border-t border-slate-200 pt-6">
+                                                    <div className="space-y-3">
+                                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Are you suffering from any disease (ICD-11)?</label>
+                                                        <div className="flex flex-wrap gap-3">
+                                                            {['No', 'Yes', 'Not Sure'].map((status) => (
+                                                                <button
+                                                                    key={status}
+                                                                    type="button"
+                                                                    onClick={() => setFormData(prev => ({ 
+                                                                        ...prev, 
+                                                                        diseaseStatus: status,
+                                                                        ...(status === 'No' ? { existingCondition: '', diseaseDuration: '', diseaseNote: '' } : {})
+                                                                    }))}
+                                                                    className={`px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all border ${
+                                                                        formData.diseaseStatus === status
+                                                                            ? 'bg-blue-900 text-white border-blue-900 shadow-lg shadow-blue-900/20'
+                                                                            : 'bg-white text-slate-400 border-slate-200 hover:border-blue-900 hover:text-blue-900'
+                                                                    }`}
+                                                                >
+                                                                    {status}
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
+
+                                                    <AnimatePresence mode="wait">
+                                                        {(formData.diseaseStatus === 'Yes' || formData.diseaseStatus === 'Not Sure') && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, height: 0, y: -10 }}
+                                                                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                                                                exit={{ opacity: 0, height: 0, y: -10 }}
+                                                                className="overflow-hidden"
+                                                            >
+                                                                <div className="grid grid-cols-1 gap-4 xl:grid-cols-3 pt-2">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Disease Name (ICD-11)</label>
+                                                                        <input list="icd11-diseases" name="existingCondition" value={formData.existingCondition} onChange={handleInputChange} placeholder="Select or Type Disease..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Duration</label>
+                                                                        <input list="disease-durations" name="diseaseDuration" value={formData.diseaseDuration} onChange={handleInputChange} placeholder="Duration" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Additional Notes</label>
+                                                                        <input type="text" name="diseaseNote" value={formData.diseaseNote} onChange={handleInputChange} placeholder="Type here..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                    </div>
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+
                                                     <datalist id="icd11-diseases">
                                                         {ICD11_COMMON_DISEASES.map((disease) => (
                                                             <option key={disease} value={disease} />

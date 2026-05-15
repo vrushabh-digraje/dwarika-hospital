@@ -14,7 +14,6 @@ import {
 const STEPS = [
     { id: 'initial', title: 'Entry', icon: Shield },
     { id: 'profile', title: 'Profile', icon: User },
-    { id: 'personal', title: 'Personal', icon: Info },
     { id: 'address', title: 'Address', icon: MapPin },
     { id: 'academic', title: 'Academic', icon: BookOpen },
     { id: 'council', title: 'Council', icon: Award },
@@ -161,8 +160,8 @@ const ComplexOnlineRegistrationForm = () => {
     });
 
     const handleNext = () => {
-        // Auto-save unsaved Training form when leaving the Training step (step 6)
-        if (step === 6 && formData.trainingForm.name.trim()) {
+        // Auto-save unsaved Training form when leaving the Training step (step 5)
+        if (step === 5 && formData.trainingForm.name.trim()) {
             setFormData(prev => {
                 const entries = [...prev.trainingEntries];
                 if (prev.trainingEditIndex >= 0) {
@@ -178,8 +177,8 @@ const ComplexOnlineRegistrationForm = () => {
                 };
             });
         }
-        // Auto-save unsaved Work Experience form when leaving the Work Experience step (step 7)
-        if (step === 7 && formData.workForm.organization.trim()) {
+        // Auto-save unsaved Work Experience form when leaving the Work Experience step (step 6)
+        if (step === 6 && formData.workForm.organization.trim()) {
             setFormData(prev => {
                 const entries = [...prev.workEntries];
                 if (prev.workEditIndex >= 0) {
@@ -565,10 +564,10 @@ const ComplexOnlineRegistrationForm = () => {
                     <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
                         <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                         <h3 className="text-gray-500 font-black uppercase tracking-widest text-sm">Step {step + 1} Under Construction</h3>
-                        <p className="text-gray-500 text-xs mt-2 font-medium">Coming soon: Personal, Address, and Academic sections.</p>
+                        <p className="text-gray-500 text-xs mt-2 font-medium">Coming soon: Address and Academic sections.</p>
                     </div>
                 );
-            case 3: { // Address
+            case 2: { // Address
                 const AddressBlock = ({ title, prefix }: { title: string, prefix: string }) => {
                     const isOld = prefix === 'old';
                     const countryField = `${prefix}Country`;
@@ -680,7 +679,7 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             }
-            case 4: { // Academic Detail
+            case 3: { // Academic Detail
                 const updateAcademic = (level: string, field: string, value: any) => {
                     const updated = formData.academicDetails.map(a => a.level === level ? { ...a, [field]: value } : a);
                     setFormData(prev => ({ ...prev, academicDetails: updated }));
@@ -841,7 +840,7 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             }
-            case 5: // Council Registration
+            case 4: // Council Registration
                 return (
                     <div className="space-y-8">
                         <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
@@ -896,7 +895,7 @@ const ComplexOnlineRegistrationForm = () => {
                         </p>
                     </div>
                 );
-            case 6: { // Training Details
+            case 5: { // Training Details
                 const tf = formData.trainingForm;
                 const updateTF = (field: string, value: string) => {
                     setFormData(prev => {
@@ -1139,7 +1138,7 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             }
-            case 7: { // Work Experience
+            case 6: { // Work Experience
                 const wf = formData.workForm;
                  const updateWF = (field: string, value: string) => {
                     setFormData(prev => {
@@ -1366,7 +1365,7 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             }
-            case 8: // Preview
+            case 7: // Preview
                 return (
                     <div className="space-y-8">
                         {/* Header */}
@@ -1427,7 +1426,7 @@ const ComplexOnlineRegistrationForm = () => {
                             </div>
                         </div>
 
-                        {/* Personal Details */}
+                        {/* General Profile Details */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-200">
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Gender</label>
@@ -1441,9 +1440,10 @@ const ComplexOnlineRegistrationForm = () => {
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Religion</label>
                                 <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.religion || '—'}</div>
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Nationality</label>
+                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.nationality || '—'}</div>
+                            </div>
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Mobile No.</label>
                                 <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mobile || '—'}</div>
@@ -1451,54 +1451,6 @@ const ComplexOnlineRegistrationForm = () => {
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Email ID</label>
                                 <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.email || '—'}</div>
-                            </div>
-                        </div>
-
-                        {/* Family */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-200">
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Spouse Name</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.spouseName || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Father Name</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.fatherName || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Mother Name</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.motherName || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Grandfather Name</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.grandfatherName || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Marital Status</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.maritalStatus || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Nationality</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.nationality || '—'}</div>
-                            </div>
-                        </div>
-
-                        {/* Date of Birth + IDs */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-gray-200">
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Date of Birth (B.S)</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.dobBS || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Date of Birth (A.D)</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.dobAD || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Citizenship No.</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.citizenshipNo || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">PAN No.</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.panNo || '—'}</div>
                             </div>
                         </div>
 
@@ -1682,7 +1634,7 @@ const ComplexOnlineRegistrationForm = () => {
                         </div>
                     </div>
                 );
-            case 9: // Payment
+            case 8: // Payment
                 return (
                     <div className="space-y-8">
                         <div className="text-center">
