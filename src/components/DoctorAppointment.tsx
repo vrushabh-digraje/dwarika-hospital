@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import {
     Clock, Phone, Mail,
     ArrowLeft, ArrowRight, CheckCircle, AlertCircle,
-    Stethoscope
+    Stethoscope, Plus, Trash2
 } from 'lucide-react';
 import Button from './Button';
 import { postData } from '../lib/api';
@@ -134,11 +134,10 @@ const DoctorAppointment = () => {
         ageYears: '',
         ageMonths: '',
         ageDays: '',
+        diseases: [] as { condition: string; duration: string; note: string }[],
+        currentDisease: { condition: '', duration: '', note: '' },
+        diseaseStatus: 'No',
         message: '',
-        existingCondition: '',
-        diseaseStatus: '',
-        diseaseDuration: '',
-        diseaseNote: '',
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -158,6 +157,31 @@ const DoctorAppointment = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleDiseaseChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            currentDisease: { ...prev.currentDisease, [name]: value }
+        }));
+    };
+
+    const addDisease = () => {
+        if (formData.currentDisease.condition.trim()) {
+            setFormData(prev => ({
+                ...prev,
+                diseases: [...prev.diseases, { ...prev.currentDisease }],
+                currentDisease: { condition: '', duration: '', note: '' }
+            }));
+        }
+    };
+
+    const removeDisease = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            diseases: prev.diseases.filter((_, i) => i !== index)
+        }));
+    };
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
@@ -175,7 +199,7 @@ const DoctorAppointment = () => {
         if (!dobDateBS || dobDateBS.length < 10) {
             // If cleared, also clear age and AD
             if (!dobDateBS) {
-                setFormData(prev => ({ ...prev, ageYears: '', ageMonths: '', ageDays: '' }));
+                setFormData(prev => ({ ...prev, ageYears: '', ageMonths: '', ageDays: '', dobBs: '' }));
                 setDobDateAD('');
             }
             return;
@@ -206,6 +230,7 @@ const DoctorAppointment = () => {
                 const adStr = new Date(adDate).toISOString().split('T')[0];
                 setDobDateAD(adStr);
             }
+            setFormData(prev => ({ ...prev, dobBs: dobDateBS }));
         } catch (e) { /* invalid BS date, ignore */ }
 
         // Reset source after processing
@@ -1035,11 +1060,11 @@ const DoctorAppointment = () => {
                                                                 <button
                                                                     key={status}
                                                                     type="button"
-                                                                    onClick={() => setFormData(prev => ({ 
-                                                                        ...prev, 
-                                                                        diseaseStatus: status,
-                                                                        ...(status === 'No' ? { existingCondition: '', diseaseDuration: '', diseaseNote: '' } : {})
-                                                                    }))}
+                                                                        onClick={() => setFormData(prev => ({ 
+                                                                            ...prev, 
+                                                                            diseaseStatus: status,
+                                                                            ...(status === 'No' ? { diseases: [], currentDisease: { condition: '', duration: '', note: '' } } : {})
+                                                                        }))}
                                                                     className={`px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all border ${
                                                                         formData.diseaseStatus === status
                                                                             ? 'bg-blue-900 text-white border-blue-900 shadow-lg shadow-blue-900/20'
@@ -1058,20 +1083,54 @@ const DoctorAppointment = () => {
                                                                 initial={{ opacity: 0, height: 0, y: -10 }}
                                                                 animate={{ opacity: 1, height: 'auto', y: 0 }}
                                                                 exit={{ opacity: 0, height: 0, y: -10 }}
-                                                                className="overflow-hidden"
+                                                                className="overflow-hidden space-y-4"
                                                             >
-                                                                <div className="grid grid-cols-1 gap-4 xl:grid-cols-3 pt-2">
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Disease Name (ICD-11)</label>
-                                                                        <input list="icd11-diseases" name="existingCondition" value={formData.existingCondition} onChange={handleInputChange} placeholder="Select or Type Disease..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                {/* Disease List */}
+                                                                {formData.diseases.length > 0 && (
+                                                                    <div className="flex flex-wrap gap-2 pt-2">
+                                                                        {formData.diseases.map((d, idx) => (
+                                                                            <div key={idx} className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full pl-4 pr-2 py-1.5 shadow-sm group hover:bg-blue-100 transition-all">
+                                                                                <div className="flex flex-col leading-tight">
+                                                                                    <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider">{d.condition}</span>
+                                                                                    {d.duration && <span className="text-[9px] text-blue-600 font-bold">{d.duration}</span>}
+                                                                                </div>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => removeDisease(idx)}
+                                                                                    className="p-1 hover:bg-red-100 rounded-full text-red-400 hover:text-red-600 transition-colors"
+                                                                                >
+                                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            </div>
+                                                                        ))}
                                                                     </div>
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Duration</label>
-                                                                        <input list="disease-durations" name="diseaseDuration" value={formData.diseaseDuration} onChange={handleInputChange} placeholder="Duration" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                )}
+
+                                                                {/* Add Disease Form */}
+                                                                <div className="bg-slate-50/50 p-6 rounded-[22px] border border-slate-200 space-y-4 relative group">
+                                                                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+                                                                        <div className="space-y-1.5">
+                                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Disease Name (ICD-11)</label>
+                                                                            <input list="icd11-diseases" name="condition" value={formData.currentDisease.condition} onChange={handleDiseaseChange} placeholder="Select or Type Disease..." className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                        </div>
+                                                                        <div className="space-y-1.5">
+                                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Duration</label>
+                                                                            <input list="disease-durations" name="duration" value={formData.currentDisease.duration} onChange={handleDiseaseChange} placeholder="Duration" className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                        </div>
+                                                                        <div className="space-y-1.5">
+                                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Additional Notes</label>
+                                                                            <input type="text" name="note" value={formData.currentDisease.note} onChange={handleDiseaseChange} placeholder="Type here..." className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                        </div>
                                                                     </div>
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Additional Notes</label>
-                                                                        <input type="text" name="diseaseNote" value={formData.diseaseNote} onChange={handleInputChange} placeholder="Type here..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                    <div className="flex justify-end">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={addDisease}
+                                                                            disabled={!formData.currentDisease.condition.trim()}
+                                                                            className="flex items-center gap-2 bg-blue-900 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-900/20"
+                                                                        >
+                                                                            <Plus className="w-4 h-4" /> Add to List
+                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                             </motion.div>

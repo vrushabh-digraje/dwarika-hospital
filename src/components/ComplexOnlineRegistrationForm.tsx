@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import BikramSambat from 'bikram-sambat-js';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     User, Phone, Mail, MapPin,
@@ -14,6 +15,7 @@ import {
 const STEPS = [
     { id: 'initial', title: 'Entry', icon: Shield },
     { id: 'profile', title: 'Profile', icon: User },
+    { id: 'personal', title: 'Personal', icon: Info },
     { id: 'address', title: 'Address', icon: MapPin },
     { id: 'academic', title: 'Academic', icon: BookOpen },
     { id: 'council', title: 'Council', icon: Award },
@@ -49,6 +51,8 @@ const ComplexOnlineRegistrationForm = () => {
     };
 
     const [step, setStep] = useState(0);
+    const dobSyncSource = useRef<'AD' | 'BS' | null>(null);
+
     const [formData, setFormData] = useState({
         // Initial / Security
         entryCode: '',
@@ -77,22 +81,37 @@ const ComplexOnlineRegistrationForm = () => {
 
         // Personal Details
         fatherName: '',
+        fatherNameNp: '',
         motherName: '',
+        motherNameNp: '',
         grandfatherName: '',
+        grandfatherNameNp: '',
         grandmotherName: '',
+        grandmotherNameNp: '',
         spouseName: '',
+        spouseNameNp: '',
         maritalStatus: 'Unmarried',
         dobAD: '',
         dobBS: '',
         panNo: '',
+        panFile: null,
         citizenshipNo: '',
         citizenshipIssueDate: '',
         citizenshipIssuePlace: '',
         citizenshipFront: null,
         citizenshipBack: null,
         passportNo: '',
+        passportIssueDate: '',
+        passportIssuePlace: '',
+        passportFile: null,
         nIdNo: '',
+        nIdIssueDate: '',
+        nIdIssuePlace: '',
+        nIdFile: null,
         localIdNo: '',
+        localIdIssueDate: '',
+        localIdIssuePlace: '',
+        localIdFile: null,
 
         // Address
         // 1. Permanent (Old)
@@ -159,9 +178,36 @@ const ComplexOnlineRegistrationForm = () => {
         workEditIndex: -1,
     });
 
+    // Sync DOB: AD to BS
+    useEffect(() => {
+        if (!formData.dobAD || dobSyncSource.current === 'BS') {
+            if (dobSyncSource.current === 'BS') dobSyncSource.current = null;
+            return;
+        }
+        try {
+            const bsDate = new BikramSambat(formData.dobAD, 'AD').toBS();
+            dobSyncSource.current = 'AD';
+            setFormData(prev => ({ ...prev, dobBS: bsDate }));
+        } catch (e) { /* ignore */ }
+    }, [formData.dobAD]);
+
+    // Sync DOB: BS to AD
+    useEffect(() => {
+        if (!formData.dobBS || formData.dobBS.length < 10 || dobSyncSource.current === 'AD') {
+            if (dobSyncSource.current === 'AD') dobSyncSource.current = null;
+            return;
+        }
+        try {
+            const adDate = new BikramSambat(formData.dobBS, 'BS').toAD();
+            const adStr = new Date(adDate).toISOString().split('T')[0];
+            dobSyncSource.current = 'BS';
+            setFormData(prev => ({ ...prev, dobAD: adStr }));
+        } catch (e) { /* ignore */ }
+    }, [formData.dobBS]);
+
     const handleNext = () => {
-        // Auto-save unsaved Training form when leaving the Training step (step 5)
-        if (step === 5 && formData.trainingForm.name.trim()) {
+        // Auto-save unsaved Training form when leaving the Training step (step 6)
+        if (step === 6 && formData.trainingForm.name.trim()) {
             setFormData(prev => {
                 const entries = [...prev.trainingEntries];
                 if (prev.trainingEditIndex >= 0) {
@@ -177,8 +223,8 @@ const ComplexOnlineRegistrationForm = () => {
                 };
             });
         }
-        // Auto-save unsaved Work Experience form when leaving the Work Experience step (step 6)
-        if (step === 6 && formData.workForm.organization.trim()) {
+        // Auto-save unsaved Work Experience form when leaving the Work Experience step (step 7)
+        if (step === 7 && formData.workForm.organization.trim()) {
             setFormData(prev => {
                 const entries = [...prev.workEntries];
                 if (prev.workEditIndex >= 0) {
@@ -559,15 +605,216 @@ const ComplexOnlineRegistrationForm = () => {
                         </div>
                     </div>
                 );
-            default:
+            case 2: // Personal Detail
                 return (
-                    <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-                        <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-gray-500 font-black uppercase tracking-widest text-sm">Step {step + 1} Under Construction</h3>
-                        <p className="text-gray-500 text-xs mt-2 font-medium">Coming soon: Address and Academic sections.</p>
+                    <div className="space-y-10">
+                        {/* Section Header */}
+                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
+                            <h3 className="text-lg font-black uppercase tracking-tight flex items-center gap-3">
+                                <User className="w-6 h-6 text-blue-300" /> Personal Detail
+                            </h3>
+                            <p className="text-blue-200 text-xs font-medium mt-1 uppercase tracking-widest">Provide your family and identity information</p>
+                        </div>
+
+                        {/* Family Details Section */}
+                        <div className="space-y-6">
+                            <h4 className="text-[10px] font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2 pb-2 border-b-2 border-blue-900/10">
+                                <Info className="w-4 h-4" /> Family Information
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Father & Mother */}
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Father's Name *</label>
+                                            <input type="text" name="fatherName" value={formData.fatherName} onChange={handleInputChange} placeholder="FATHER'S FULL NAME" className="w-full bg-gray-100/80 border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">बाबुको नाम *</label>
+                                            <input type="text" name="fatherNameNp" value={formData.fatherNameNp} onChange={handleInputChange} placeholder="बाबुको पूरा नाम" className="w-full bg-blue-50/50 border border-blue-200/80 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all font-nepali" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Grandfather's Name *</label>
+                                            <input type="text" name="grandfatherName" value={formData.grandfatherName} onChange={handleInputChange} placeholder="GRANDFATHER'S FULL NAME" className="w-full bg-gray-100/80 border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">हजुरबुवाको नाम *</label>
+                                            <input type="text" name="grandfatherNameNp" value={formData.grandfatherNameNp} onChange={handleInputChange} placeholder="हजुरबुवाको पूरा नाम" className="w-full bg-blue-50/50 border border-blue-200/80 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all font-nepali" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Mother's Name *</label>
+                                            <input type="text" name="motherName" value={formData.motherName} onChange={handleInputChange} placeholder="MOTHER'S FULL NAME" className="w-full bg-gray-100/80 border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">आमाको नाम *</label>
+                                            <input type="text" name="motherNameNp" value={formData.motherNameNp} onChange={handleInputChange} placeholder="आमाको पूरा नाम" className="w-full bg-blue-50/50 border border-blue-200/80 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all font-nepali" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Grandmother's Name</label>
+                                            <input type="text" name="grandmotherName" value={formData.grandmotherName} onChange={handleInputChange} placeholder="GRANDMOTHER'S FULL NAME" className="w-full bg-gray-100/80 border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">हजुरआमाको नाम</label>
+                                            <input type="text" name="grandmotherNameNp" value={formData.grandmotherNameNp} onChange={handleInputChange} placeholder="हजुरआमाको पूरा नाम" className="w-full bg-blue-50/50 border border-blue-200/80 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all font-nepali" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Spouse Detail */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Husband/Wife Name</label>
+                                    <input type="text" name="spouseName" value={formData.spouseName} onChange={handleInputChange} placeholder="SPOUSE FULL NAME" className="w-full bg-gray-100/80 border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">पति/पत्नीको नाम</label>
+                                    <input type="text" name="spouseNameNp" value={formData.spouseNameNp} onChange={handleInputChange} placeholder="पति/पत्नीको पूरा नाम" className="w-full bg-blue-50/50 border border-blue-200/80 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all font-nepali" />
+                                </div>
+                            </div>
+
+                            {/* Marital Status & DOB */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Marital Status / वैवाहिक स्थिति *</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {[
+                                            { en: 'Married', np: 'विवाहित' },
+                                            { en: 'Unmarried', np: 'अविवाहित' },
+                                            { en: 'Divorced', np: 'सम्बन्ध विच्छेद' },
+                                            { en: 'Widowed', np: 'एकल' }
+                                        ].map(s => (
+                                            <button
+                                                key={s.en}
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, maritalStatus: s.en }))}
+                                                className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl text-[10px] font-black uppercase transition-all border ${formData.maritalStatus === s.en ? 'bg-blue-900 text-white border-blue-900 shadow-md' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}
+                                            >
+                                                {s.en} / {s.np}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">DOB (A.D) *</label>
+                                        <input type="date" name="dobAD" value={formData.dobAD} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">DOB (B.S) *</label>
+                                        <input type="text" name="dobBS" value={formData.dobBS} onChange={handleInputChange} placeholder="YYYY-MM-DD" className="w-full bg-gray-100/80 border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Identity Documents Section */}
+                        <div className="space-y-8 pt-6">
+                            <h4 className="text-[10px] font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2 pb-2 border-b-2 border-blue-900/10">
+                                <Shield className="w-4 h-4" /> Identity Documents
+                            </h4>
+
+                            {/* PAN Section */}
+                            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-200 space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">PAN No.</label>
+                                        <input type="text" name="panNo" value={formData.panNo} onChange={handleInputChange} placeholder="PAN NUMBER" className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Upload PAN Card</label>
+                                        <div className="border-2 border-dashed border-gray-400/60 rounded-xl p-3 text-center relative group hover:border-blue-900 transition-all bg-white">
+                                            <Upload className="w-5 h-5 text-gray-400 mx-auto mb-1 group-hover:text-blue-900 transition-colors" />
+                                            <p className="text-[9px] font-black uppercase text-gray-500 tracking-wider truncate px-2">{formData.panFile ? (formData.panFile as any).name : 'Select File'}</p>
+                                            <input type="file" name="panFile" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Citizenship Section */}
+                            <div className="bg-blue-50/30 p-6 rounded-2xl border border-blue-100 space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Citizenship No. *</label>
+                                        <input type="text" name="citizenshipNo" value={formData.citizenshipNo} onChange={handleInputChange} placeholder="CITIZENSHIP NO" className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Date of Issue *</label>
+                                        <input type="date" name="citizenshipIssueDate" value={formData.citizenshipIssueDate} onChange={handleInputChange} className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Place of Issue *</label>
+                                        <input type="text" name="citizenshipIssuePlace" value={formData.citizenshipIssuePlace} onChange={handleInputChange} placeholder="DISTRICT" className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Upload Front Side *</label>
+                                        <div className="border-2 border-dashed border-gray-400/60 rounded-xl p-4 text-center relative group hover:border-blue-900 transition-all bg-white">
+                                            <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2 group-hover:text-blue-900 transition-colors" />
+                                            <p className="text-[10px] font-black uppercase text-gray-500 tracking-wider">{formData.citizenshipFront ? (formData.citizenshipFront as any).name : 'Select Front'}</p>
+                                            <input type="file" name="citizenshipFront" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Upload Back Side *</label>
+                                        <div className="border-2 border-dashed border-gray-400/60 rounded-xl p-4 text-center relative group hover:border-blue-900 transition-all bg-white">
+                                            <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2 group-hover:text-blue-900 transition-colors" />
+                                            <p className="text-[10px] font-black uppercase text-gray-500 tracking-wider">{formData.citizenshipBack ? (formData.citizenshipBack as any).name : 'Select Back'}</p>
+                                            <input type="file" name="citizenshipBack" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Other IDs (Passport, NID, Local ID) */}
+                            <div className="grid grid-cols-1 gap-6">
+                                {[
+                                    { id: 'Passport', prefix: 'passport', label: 'Passport No.', file: 'passportFile' },
+                                    { id: 'NID', prefix: 'nId', label: 'NID No.', file: 'nIdFile' },
+                                    { id: 'Local ID', prefix: 'localId', label: 'Local ID No.', file: 'localIdFile' }
+                                ].map((doc) => (
+                                    <div key={doc.prefix} className="bg-gray-50/50 p-6 rounded-2xl border border-gray-200 space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">{doc.label}</label>
+                                                <input type="text" name={`${doc.prefix}No`} value={(formData as any)[`${doc.prefix}No`]} onChange={handleInputChange} placeholder={`${doc.id.toUpperCase()} NO`} className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Date of Issue</label>
+                                                <input type="date" name={`${doc.prefix}IssueDate`} value={(formData as any)[`${doc.prefix}IssueDate`]} onChange={handleInputChange} className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Place of Issue</label>
+                                                <input type="text" name={`${doc.prefix}IssuePlace`} value={(formData as any)[`${doc.prefix}IssuePlace`]} onChange={handleInputChange} placeholder="PLACE" className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Upload {doc.id}</label>
+                                                <div className="border-2 border-dashed border-gray-400/60 rounded-xl p-3 text-center relative group hover:border-blue-900 transition-all bg-white">
+                                                    <Upload className="w-5 h-5 text-gray-400 mx-auto mb-1 group-hover:text-blue-900 transition-colors" />
+                                                    <p className="text-[9px] font-black uppercase text-gray-500 tracking-wider truncate px-2">{(formData as any)[doc.file] ? (formData as any)[doc.file].name : 'Select File'}</p>
+                                                    <input type="file" name={doc.file} onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 );
-            case 2: { // Address
+            case 3: { // Address
                 const AddressBlock = ({ title, prefix }: { title: string, prefix: string }) => {
                     const isOld = prefix === 'old';
                     const countryField = `${prefix}Country`;
@@ -679,7 +926,7 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             }
-            case 3: { // Academic Detail
+            case 4: { // Academic Detail
                 const updateAcademic = (level: string, field: string, value: any) => {
                     const updated = formData.academicDetails.map(a => a.level === level ? { ...a, [field]: value } : a);
                     setFormData(prev => ({ ...prev, academicDetails: updated }));
@@ -840,7 +1087,7 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             }
-            case 4: // Council Registration
+            case 5: // Council Registration
                 return (
                     <div className="space-y-8">
                         <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
@@ -895,7 +1142,7 @@ const ComplexOnlineRegistrationForm = () => {
                         </p>
                     </div>
                 );
-            case 5: { // Training Details
+            case 6: { // Training Details
                 const tf = formData.trainingForm;
                 const updateTF = (field: string, value: string) => {
                     setFormData(prev => {
@@ -1138,7 +1385,7 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             }
-            case 6: { // Work Experience
+            case 7: { // Work Experience
                 const wf = formData.workForm;
                  const updateWF = (field: string, value: string) => {
                     setFormData(prev => {
@@ -1365,7 +1612,7 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             }
-            case 7: // Preview
+            case 8: // Preview
                 return (
                     <div className="space-y-8">
                         {/* Header */}
@@ -1451,6 +1698,71 @@ const ComplexOnlineRegistrationForm = () => {
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Email ID</label>
                                 <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.email || '—'}</div>
+                            </div>
+                        </div>
+
+                        {/* Personal Details Summary */}
+                        <div className="space-y-6 pt-6 border-t border-gray-200">
+                            <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Personal & Family Details</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase">Father's Name</span>
+                                            <div className="text-sm font-bold text-gray-800 uppercase">{formData.fatherName || '—'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-blue-900/50 uppercase">बाबुको नाम</span>
+                                            <div className="text-sm font-bold text-gray-800 font-nepali">{formData.fatherNameNp || '—'}</div>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase">Mother's Name</span>
+                                            <div className="text-sm font-bold text-gray-800 uppercase">{formData.motherName || '—'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-blue-900/50 uppercase">आमाको नाम</span>
+                                            <div className="text-sm font-bold text-gray-800 font-nepali">{formData.motherNameNp || '—'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase">Grandfather's Name</span>
+                                            <div className="text-sm font-bold text-gray-800 uppercase">{formData.grandfatherName || '—'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-blue-900/50 uppercase">हजुरबुवाको नाम</span>
+                                            <div className="text-sm font-bold text-gray-800 font-nepali">{formData.grandfatherNameNp || '—'}</div>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase">Marital Status</span>
+                                            <div className="text-sm font-bold text-gray-800 uppercase">{formData.maritalStatus || '—'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase">Date of Birth (A.D)</span>
+                                            <div className="text-sm font-bold text-gray-800">{formData.dobAD || '—'} ({formData.dobBS || '—'} B.S.)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-black text-gray-500 uppercase">Citizenship No.</span>
+                                    <div className="text-sm font-bold text-gray-800">{formData.citizenshipNo || '—'}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-black text-gray-500 uppercase">Issue Date</span>
+                                    <div className="text-sm font-bold text-gray-800">{formData.citizenshipIssueDate || '—'}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-black text-gray-500 uppercase">Issue Place</span>
+                                    <div className="text-sm font-bold text-gray-800 uppercase">{formData.citizenshipIssuePlace || '—'}</div>
+                                </div>
                             </div>
                         </div>
 
@@ -1634,7 +1946,7 @@ const ComplexOnlineRegistrationForm = () => {
                         </div>
                     </div>
                 );
-            case 8: // Payment
+            case 9: // Payment
                 return (
                     <div className="space-y-8">
                         <div className="text-center">
