@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     User, Lock, ArrowRight, ShieldCheck, Mail, CheckCircle2,
     Loader2, ChevronLeft, Camera, Upload, Calendar,
-    Smartphone, Hash, UserCircle2, ChevronDown
+    Smartphone, Hash, UserCircle2, ChevronDown, Eye, EyeOff
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -13,10 +13,13 @@ import {
     GET_MUNICIPALITIES, 
     WARDS 
 } from '../constants/nepalData';
+import DualDatePicker from '../components/DualDatePicker';
 
 const PatientRegisterPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [otpSent, setOtpSent] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
@@ -239,10 +242,15 @@ const PatientRegisterPage = () => {
                                                 </div>
 
                                                 <div className="space-y-1">
-                                                    <label className={labelCls}>Date of Birth *</label>
                                                     <div className="relative">
-                                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                        <input type="date" name="dob" value={formData.dob} onChange={handleChange} className={inputCls} />
+                                                        <Calendar className="absolute left-4 top-[calc(50%+16px)] -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
+                                                        <DualDatePicker 
+                                                            label="Date of Birth *"
+                                                            labelClassName={labelCls.replace('mb-2.5', 'mb-0')}
+                                                            value={formData.dob} 
+                                                            onChange={(val) => setFormData(prev => ({ ...prev, dob: val }))} 
+                                                            className={inputCls} 
+                                                        />
                                                     </div>
                                                     {errors.dob && <p className="text-red-600 text-[10px] font-bold uppercase mt-1">{errors.dob}</p>}
                                                 </div>
@@ -432,7 +440,14 @@ const PatientRegisterPage = () => {
                                                 <label className={labelCls}>Set Password *</label>
                                                 <div className="relative">
                                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                    <input type="password" name="password" value={formData.password} onChange={handleChange} className={inputCls} placeholder="••••••••" />
+                                                    <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} className={inputCls + " pr-10"} placeholder="••••••••" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-900 focus:outline-none"
+                                                    >
+                                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                    </button>
                                                 </div>
                                                 {errors.password && <p className="text-red-600 text-[10px] font-bold uppercase mt-1">{errors.password}</p>}
                                             </div>
@@ -440,7 +455,14 @@ const PatientRegisterPage = () => {
                                                 <label className={labelCls}>Repeat Password *</label>
                                                 <div className="relative">
                                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                    <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className={inputCls} placeholder="••••••••" />
+                                                    <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className={inputCls + " pr-10"} placeholder="••••••••" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-900 focus:outline-none"
+                                                    >
+                                                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                    </button>
                                                 </div>
                                                 {errors.confirmPassword && <p className="text-red-600 text-[10px] font-bold uppercase mt-1">{errors.confirmPassword}</p>}
                                             </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Lock, Mail, ShieldCheck, UserCircle, BriefcaseMedical, User, Loader2 } from 'lucide-react';
+import { ArrowRight, Lock, Mail, ShieldCheck, UserCircle, BriefcaseMedical, User, Loader2, Eye, EyeOff } from 'lucide-react';
 import { postData } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [userType, setUserType] = useState<'patient' | 'staff'>('patient');
     const navigate = useNavigate();
@@ -153,13 +154,20 @@ const LoginPage = () => {
                                     <div className="relative group">
                                         <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-900 transition-colors" />
                                         <input
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
                                             placeholder="••••••••"
-                                            className="w-full rounded-2xl border border-gray-300 bg-gray-100/80 py-4 pl-12 pr-4 text-sm font-bold text-gray-900 outline-none transition-all focus:bg-white focus:border-blue-900 focus:ring-4 focus:ring-blue-900/10 placeholder:text-gray-400 placeholder:font-medium"
+                                            className="w-full rounded-2xl border border-gray-300 bg-gray-100/80 py-4 pl-12 pr-10 text-sm font-bold text-gray-900 outline-none transition-all focus:bg-white focus:border-blue-900 focus:ring-4 focus:ring-blue-900/10 placeholder:text-gray-400 placeholder:font-medium"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-900 focus:outline-none"
+                                        >
+                                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                        </button>
                                     </div>
                                 </motion.div>
 

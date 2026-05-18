@@ -5,8 +5,9 @@ import {
     User, Phone, Mail, MapPin,
     Upload, CheckCircle2, ArrowRight, ArrowLeft,
     BookOpen, Briefcase, Award, Globe, Shield, Info,
-    QrCode, Plus, CreditCard, FileText, Pencil, Trash2
+    QrCode, Plus, CreditCard, FileText, Pencil, Trash2, ChevronDown
 } from 'lucide-react';
+import DualDatePicker from './DualDatePicker';
 import {
     PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES,
     WARDS, BLOOD_GROUPS, RELIGIONS, USER_TYPES, NATIONALITIES, CASTE_GROUPS, CASTES_BY_GROUP
@@ -24,6 +25,191 @@ const STEPS = [
     { id: 'preview', title: 'Preview', icon: FileText },
     { id: 'payment', title: 'Payment', icon: CreditCard },
 ];
+
+const AddressBlock = ({ 
+    title, 
+    prefix, 
+    formData, 
+    handleInputChange, 
+    isMailingSameAsPermanent, 
+    setIsMailingSameAsPermanent 
+}: { 
+    title: string; 
+    prefix: string; 
+    formData: any; 
+    handleInputChange: (e: any) => void; 
+    isMailingSameAsPermanent: boolean; 
+    setIsMailingSameAsPermanent: (val: boolean) => void; 
+}) => {
+    const isOld = prefix === 'old';
+    const countryField = `${prefix}Country`;
+    const provinceField = isOld ? 'oldZone' : `${prefix}Province`;
+    const districtField = `${prefix}District`;
+    const selectedCountry = (formData as any)[countryField] || 'Nepal';
+    const isNepal = selectedCountry === 'Nepal';
+    const selectedProvince = (formData as any)[provinceField] || '';
+    const isDisabled = prefix === 'mailing' && isMailingSameAsPermanent;
+
+    // Get districts filtered by selected province
+    const getFilteredDistricts = () => {
+        if (!isNepal) return [];
+        if (isOld) return Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
+        if (selectedProvince && DISTRICTS_BY_PROVINCE[selectedProvince as keyof typeof DISTRICTS_BY_PROVINCE]) {
+            return DISTRICTS_BY_PROVINCE[selectedProvince as keyof typeof DISTRICTS_BY_PROVINCE];
+        }
+        return Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
+    };
+
+    const selectClass = (extra = "") => 
+        `w-full border px-5 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all rounded-full appearance-none ${
+            isDisabled 
+            ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-75' 
+            : 'bg-white border-gray-200 text-gray-800'
+        } ${extra}`;
+
+    const inputClass = (extra = "") => 
+        `w-full border px-5 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all rounded-full ${
+            isDisabled 
+            ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-75' 
+            : 'bg-white border-gray-200 text-gray-800'
+        } ${extra}`;
+
+    return (
+        <div className="space-y-6">
+            <h3 className="text-sm font-black text-blue-900 uppercase tracking-[0.2em] flex items-center justify-between pb-2 border-b-2 border-blue-900/10">
+                <span className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" /> {title}
+                </span>
+                {prefix === 'mailing' && (
+                    <label className="flex items-center gap-2.5 cursor-pointer text-xs font-black text-blue-900 uppercase tracking-widest hover:text-blue-800 select-none bg-blue-50/70 hover:bg-blue-50 border border-blue-100 px-3.5 py-1.5 rounded-full transition-all">
+                        <input
+                            type="checkbox"
+                            checked={isMailingSameAsPermanent}
+                            onChange={(e) => setIsMailingSameAsPermanent(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 text-blue-900 focus:ring-blue-900"
+                        />
+                        Same as Permanent Address
+                    </label>
+                )}
+            </h3>
+
+            {/* Row 1: Country → Province/Zone → District */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Country *</label>
+                    <div className="relative">
+                        <select name={countryField} value={selectedCountry} onChange={handleInputChange} disabled={isDisabled} className={selectClass()}>
+                            <option>Nepal</option>
+                            <option>India</option>
+                            <option>China</option>
+                            <option>Bangladesh</option>
+                            <option>USA</option>
+                            <option>UK</option>
+                            <option>Other</option>
+                        </select>
+                        {!isDisabled && <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />}
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">{isOld ? 'Zone *' : 'Province/State *'}</label>
+                    <div className="relative">
+                        <input 
+                            type="text" 
+                            name={isOld ? 'oldZone' : `${prefix}Province`} 
+                            value={(formData as any)[isOld ? 'oldZone' : `${prefix}Province`] || ''} 
+                            onChange={handleInputChange} 
+                            disabled={isDisabled} 
+                            list={`${prefix}ProvinceList`}
+                            placeholder={isOld ? "Select or type zone..." : "Select or type province..."} 
+                            className={inputClass("pr-10")} 
+                        />
+                        {!isDisabled && <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />}
+                        {isNepal && (
+                            <datalist id={`${prefix}ProvinceList`}>
+                                {isOld ? (
+                                    ["Mechi", "Kosi", "Sagarmatha", "Janakpur", "Bagmati", "Narayani", "Gandaki", "Lumbini", "Dhaulagiri", "Rapti", "Bheri", "Karnali", "Seti", "Mahakali"].map(z => <option key={z} value={z} />)
+                                ) : (
+                                    PROVINCES.map(p => <option key={p} value={p} />)
+                                )}
+                            </datalist>
+                        )}
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">District *</label>
+                    <div className="relative">
+                        <input 
+                            type="text" 
+                            name={districtField} 
+                            value={(formData as any)[districtField] || ''} 
+                            onChange={handleInputChange} 
+                            disabled={isDisabled} 
+                            list={`${prefix}DistrictList`}
+                            placeholder="Select or type district..." 
+                            className={inputClass("pr-10")} 
+                        />
+                        {!isDisabled && <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />}
+                        {isNepal && (
+                            <datalist id={`${prefix}DistrictList`}>
+                                {getFilteredDistricts().map(d => <option key={d} value={d} />)}
+                            </datalist>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Row 2: Municipality → Ward → Street */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Municipality/VDC *</label>
+                    <div className="relative">
+                        <input 
+                            type="text" 
+                            name={`${prefix}Municipality`} 
+                            value={(formData as any)[`${prefix}Municipality`] || ''} 
+                            onChange={handleInputChange} 
+                            disabled={isDisabled} 
+                            list={`${prefix}MunicipalityList`}
+                            placeholder="Select or type municipality..." 
+                            className={inputClass("pr-10")} 
+                        />
+                        {!isDisabled && <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />}
+                        {isNepal && (
+                            <datalist id={`${prefix}MunicipalityList`}>
+                                {GET_MUNICIPALITIES((formData as any)[districtField] || '').map(m => <option key={m} value={m} />)}
+                            </datalist>
+                        )}
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Ward No. *</label>
+                    <div className="relative">
+                        <input 
+                            type="text" 
+                            name={`${prefix}Ward`} 
+                            value={(formData as any)[`${prefix}Ward`] || ''} 
+                            onChange={handleInputChange} 
+                            disabled={isDisabled} 
+                            list={`${prefix}WardList`}
+                            placeholder="Select or type ward..." 
+                            className={inputClass("pr-10")} 
+                        />
+                        {!isDisabled && <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />}
+                        {isNepal && (
+                            <datalist id={`${prefix}WardList`}>
+                                {WARDS.map(w => <option key={w} value={w} />)}
+                            </datalist>
+                        )}
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Village / Tole *</label>
+                    <input type="text" name={`${prefix}Street`} value={(formData as any)[`${prefix}Street`] || ''} onChange={handleInputChange} disabled={isDisabled} className={inputClass()} placeholder="Village / Tole" />
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const ComplexOnlineRegistrationForm = () => {
     const calculateDateDiff = (start: string, end: string) => {
@@ -51,6 +237,9 @@ const ComplexOnlineRegistrationForm = () => {
     };
 
     const [step, setStep] = useState(0);
+    const [isMailingSameAsPermanent, setIsMailingSameAsPermanent] = useState(false);
+    const [trainingError, setTrainingError] = useState('');
+    const [workError, setWorkError] = useState('');
     const dobSyncSource = useRef<'AD' | 'BS' | null>(null);
 
     const [formData, setFormData] = useState({
@@ -70,6 +259,7 @@ const ComplexOnlineRegistrationForm = () => {
         bloodGroup: '',
         religion: '',
         userType: 'STUDENT',
+        userTypeOther: '',
         mobile: '',
         phone: '',
         email: '',
@@ -176,6 +366,7 @@ const ComplexOnlineRegistrationForm = () => {
             durationYears: '', durationMonths: '', durationDays: '',
         },
         workEditIndex: -1,
+        councilExtraUploads: [] as (File | null)[],
     });
 
     // Sync DOB: AD to BS
@@ -204,6 +395,183 @@ const ComplexOnlineRegistrationForm = () => {
             setFormData(prev => ({ ...prev, dobAD: adStr }));
         } catch (e) { /* ignore */ }
     }, [formData.dobBS]);
+
+    // Training Date Sync & Duration Calculation Effect
+    useEffect(() => {
+        const tf = formData.trainingForm;
+        let needsUpdate = false;
+        const newForm = { ...tf };
+
+        // AD to BS: Start Date
+        if (tf.startDateAD) {
+            try {
+                const calculatedBS = new BikramSambat(tf.startDateAD, 'AD').toBS();
+                if (tf.startDateBS !== calculatedBS) {
+                    newForm.startDateBS = calculatedBS;
+                    needsUpdate = true;
+                }
+            } catch (e) {}
+        } else if (tf.startDateBS) {
+            newForm.startDateBS = '';
+            needsUpdate = true;
+        }
+
+        // AD to BS: End Date
+        if (tf.endDateAD) {
+            try {
+                const calculatedBS = new BikramSambat(tf.endDateAD, 'AD').toBS();
+                if (tf.endDateBS !== calculatedBS) {
+                    newForm.endDateBS = calculatedBS;
+                    needsUpdate = true;
+                }
+            } catch (e) {}
+        } else if (tf.endDateBS) {
+            newForm.endDateBS = '';
+            needsUpdate = true;
+        }
+
+        // BS to AD: Start Date
+        if (tf.startDateBS && tf.startDateBS.length >= 10) {
+            try {
+                const calculatedAD = new BikramSambat(tf.startDateBS, 'BS').toAD();
+                const adStr = new Date(calculatedAD).toISOString().split('T')[0];
+                if (tf.startDateAD !== adStr) {
+                    newForm.startDateAD = adStr;
+                    needsUpdate = true;
+                }
+            } catch (e) {}
+        }
+
+        // BS to AD: End Date
+        if (tf.endDateBS && tf.endDateBS.length >= 10) {
+            try {
+                const calculatedAD = new BikramSambat(tf.endDateBS, 'BS').toAD();
+                const adStr = new Date(calculatedAD).toISOString().split('T')[0];
+                if (tf.endDateAD !== adStr) {
+                    newForm.endDateAD = adStr;
+                    needsUpdate = true;
+                }
+            } catch (e) {}
+        }
+
+        // Recalculate Duration
+        const diff = calculateDateDiff(newForm.startDateAD, newForm.endDateAD);
+        if (newForm.durationYears !== diff.y || newForm.durationMonths !== diff.m || newForm.durationDays !== diff.d) {
+            newForm.durationYears = diff.y;
+            newForm.durationMonths = diff.m;
+            newForm.durationDays = diff.d;
+            needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+            setFormData(prev => ({ ...prev, trainingForm: newForm }));
+        }
+    }, [
+        formData.trainingForm.startDateAD,
+        formData.trainingForm.endDateAD,
+        formData.trainingForm.startDateBS,
+        formData.trainingForm.endDateBS
+    ]);
+
+    // Work Experience Date Sync & Duration Calculation Effect
+    useEffect(() => {
+        const wf = formData.workForm;
+        let needsUpdate = false;
+        const newForm = { ...wf };
+
+        // AD to BS: Start Date
+        if (wf.startDateAD) {
+            try {
+                const calculatedBS = new BikramSambat(wf.startDateAD, 'AD').toBS();
+                if (wf.startDateBS !== calculatedBS) {
+                    newForm.startDateBS = calculatedBS;
+                    needsUpdate = true;
+                }
+            } catch (e) {}
+        } else if (wf.startDateBS) {
+            newForm.startDateBS = '';
+            needsUpdate = true;
+        }
+
+        // AD to BS: End Date
+        if (wf.endDateAD) {
+            try {
+                const calculatedBS = new BikramSambat(wf.endDateAD, 'AD').toBS();
+                if (wf.endDateBS !== calculatedBS) {
+                    newForm.endDateBS = calculatedBS;
+                    needsUpdate = true;
+                }
+            } catch (e) {}
+        } else if (wf.endDateBS) {
+            newForm.endDateBS = '';
+            needsUpdate = true;
+        }
+
+        // BS to AD: Start Date
+        if (wf.startDateBS && wf.startDateBS.length >= 10) {
+            try {
+                const calculatedAD = new BikramSambat(wf.startDateBS, 'BS').toAD();
+                const adStr = new Date(calculatedAD).toISOString().split('T')[0];
+                if (wf.startDateAD !== adStr) {
+                    newForm.startDateAD = adStr;
+                    needsUpdate = true;
+                }
+            } catch (e) {}
+        }
+
+        // BS to AD: End Date
+        if (wf.endDateBS && wf.endDateBS.length >= 10) {
+            try {
+                const calculatedAD = new BikramSambat(wf.endDateBS, 'BS').toAD();
+                const adStr = new Date(calculatedAD).toISOString().split('T')[0];
+                if (wf.endDateAD !== adStr) {
+                    newForm.endDateAD = adStr;
+                    needsUpdate = true;
+                }
+            } catch (e) {}
+        }
+
+        // Recalculate Duration
+        const diff = calculateDateDiff(newForm.startDateAD, newForm.endDateAD);
+        if (newForm.durationYears !== diff.y || newForm.durationMonths !== diff.m || newForm.durationDays !== diff.d) {
+            newForm.durationYears = diff.y;
+            newForm.durationMonths = diff.m;
+            newForm.durationDays = diff.d;
+            needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+            setFormData(prev => ({ ...prev, workForm: newForm }));
+        }
+    }, [
+        formData.workForm.startDateAD,
+        formData.workForm.endDateAD,
+        formData.workForm.startDateBS,
+        formData.workForm.endDateBS
+    ]);
+
+    // Sync Mailing Address with Permanent Address if "Same as Permanent" is ticked
+    useEffect(() => {
+        if (isMailingSameAsPermanent) {
+            setFormData(prev => ({
+                ...prev,
+                mailingCountry: prev.permanentCountry,
+                mailingProvince: prev.permanentProvince,
+                mailingDistrict: prev.permanentDistrict,
+                mailingMunicipality: prev.permanentMunicipality,
+                mailingWard: prev.permanentWard,
+                mailingStreet: prev.permanentStreet
+            }));
+        }
+    }, [
+        isMailingSameAsPermanent,
+        formData.permanentCountry,
+        formData.permanentProvince,
+        formData.permanentDistrict,
+        formData.permanentMunicipality,
+        formData.permanentWard,
+        formData.permanentStreet
+    ]);
 
     const handleNext = () => {
         // Auto-save unsaved Training form when leaving the Training step (step 6)
@@ -280,6 +648,9 @@ const ComplexOnlineRegistrationForm = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
+        if (name && name.startsWith('mailing')) {
+            setIsMailingSameAsPermanent(false);
+        }
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -462,7 +833,7 @@ const ComplexOnlineRegistrationForm = () => {
                                             key={g}
                                             type="button"
                                             onClick={() => setFormData(prev => ({ ...prev, gender: g }))}
-                                            className={`flex-1 py-3 px-1 rounded-xl text-[10px] font-black uppercase transition-all border ${formData.gender === g ? 'bg-blue-900 text-white border-blue-900 shadow-md' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                                            className={`flex-1 py-3 px-1 rounded-full text-[10px] font-black uppercase transition-all border ${formData.gender === g ? 'bg-blue-900 text-white border-blue-900 shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
                                                 }`}
                                         >
                                             {g}
@@ -476,22 +847,10 @@ const ComplexOnlineRegistrationForm = () => {
                                     name="bloodGroup"
                                     value={formData.bloodGroup}
                                     onChange={handleInputChange}
-                                    className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
+                                    className="w-full bg-white border border-gray-200 rounded-full px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
                                 >
                                     <option value="">Select Group</option>
                                     {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}
-                                </select>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Religion *</label>
-                                <select
-                                    name="religion"
-                                    value={formData.religion}
-                                    onChange={handleInputChange}
-                                    className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
-                                >
-                                    <option value="">Select Religion</option>
-                                    {RELIGIONS.map(r => <option key={r} value={r}>{r}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-2">
@@ -500,10 +859,22 @@ const ComplexOnlineRegistrationForm = () => {
                                     name="nationality"
                                     value={formData.nationality}
                                     onChange={handleInputChange}
-                                    className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
+                                    className="w-full bg-white border border-gray-200 rounded-full px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
                                 >
                                     <option value="">Select Nationality</option>
                                     {NATIONALITIES.map(n => <option key={n} value={n}>{n}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Religion *</label>
+                                <select
+                                    name="religion"
+                                    value={formData.religion}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-white border border-gray-200 rounded-full px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
+                                >
+                                    <option value="">Select Religion</option>
+                                    {RELIGIONS.map(r => <option key={r} value={r}>{r}</option>)}
                                 </select>
                             </div>
                         </div>
@@ -518,7 +889,7 @@ const ComplexOnlineRegistrationForm = () => {
                                         handleInputChange(e);
                                         setFormData(prev => ({ ...prev, caste: '' }));
                                     }}
-                                    className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
+                                    className="w-full bg-white border border-gray-200 rounded-full px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
                                 >
                                     <option value="">Select Group</option>
                                     {CASTE_GROUPS.map(cg => <option key={cg} value={cg}>{cg}</option>)}
@@ -530,7 +901,7 @@ const ComplexOnlineRegistrationForm = () => {
                                     name="caste"
                                     value={formData.caste}
                                     onChange={handleInputChange}
-                                    className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
+                                    className="w-full bg-white border border-gray-200 rounded-full px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none"
                                     disabled={!formData.casteGroup}
                                 >
                                     <option value="">{formData.casteGroup ? "Select Caste" : "Select Ethnic Group first"}</option>
@@ -549,7 +920,7 @@ const ComplexOnlineRegistrationForm = () => {
                                         value={formData.casteOther}
                                         onChange={handleInputChange}
                                         placeholder="Type here..."
-                                        className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all"
+                                        className="w-full bg-white border border-gray-200 rounded-full px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all"
                                     />
                                 </div>
                             )}
@@ -571,6 +942,19 @@ const ComplexOnlineRegistrationForm = () => {
                                         </button>
                                     ))}
                                 </div>
+                                {formData.userType === 'OTHER' && (
+                                    <div className="space-y-2 pt-4">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Specify Other Role *</label>
+                                        <input
+                                            type="text"
+                                            name="userTypeOther"
+                                            value={formData.userTypeOther}
+                                            onChange={handleInputChange}
+                                            placeholder="Specify your role..."
+                                            className="w-full bg-white border border-gray-200 rounded-full px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all"
+                                        />
+                                    </div>
+                                )}
                             </div>
                             <div className="space-y-4">
                                 <div className="space-y-2">
@@ -749,10 +1133,13 @@ const ComplexOnlineRegistrationForm = () => {
                                         <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Citizenship No. *</label>
                                         <input type="text" name="citizenshipNo" value={formData.citizenshipNo} onChange={handleInputChange} placeholder="CITIZENSHIP NO" className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Date of Issue *</label>
-                                        <input type="date" name="citizenshipIssueDate" value={formData.citizenshipIssueDate} onChange={handleInputChange} className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
-                                    </div>
+                                    <DualDatePicker
+                                        label="Date of Issue *"
+                                        labelClassName="text-[11px] font-black text-gray-600 uppercase tracking-widest"
+                                        value={formData.citizenshipIssueDate}
+                                        onChange={(val: string) => handleInputChange({ target: { name: 'citizenshipIssueDate', value: val } } as any)}
+                                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900"
+                                    />
                                     <div className="space-y-2">
                                         <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Place of Issue *</label>
                                         <input type="text" name="citizenshipIssuePlace" value={formData.citizenshipIssuePlace} onChange={handleInputChange} placeholder="DISTRICT" className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
@@ -791,9 +1178,14 @@ const ComplexOnlineRegistrationForm = () => {
                                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">{doc.label}</label>
                                                 <input type="text" name={`${doc.prefix}No`} value={(formData as any)[`${doc.prefix}No`]} onChange={handleInputChange} placeholder={`${doc.id.toUpperCase()} NO`} className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Date of Issue</label>
-                                                <input type="date" name={`${doc.prefix}IssueDate`} value={(formData as any)[`${doc.prefix}IssueDate`]} onChange={handleInputChange} className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
+                                            <div className="space-y-2 flex flex-col justify-end">
+                                                <DualDatePicker
+                                                    label="Date of Issue"
+                                                    labelClassName="text-[11px] font-black text-gray-600 uppercase tracking-widest"
+                                                    value={(formData as any)[`${doc.prefix}IssueDate`] || ''}
+                                                    onChange={(val: string) => handleInputChange({ target: { name: `${doc.prefix}IssueDate`, value: val } } as any)}
+                                                    className="w-full bg-white border border-gray-400/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900"
+                                                />
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Place of Issue</label>
@@ -815,114 +1207,32 @@ const ComplexOnlineRegistrationForm = () => {
                     </div>
                 );
             case 3: { // Address
-                const AddressBlock = ({ title, prefix }: { title: string, prefix: string }) => {
-                    const isOld = prefix === 'old';
-                    const countryField = `${prefix}Country`;
-                    const provinceField = isOld ? 'oldZone' : `${prefix}Province`;
-                    const districtField = `${prefix}District`;
-                    const selectedCountry = (formData as any)[countryField] || 'Nepal';
-                    const isNepal = selectedCountry === 'Nepal';
-                    const selectedProvince = (formData as any)[provinceField] || '';
-
-                    // Get districts filtered by selected province
-                    const getFilteredDistricts = () => {
-                        if (!isNepal) return [];
-                        if (isOld) return Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
-                        if (selectedProvince && DISTRICTS_BY_PROVINCE[selectedProvince as keyof typeof DISTRICTS_BY_PROVINCE]) {
-                            return DISTRICTS_BY_PROVINCE[selectedProvince as keyof typeof DISTRICTS_BY_PROVINCE];
-                        }
-                        return Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
-                    };
-
-                    return (
-                        <div className="space-y-6">
-                            <h3 className="text-sm font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2 pb-2 border-b-2 border-blue-900/10">
-                                <MapPin className="w-4 h-4" /> {title}
-                            </h3>
-
-                            {/* Row 1: Country → Province/Zone → District */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Country *</label>
-                                    <select name={countryField} value={selectedCountry} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
-                                        <option>Nepal</option>
-                                        <option>India</option>
-                                        <option>China</option>
-                                        <option>Bangladesh</option>
-                                        <option>USA</option>
-                                        <option>UK</option>
-                                        <option>Other</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">{isOld ? 'Zone *' : 'Province/State *'}</label>
-                                    {isNepal ? (
-                                        isOld ? (
-                                            <select name="oldZone" value={formData.oldZone} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
-                                                <option value="">Select Zone</option>
-                                                {["Mechi", "Kosi", "Sagarmatha", "Janakpur", "Bagmati", "Narayani", "Gandaki", "Lumbini", "Dhaulagiri", "Rapti", "Bheri", "Karnali", "Seti", "Mahakali"].map(z => <option key={z} value={z}>{z}</option>)}
-                                            </select>
-                                        ) : (
-                                            <select name={`${prefix}Province`} value={(formData as any)[`${prefix}Province`]} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
-                                                <option value="">Select Province</option>
-                                                {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-                                            </select>
-                                        )
-                                    ) : (
-                                        <input type="text" name={isOld ? 'oldZone' : `${prefix}Province`} value={(formData as any)[isOld ? 'oldZone' : `${prefix}Province`]} onChange={handleInputChange} placeholder="Type state/province..." className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
-                                    )}
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">District *</label>
-                                    {isNepal ? (
-                                        <select name={districtField} value={(formData as any)[districtField]} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
-                                            <option value="">Select District</option>
-                                            {getFilteredDistricts().map(d => <option key={d} value={d}>{d}</option>)}
-                                        </select>
-                                    ) : (
-                                        <input type="text" name={districtField} value={(formData as any)[districtField]} onChange={handleInputChange} placeholder="Type district/city..." className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Row 2: Municipality → Ward → Street */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Municipality/VDC *</label>
-                                    {isNepal ? (
-                                        <select name={`${prefix}Municipality`} value={(formData as any)[`${prefix}Municipality`]} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
-                                            <option value="">Select Municipality</option>
-                                            {GET_MUNICIPALITIES((formData as any)[districtField] || '').map(m => <option key={m} value={m}>{m}</option>)}
-                                        </select>
-                                    ) : (
-                                        <input type="text" name={`${prefix}Municipality`} value={(formData as any)[`${prefix}Municipality`]} onChange={handleInputChange} placeholder="Type city/municipality..." className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
-                                    )}
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Ward No. *</label>
-                                    {isNepal ? (
-                                        <select name={`${prefix}Ward`} value={(formData as any)[`${prefix}Ward`]} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
-                                            <option value="">Select Ward</option>
-                                            {WARDS.map(w => <option key={w} value={w}>{w}</option>)}
-                                        </select>
-                                    ) : (
-                                        <input type="text" name={`${prefix}Ward`} value={(formData as any)[`${prefix}Ward`]} onChange={handleInputChange} placeholder="Zip/Postal code" className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" />
-                                    )}
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Village / Tole *</label>
-                                    <input type="text" name={`${prefix}Street`} value={(formData as any)[`${prefix}Street`]} onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all" placeholder="Village / Tole" />
-                                </div>
-                            </div>
-                        </div>
-                    );
-                };
-
                 return (
                     <div className="space-y-10">
-                        <AddressBlock title="Permanent Address (According to Old Citizenship)" prefix="old" />
-                        <AddressBlock title="Permanent Address" prefix="permanent" />
-                        <AddressBlock title="Mailing Address" prefix="mailing" />
+                        <AddressBlock 
+                            title="Permanent Address (According to Old Citizenship)" 
+                            prefix="old" 
+                            formData={formData}
+                            handleInputChange={handleInputChange}
+                            isMailingSameAsPermanent={isMailingSameAsPermanent}
+                            setIsMailingSameAsPermanent={setIsMailingSameAsPermanent}
+                        />
+                        <AddressBlock 
+                            title="Permanent Address" 
+                            prefix="permanent" 
+                            formData={formData}
+                            handleInputChange={handleInputChange}
+                            isMailingSameAsPermanent={isMailingSameAsPermanent}
+                            setIsMailingSameAsPermanent={setIsMailingSameAsPermanent}
+                        />
+                        <AddressBlock 
+                            title="Mailing Address" 
+                            prefix="mailing" 
+                            formData={formData}
+                            handleInputChange={handleInputChange}
+                            isMailingSameAsPermanent={isMailingSameAsPermanent}
+                            setIsMailingSameAsPermanent={setIsMailingSameAsPermanent}
+                        />
                     </div>
                 );
             }
@@ -1101,16 +1411,19 @@ const ComplexOnlineRegistrationForm = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Council Regd. No. *</label>
-                                <input type="text" name="councilRegNo" onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                <input type="text" name="councilRegNo" value={(formData as any).councilRegNo || ''} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-full px-5 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all uppercase" />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Type of Registration *</label>
-                                <select name="councilRegType" onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all appearance-none">
-                                    <option value="">Select Type</option>
-                                    <option>Temporary</option>
-                                    <option>Permanent</option>
-                                    <option>Renewal</option>
-                                </select>
+                                <div className="relative">
+                                    <select name="councilRegType" value={(formData as any).councilRegType || ''} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-full px-5 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all appearance-none">
+                                        <option value="">Select Type</option>
+                                        <option>Temporary</option>
+                                        <option>Permanent</option>
+                                        <option>Renewal</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                </div>
                             </div>
                         </div>
 
@@ -1118,46 +1431,85 @@ const ComplexOnlineRegistrationForm = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Educational Qualification *</label>
-                                <input type="text" name="councilEduQualification" onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                <input type="text" name="councilEduQualification" value={(formData as any).councilEduQualification || ''} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-full px-5 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all uppercase" />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Council Name *</label>
-                                <input type="text" name="councilName" onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 transition-all uppercase" />
+                                <input type="text" name="councilName" value={(formData as any).councilName || ''} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-full px-5 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all uppercase" />
                             </div>
                         </div>
 
                         {/* Upload Council Registration Certificate */}
                         <div className="space-y-2">
                             <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Upload Council Registration Certificate *</label>
-                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center relative group hover:border-blue-900 transition-all">
+                            <div className="border-2 border-dashed border-gray-200 hover:border-blue-900 rounded-2xl p-6 text-center relative group transition-all bg-white shadow-sm hover:shadow-md">
                                 <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2 group-hover:text-blue-900 transition-colors" />
-                                <p className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Select File</p>
+                                <p className="text-[10px] font-black uppercase text-gray-500 tracking-wider">
+                                    {(formData as any).councilCert ? (formData as any).councilCert.name : 'Select File'}
+                                </p>
                                 <input type="file" name="councilCert" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
                             </div>
                         </div>
 
-                        {/* Additional Upload */}
-                        <p className="text-[11px] font-black text-gray-600 uppercase tracking-widest">
-                            Additional Upload Please <button type="button" className="underline text-blue-900 hover:text-blue-700 transition-colors">Click Here</button>
+                        {/* Additional Uploads */}
+                        {((formData as any).councilExtraUploads || []).map((file: File | null, eIdx: number) => (
+                            <div key={eIdx} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Additional Document #{eIdx + 1} *</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const updated = ((formData as any).councilExtraUploads || []).filter((_: any, i: number) => i !== eIdx);
+                                            setFormData(prev => ({ ...prev, councilExtraUploads: updated }));
+                                        }}
+                                        className="text-[10px] font-black uppercase text-red-600 hover:text-red-800 flex items-center gap-1 bg-red-50 hover:bg-red-100/80 px-2.5 py-1 rounded-full transition-colors border border-red-100"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" /> Remove
+                                    </button>
+                                </div>
+                                <div className="border-2 border-dashed border-gray-200 hover:border-blue-900 rounded-2xl p-6 text-center relative group transition-all bg-white shadow-sm hover:shadow-md">
+                                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2 group-hover:text-blue-900 transition-colors" />
+                                    <p className="text-[10px] font-black uppercase text-gray-500 tracking-wider truncate px-2">
+                                        {file ? file.name : 'Select File'}
+                                    </p>
+                                    <input
+                                        type="file"
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                const updated = [...((formData as any).councilExtraUploads || [])];
+                                                updated[eIdx] = e.target.files[0];
+                                                setFormData(prev => ({ ...prev, councilExtraUploads: updated }));
+                                            }
+                                        }}
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Additional Upload Link */}
+                        <p className="text-[11px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-2">
+                            Additional Upload Please <button type="button" onClick={() => {
+                                const updated = [...((formData as any).councilExtraUploads || []), null];
+                                setFormData(prev => ({ ...prev, councilExtraUploads: updated }));
+                            }} className="underline text-blue-900 hover:text-blue-800 transition-colors font-black">Click Here</button>
                         </p>
                     </div>
                 );
             case 6: { // Training Details
                 const tf = formData.trainingForm;
                 const updateTF = (field: string, value: string) => {
-                    setFormData(prev => {
-                        const newForm = { ...prev.trainingForm, [field]: value };
-                        if (field === 'startDateAD' || field === 'endDateAD') {
-                            const diff = calculateDateDiff(newForm.startDateAD, newForm.endDateAD);
-                            newForm.durationYears = diff.y;
-                            newForm.durationMonths = diff.m;
-                            newForm.durationDays = diff.d;
-                        }
-                        return { ...prev, trainingForm: newForm };
-                    });
+                    setFormData(prev => ({
+                        ...prev,
+                        trainingForm: { ...prev.trainingForm, [field]: value }
+                    }));
                 };
                 const addTraining = () => {
-                    if (!tf.name) return;
+                    if (!tf.name) {
+                        setTrainingError('Please fill in the Training Name.');
+                        return;
+                    }
+                    setTrainingError('');
                     setFormData(prev => {
                         const entries = [...prev.trainingEntries];
                         if (prev.trainingEditIndex >= 0) {
@@ -1196,7 +1548,13 @@ const ComplexOnlineRegistrationForm = () => {
                         {/* Training Name */}
                         <div className="space-y-2">
                             <label className={labelCls}>Training Name *</label>
-                            <input type="text" value={tf.name} onChange={e => updateTF('name', e.target.value)} className={inputCls} />
+                            <input type="text" value={tf.name} onChange={e => {
+                                updateTF('name', e.target.value);
+                                if (e.target.value) setTrainingError('');
+                            }} className={inputCls} />
+                            {trainingError && (
+                                <p className="text-xs font-bold text-red-500 mt-1 uppercase tracking-wider">{trainingError}</p>
+                            )}
                         </div>
 
                         {/* Reg No + Date of Registration */}
@@ -1205,10 +1563,13 @@ const ComplexOnlineRegistrationForm = () => {
                                 <label className={labelCls}>Training Registered No.</label>
                                 <input type="text" value={tf.regNo} onChange={e => updateTF('regNo', e.target.value)} className={inputCls} />
                             </div>
-                            <div className="space-y-2">
-                                <label className={labelCls}>Date of Registration</label>
-                                <input type="date" value={tf.regDate} onChange={e => updateTF('regDate', e.target.value)} className={inputCls} />
-                            </div>
+                            <DualDatePicker
+                                label="Date of Registration"
+                                labelClassName={labelCls}
+                                value={tf.regDate}
+                                onChange={(val: string) => updateTF('regDate', val)}
+                                className={inputCls}
+                            />
                         </div>
 
                         {/* Training Recognized By */}
@@ -1388,19 +1749,17 @@ const ComplexOnlineRegistrationForm = () => {
             case 7: { // Work Experience
                 const wf = formData.workForm;
                  const updateWF = (field: string, value: string) => {
-                    setFormData(prev => {
-                        const newForm = { ...prev.workForm, [field]: value };
-                        if (field === 'startDateAD' || field === 'endDateAD') {
-                            const diff = calculateDateDiff(newForm.startDateAD, newForm.endDateAD);
-                            newForm.durationYears = diff.y;
-                            newForm.durationMonths = diff.m;
-                            newForm.durationDays = diff.d;
-                        }
-                        return { ...prev, workForm: newForm };
-                    });
+                    setFormData(prev => ({
+                        ...prev,
+                        workForm: { ...prev.workForm, [field]: value }
+                    }));
                 };
                 const addWork = () => {
-                    if (!wf.organization) return;
+                    if (!wf.organization) {
+                        setWorkError('Please fill in the Organization name.');
+                        return;
+                    }
+                    setWorkError('');
                     setFormData(prev => {
                         const entries = [...prev.workEntries];
                         if (prev.workEditIndex >= 0) {
@@ -1439,7 +1798,13 @@ const ComplexOnlineRegistrationForm = () => {
                         {/* Organization Name */}
                         <div className="space-y-2">
                             <label className={labelCls}>Organization Name *</label>
-                            <input type="text" value={wf.organization} onChange={e => updateWF('organization', e.target.value)} className={inputCls} />
+                            <input type="text" value={wf.organization} onChange={e => {
+                                updateWF('organization', e.target.value);
+                                if (e.target.value) setWorkError('');
+                            }} className={inputCls} />
+                            {workError && (
+                                <p className="text-xs font-bold text-red-500 mt-1 uppercase tracking-wider">{workError}</p>
+                            )}
                         </div>
 
                         {/* Post / Designation */}
@@ -1666,8 +2031,10 @@ const ComplexOnlineRegistrationForm = () => {
                                         <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{(formData as any).councilRegNo || '—'}</div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">User Type</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.userType || '—'}</div>
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">NID No.</label>
+                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">
+                                            {formData.nIdNo || '—'}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1864,6 +2231,45 @@ const ComplexOnlineRegistrationForm = () => {
                             </div>
                         )}
 
+                        {/* Council Details */}
+                        {((formData as any).councilRegNo || (formData as any).councilName) && (
+                            <div className="pt-6 border-t border-gray-200">
+                                <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Council Registration</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Council Regd. No.</label>
+                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{(formData as any).councilRegNo || '—'}</div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Type of Registration</label>
+                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{(formData as any).councilRegType || '—'}</div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Educational Qualification</label>
+                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{(formData as any).councilEduQualification || '—'}</div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Council Name</label>
+                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{(formData as any).councilName || '—'}</div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Uploaded Certificate</label>
+                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{(formData as any).councilCert ? (formData as any).councilCert.name : '—'}</div>
+                                    </div>
+                                    {((formData as any).councilExtraUploads || []).length > 0 && (
+                                        <div className="space-y-2">
+                                            <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Additional Documents</label>
+                                            <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold space-y-1">
+                                                {((formData as any).councilExtraUploads || []).map((file: File | null, fIdx: number) => (
+                                                    <div key={fIdx}>{file ? file.name : `Doc #${fIdx + 1} (Not Uploaded)`}</div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Training Table */}
                         {formData.trainingEntries.length > 0 && (
                             <div className="pt-6 border-t border-gray-200">
@@ -2005,10 +2411,13 @@ const ComplexOnlineRegistrationForm = () => {
                                     <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Transaction / Voucher No. *</label>
                                     <input type="text" name="paymentVoucherNo" onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900 uppercase" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Payment Date *</label>
-                                    <input type="date" name="paymentDate" onChange={handleInputChange} className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900" />
-                                </div>
+                                <DualDatePicker
+                                    label="Payment Date *"
+                                    labelClassName="text-[11px] font-black text-gray-600 uppercase tracking-widest"
+                                    value={(formData as any).paymentDate || ''}
+                                    onChange={(val: string) => handleInputChange({ target: { name: 'paymentDate', value: val } } as any)}
+                                    className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-900"
+                                />
                             </div>
                         </div>
 

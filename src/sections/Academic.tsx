@@ -24,6 +24,7 @@ import {
     MapPin,
     CheckCircle2,
 } from "lucide-react";
+import DualDatePicker from "../components/DualDatePicker";
 
 /* ─── TYPES ─────────────────────────────────────── */
 type FormType = "admission" | "internship" | "brochure" | "program" | null;
@@ -237,9 +238,11 @@ const ModalForm = ({ type, programTitle, onClose }: ModalFormProps) => {
                             {/* DOB + Gender */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Date of Birth *</label>
-                                    <input
-                                        name="dob" value={form.dob} onChange={handleChange} required type="date"
+                                    <DualDatePicker
+                                        label="Date of Birth *"
+                                        labelClassName="text-xs font-bold text-gray-500 uppercase tracking-wider"
+                                        value={form.dob} 
+                                        onChange={(val) => setForm(prev => ({ ...prev, dob: val }))}
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/15 transition-all"
                                     />
                                 </div>

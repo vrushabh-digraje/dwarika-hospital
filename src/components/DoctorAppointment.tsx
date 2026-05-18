@@ -32,6 +32,8 @@ const getAgeFromDobBs = (dobBs: string) => {
 
         if (days < 0) {
             months -= 1;
+            const previousMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+            days += previousMonth.getDate();
         }
 
         if (months < 0) {
@@ -334,6 +336,7 @@ const DoctorAppointment = () => {
             const formattedAD = new Date(adDate).toISOString().split('T')[0];
             apptSyncSource.current = 'BS';
             setAppointmentDateAD(formattedAD);
+            setAppointmentDate(formattedAD);
         } catch (e) { /* ignore */ }
     }, [appointmentDateBS]);
 
@@ -347,32 +350,9 @@ const DoctorAppointment = () => {
             const bsDate = new BikramSambat(appointmentDateAD, 'AD').toBS();
             apptSyncSource.current = 'AD';
             setAppointmentDateBS(bsDate);
+            setAppointmentDate(appointmentDateAD);
         } catch (e) { /* ignore */ }
     }, [appointmentDateAD]);
-
-    useEffect(() => {
-        if (appointmentDateBS) {
-            try {
-                const adDate = new BikramSambat(appointmentDateBS, 'BS').toAD();
-                if (appointmentDateAD !== adDate) {
-                    setAppointmentDateAD(adDate);
-                    setAppointmentDate(adDate);
-                }
-            } catch (e) { /* ignore partial Input */ }
-        }
-    }, [appointmentDateBS, appointmentDateAD]);
-
-    useEffect(() => {
-        if (appointmentDateAD) {
-            try {
-                const bsDate = new BikramSambat(appointmentDateAD, 'AD').toBS();
-                if (appointmentDateBS !== bsDate) {
-                    setAppointmentDateBS(bsDate);
-                    setAppointmentDate(appointmentDateAD);
-                }
-            } catch (e) { /* ignore partial Input */ }
-        }
-    }, [appointmentDateAD, appointmentDateBS]);
 
     const handleSlotSelection = (date: string, shiftId: string, time: string) => {
         setAppointmentDateAD(date);

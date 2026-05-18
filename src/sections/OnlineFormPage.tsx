@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { User, Phone, Mail, FileText, Send, Loader2, MapPin, Calendar, Users as GenderIcon, ArrowLeft, FileUp } from 'lucide-react';
 import Button from '../components/Button';
+import DualDatePicker from '../components/DualDatePicker';
 
 const OnlineFormPage = () => {
     const [formData, setFormData] = useState({
@@ -165,16 +166,15 @@ const OnlineFormPage = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Date of Birth</label>
                             <div className="relative">
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-3 top-[calc(50%+14px)] -translate-y-1/2 text-gray-400 z-10 pointer-events-none">
                                     <Calendar className="w-5 h-5" />
                                 </div>
-                                <input
-                                    type="date"
-                                    name="dob"
+                                <DualDatePicker
+                                    label="Date of Birth"
+                                    labelClassName="text-xs font-bold text-gray-500 uppercase tracking-wider"
                                     value={formData.dob}
-                                    onChange={handleChange}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, dob: val }))}
                                     className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all text-sm font-medium"
                                 />
                             </div>

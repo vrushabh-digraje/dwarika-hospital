@@ -77,7 +77,7 @@ const Navbar = () => {
 
     const quickActions = [
         { label: t('navbar.quick.news_events'), key: "NEWS & EVENTS", icon: Newspaper, accent: "#1E40AF" },
-        { label: t('navbar.quick.check_mail'), key: "MAIL LOGIN", icon: Mail, accent: "#0F766E" },
+        { label: t('common.contact_us'), key: "CONTACT US", icon: Mail, accent: "#0F766E" },
         { label: t('navbar.quick.doctor_appointment'), key: "DOCTOR APPOINTMENT", icon: Stethoscope, accent: "#047857" },
         { label: t('navbar.quick.lab_report'), key: "PATIENT REPORT", icon: FlaskConical, accent: "#C2410C" },
         { label: t('navbar.quick.pharmacy'), key: "PHARMACY", icon: Pill, accent: "#6D28D9" },

@@ -125,6 +125,7 @@ export const getServices = (t: any) => [
         desc: t('services.list.parking.desc'),
         image: 'https://images.unsplash.com/photo-1543465077-5828b53c3423?auto=format&fit=crop&q=80&w=1470',
         category: t('services.list.parking.category'),
+        hideRequest: true,
     },
 ];
 
@@ -292,23 +293,25 @@ const Services = () => {
                                     </p>
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row gap-4 pt-8 mt-auto border-t border-slate-100">
-                                    <Button
-                                        className="flex-1 bg-primary hover:bg-primary-hover text-white font-semibold uppercase text-xs tracking-wide py-4.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 border-0 transition-all"
-                                        onClick={() => {
-                                            setSelectedService(null);
-                                            const contactSection = document.getElementById('contact');
-                                            if (contactSection) {
-                                                contactSection.scrollIntoView({ behavior: 'smooth' });
-                                            } else {
-                                                navigate('/#contact');
-                                            }
-                                        }}
-                                    >
-                                        <Calendar className="w-4 h-4" />
-                                        {t('services.modal.request_appointment')}
-                                    </Button>
-                                </div>
+                                {!selectedService.hideRequest && (
+                                    <div className="flex flex-col sm:flex-row gap-4 pt-8 mt-auto border-t border-slate-100">
+                                        <Button
+                                            className="flex-1 bg-primary hover:bg-primary-hover text-white font-semibold uppercase text-xs tracking-wide py-4.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 border-0 transition-all"
+                                            onClick={() => {
+                                                setSelectedService(null);
+                                                const contactSection = document.getElementById('contact');
+                                                if (contactSection) {
+                                                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                                                } else {
+                                                    navigate('/#contact');
+                                                }
+                                            }}
+                                        >
+                                            <Calendar className="w-4 h-4" />
+                                            {t('services.modal.request_appointment')}
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     </div>

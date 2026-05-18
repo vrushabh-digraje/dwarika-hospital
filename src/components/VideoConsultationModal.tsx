@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Phone, Calendar, Video, Loader2 } from 'lucide-react';
 import Button from './Button';
 import { postData } from '../lib/api';
+import DualDatePicker from './DualDatePicker';
 
 interface VideoConsultationModalProps {
     isOpen: boolean;
@@ -107,17 +108,14 @@ const VideoConsultationModal = ({ isOpen, onClose }: VideoConsultationModalProps
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Preferred Date</label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                        <input
-                                            type="date"
-                                            name="date"
+                                        <Calendar className="absolute left-3 top-[calc(50%+14px)] -translate-y-1/2 w-5 h-5 text-gray-400 z-10 pointer-events-none" />
+                                        <DualDatePicker
+                                            label="Preferred Date"
+                                            labelClassName="text-xs font-bold text-gray-500 uppercase tracking-wider"
                                             value={formData.date}
-                                            onChange={handleChange}
+                                            onChange={(val) => setFormData(prev => ({ ...prev, date: val }))}
                                             className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all text-sm font-medium"
-                                            required
-                                            min={new Date().toISOString().split('T')[0]}
                                         />
                                     </div>
                                 </div>

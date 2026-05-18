@@ -3,6 +3,7 @@ import Button from '../components/Button';
 import { Phone, Mail, MapPin, Send, Loader2, Map, User, Globe, Users, CalendarDays, FileText, Home, Clock, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PROVINCES, DISTRICTS_BY_PROVINCE, CASTE_GROUPS, CASTES_BY_GROUP, WARDS, COMMON_VILLAGES } from '../constants/nepalData';
+import DualDatePicker from '../components/DualDatePicker';
 
 const ALL_DISTRICTS = Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
 
@@ -307,10 +308,15 @@ const Appointment = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-gray-900 text-xs font-bold uppercase tracking-widest">Preferred Date</label>
                                         <div className="relative">
-                                            <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                                            <input type="date" name="preferredDate1" value={formData.preferredDate1} onChange={handleInputChange} className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all text-sm font-medium" />
+                                            <CalendarDays className="absolute left-3 top-[calc(50%+14px)] -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+                                            <DualDatePicker 
+                                                label="Preferred Date"
+                                                labelClassName="text-gray-900 text-xs font-bold uppercase tracking-widest"
+                                                value={formData.preferredDate1} 
+                                                onChange={(val) => setFormData(prev => ({ ...prev, preferredDate1: val }))} 
+                                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20 transition-all text-sm font-medium" 
+                                            />
                                         </div>
                                     </div>
                                 </div>

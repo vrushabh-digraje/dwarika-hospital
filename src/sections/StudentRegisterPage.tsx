@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, Lock, ArrowRight, GraduationCap, Mail, BookOpen, ShieldCheck, CheckCircle2, Loader2, ChevronLeft } from 'lucide-react';
+import { User, Phone, Lock, ArrowRight, GraduationCap, Mail, BookOpen, ShieldCheck, CheckCircle2, Loader2, ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 
 const StudentRegisterPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -242,13 +244,20 @@ const StudentRegisterPage = () => {
                                                     name="password"
                                                     value={formData.password}
                                                     onChange={handleChange}
-                                                    type="password"
+                                                    type={showPassword ? "text" : "password"}
                                                     className={cn(
-                                                        "w-full pl-11 pr-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 transition-all font-medium text-slate-900",
+                                                        "w-full pl-11 pr-10 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 transition-all font-medium text-slate-900",
                                                         errors.password ? "border-red-300 focus:ring-red-100" : "border-slate-200 focus:ring-blue-900/10 focus:border-[#1E3A8A]"
                                                     )}
                                                     placeholder="••••••••"
                                                 />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-900 focus:outline-none"
+                                                >
+                                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                </button>
                                             </div>
                                             {errors.password && <p className="text-red-500 text-[10px] font-bold uppercase">{errors.password}</p>}
                                         </div>
@@ -261,13 +270,20 @@ const StudentRegisterPage = () => {
                                                     name="confirmPassword"
                                                     value={formData.confirmPassword}
                                                     onChange={handleChange}
-                                                    type="password"
+                                                    type={showConfirmPassword ? "text" : "password"}
                                                     className={cn(
-                                                        "w-full pl-11 pr-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 transition-all font-medium text-slate-900",
+                                                        "w-full pl-11 pr-10 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 transition-all font-medium text-slate-900",
                                                         errors.confirmPassword ? "border-red-300 focus:ring-red-100" : "border-slate-200 focus:ring-blue-900/10 focus:border-[#1E3A8A]"
                                                     )}
                                                     placeholder="••••••••"
                                                 />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-900 focus:outline-none"
+                                                >
+                                                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                </button>
                                             </div>
                                             {errors.confirmPassword && <p className="text-red-500 text-[10px] font-bold uppercase">{errors.confirmPassword}</p>}
                                         </div>

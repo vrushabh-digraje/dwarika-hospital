@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Lock, FileText, ArrowLeft, Loader2, Download, LogOut,
-    Search, Calendar, Activity, Microscope, Scan, ChevronRight, Eye,
+    Search, Calendar, Activity, Microscope, Scan, ChevronRight, Eye, EyeOff,
     TrendingUp, CheckCircle
 } from 'lucide-react';
 import Button from '../components/Button';
@@ -40,6 +40,7 @@ const mockPatientData: PatientData = {
 const PatientReportsPage = () => {
     const [patientId, setPatientId] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [patientData, setPatientData] = useState<PatientData | null>(null);
@@ -334,13 +335,20 @@ const PatientReportsPage = () => {
                         <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 group-focus-within:text-blue-900 transition-colors" />
                             <input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-900/5 transition-all text-sm font-bold placeholder:text-gray-300"
+                                className="w-full pl-12 pr-10 py-4 bg-gray-50 border-none rounded-2xl focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-900/5 transition-all text-sm font-bold placeholder:text-gray-300"
                                 placeholder="Enter Password"
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-blue-900 focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
                         </div>
                     </div>
 
