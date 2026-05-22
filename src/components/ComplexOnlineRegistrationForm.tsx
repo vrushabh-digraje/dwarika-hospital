@@ -2023,7 +2023,7 @@ const ComplexOnlineRegistrationForm = () => {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Post Applied</label>
+                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Designation/Post</label>
                                         <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.postApplied || '—'}</div>
                                     </div>
                                     <div className="space-y-2">
@@ -2317,10 +2317,10 @@ const ComplexOnlineRegistrationForm = () => {
                                             <tr className="bg-gray-100 border-b border-gray-300">
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">S.No.</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Organization</th>
+                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Location</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Post / Designation</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Start Date (A.D)</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">End Date (A.D)</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Location</th>
                                                 <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Total Duration</th>
                                             </tr>
                                         </thead>
@@ -2329,10 +2329,10 @@ const ComplexOnlineRegistrationForm = () => {
                                                 <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                                                     <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
                                                     <td className="px-4 py-3 text-sm font-bold text-gray-700">{entry.organization || '—'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{[entry.municipality, entry.district, entry.country].filter(Boolean).join(', ') || '—'}</td>
                                                     <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.post || '—'}</td>
                                                     <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.startDateAD || '—'}</td>
                                                     <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.endDateAD || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{[entry.municipality, entry.district, entry.country].filter(Boolean).join(', ') || '—'}</td>
                                                     <td className="px-4 py-3 text-sm font-semibold text-gray-700">
                                                         {[entry.durationYears && `${entry.durationYears}Y`, entry.durationMonths && `${entry.durationMonths}M`, entry.durationDays && `${entry.durationDays}D`].filter(Boolean).join(' ') || '—'}
                                                     </td>

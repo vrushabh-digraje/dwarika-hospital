@@ -136,8 +136,8 @@ const DoctorAppointment = () => {
         ageYears: '',
         ageMonths: '',
         ageDays: '',
-        diseases: [] as { condition: string; duration: string; note: string }[],
-        currentDisease: { condition: '', duration: '', note: '' },
+        diseases: [] as { condition: string; duration: string; medication: string; note: string }[],
+        currentDisease: { condition: '', duration: '', medication: '', note: '' },
         diseaseStatus: 'No',
         message: '',
     });
@@ -172,7 +172,7 @@ const DoctorAppointment = () => {
             setFormData(prev => ({
                 ...prev,
                 diseases: [...prev.diseases, { ...prev.currentDisease }],
-                currentDisease: { condition: '', duration: '', note: '' }
+                currentDisease: { condition: '', duration: '', medication: '', note: '' }
             }));
         }
     };
@@ -818,6 +818,19 @@ const DoctorAppointment = () => {
                                                         </select>
                                                         {errors.gender && <p className="text-xs text-red-500 font-bold">{errors.gender}</p>}
                                                     </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Nationality *</label>
+                                                        <select 
+                                                            name="nationality" 
+                                                            value={formData.nationality} 
+                                                            onChange={handleInputChange} 
+                                                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-12 py-3.5 text-sm font-semibold appearance-none focus:outline-none focus:border-blue-900 focus:ring-4 focus:ring-blue-900/10 transition-all"
+                                                            style={selectIndicatorStyle}
+                                                        >
+                                                            <option value="">Select Nationality</option>
+                                                            {NATIONALITIES.map(n => <option key={n} value={n}>{n}</option>)}
+                                                        </select>
+                                                    </div>
                                                 </div>
 
                                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -832,19 +845,6 @@ const DoctorAppointment = () => {
                                                         >
                                                             <option value="">Select Religion</option>
                                                             {RELIGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                                                        </select>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Nationality *</label>
-                                                        <select 
-                                                            name="nationality" 
-                                                            value={formData.nationality} 
-                                                            onChange={handleInputChange} 
-                                                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-12 py-3 text-sm font-medium appearance-none focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20"
-                                                            style={selectIndicatorStyle}
-                                                        >
-                                                            <option value="">Select Nationality</option>
-                                                            {NATIONALITIES.map(n => <option key={n} value={n}>{n}</option>)}
                                                         </select>
                                                     </div>
                                                     <div className="space-y-2">
@@ -1043,7 +1043,7 @@ const DoctorAppointment = () => {
                                                                         onClick={() => setFormData(prev => ({ 
                                                                             ...prev, 
                                                                             diseaseStatus: status,
-                                                                            ...(status === 'No' ? { diseases: [], currentDisease: { condition: '', duration: '', note: '' } } : {})
+                                                                            ...(status === 'No' ? { diseases: [], currentDisease: { condition: '', duration: '', medication: '', note: '' } } : {})
                                                                         }))}
                                                                     className={`px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all border ${
                                                                         formData.diseaseStatus === status
@@ -1072,7 +1072,14 @@ const DoctorAppointment = () => {
                                                                             <div key={idx} className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full pl-4 pr-2 py-1.5 shadow-sm group hover:bg-blue-100 transition-all">
                                                                                 <div className="flex flex-col leading-tight">
                                                                                     <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider">{d.condition}</span>
-                                                                                    {d.duration && <span className="text-[9px] text-blue-600 font-bold">{d.duration}</span>}
+                                                                                    {(d.duration || d.medication) && (
+                                                                                        <span className="text-[9px] text-blue-600 font-bold">
+                                                                                            {d.duration && `Duration: ${d.duration}`}
+                                                                                            {d.duration && d.medication && ' | '}
+                                                                                            {d.medication && `Medication: ${d.medication}`}
+                                                                                        </span>
+                                                                                    )}
+                                                                                    {d.note && <span className="text-[9px] text-slate-500 italic">Note: {d.note}</span>}
                                                                                 </div>
                                                                                 <button
                                                                                     type="button"
@@ -1088,7 +1095,7 @@ const DoctorAppointment = () => {
 
                                                                 {/* Add Disease Form */}
                                                                 <div className="bg-slate-50/50 p-6 rounded-[22px] border border-slate-200 space-y-4 relative group">
-                                                                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+                                                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                                                                         <div className="space-y-1.5">
                                                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Disease Name (ICD-11)</label>
                                                                             <input list="icd11-diseases" name="condition" value={formData.currentDisease.condition} onChange={handleDiseaseChange} placeholder="Select or Type Disease..." className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
@@ -1096,6 +1103,10 @@ const DoctorAppointment = () => {
                                                                         <div className="space-y-1.5">
                                                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Duration</label>
                                                                             <input list="disease-durations" name="duration" value={formData.currentDisease.duration} onChange={handleDiseaseChange} placeholder="Duration" className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
+                                                                        </div>
+                                                                        <div className="space-y-1.5">
+                                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Medication</label>
+                                                                            <input type="text" name="medication" value={formData.currentDisease.medication} onChange={handleDiseaseChange} placeholder="Medication Details" className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/20" />
                                                                         </div>
                                                                         <div className="space-y-1.5">
                                                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Additional Notes</label>
