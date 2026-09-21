@@ -87,31 +87,6 @@ export default function HomepagePage() {
     }
   };
 
-  const handleResetToDefaults = () => {
-    form.reset({
-      hero: {
-        badge: "✨ Nepal's Premier Healthcare Destination",
-        awardBadgeTitle: 'Award Winning',
-        awardBadgeSubtitle: 'Healthcare 2024',
-        titlePart1: 'Your Health,',
-        titlePart2: 'Our Commitment.',
-        description: 'Experience a new standard of medical excellence. Dwarika Hospital combines world-class clinical expertise with an empathetic heart, powered by advanced technology.',
-        primaryCtaLabel: 'Book Appointment',
-        primaryCtaLink: '/appointment',
-        secondaryCtaLabel: 'Explore Services',
-        secondaryCtaLink: '/#services',
-      },
-      bannerImages: [
-        "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1600",
-        "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=1600",
-        "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=90&w=2400"
-      ].join('\n'),
-      countersJson: form.getValues('countersJson'),
-      cta: form.getValues('cta'),
-      status: form.getValues('status'),
-    });
-    toast.info('Reset fields to original defaults (Click Save to update database)');
-  };
 
   // Watch nested fields individually to guarantee React updates on every keystroke
   const watchedBadge = form.watch('hero.badge');
@@ -204,13 +179,6 @@ export default function HomepagePage() {
         breadcrumbs={[{ label: 'CMS' }, { label: 'Homepage' }]}
         actions={
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              className="text-xs text-ink-300 hover:text-ink-600 hover:bg-transparent opacity-40 hover:opacity-100 transition-opacity"
-              onClick={handleResetToDefaults}
-            >
-              Reset to Defaults
-            </Button>
             <Button variant="outline" onClick={() => setIsPreviewOpen(true)}>
               Live Preview
             </Button>
