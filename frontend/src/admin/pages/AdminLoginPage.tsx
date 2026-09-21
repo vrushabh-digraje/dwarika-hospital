@@ -4,8 +4,8 @@ import { Lock, Mail, ShieldCheck, Eye, EyeOff, Loader2, ArrowRight } from 'lucid
 import { toast } from 'sonner';
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@dwarikahospital.com');
+  const [password, setPassword] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
