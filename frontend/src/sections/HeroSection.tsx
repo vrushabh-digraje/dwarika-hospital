@@ -8,24 +8,59 @@ import { useTranslation } from "react-i18next";
 import { cmsPublic } from '../lib/cmsClient';
 import { useCmsQuery } from '../hooks/useCmsQuery';
 
-const DEFAULT_DOCTORS = [
+interface HeroDoctor {
+    name: string;
+    nameNp?: string;
+    nmcNo: string;
+    image: string;
+    specialty?: string;
+    specialtyNp?: string;
+    qualification?: string;
+    qualificationNp?: string;
+    bio?: string;
+    bioNp?: string;
+    featuredIndex?: number;
+}
+
+const DEFAULT_DOCTORS: HeroDoctor[] = [
     {
         name: "Dr. Sandeep Kumar Shah",
+        nameNp: "",
         nmcNo: "7482",
         image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=1000",
-        featuredIndex: 0 as const,
+        specialty: "",
+        specialtyNp: "",
+        qualification: "",
+        qualificationNp: "",
+        bio: "",
+        bioNp: "",
+        featuredIndex: 0,
     },
     {
         name: "Mrs. Babita Kumari Sah",
+        nameNp: "",
         nmcNo: "9521",
         image: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=1000",
-        featuredIndex: 1 as const,
+        specialty: "",
+        specialtyNp: "",
+        qualification: "",
+        qualificationNp: "",
+        bio: "",
+        bioNp: "",
+        featuredIndex: 1,
     },
     {
         name: "Mr. Sanjeev Kumar Sah",
+        nameNp: "",
         nmcNo: "11034",
         image: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=1000",
-        featuredIndex: 2 as const,
+        specialty: "",
+        specialtyNp: "",
+        qualification: "",
+        qualificationNp: "",
+        bio: "",
+        bioNp: "",
+        featuredIndex: 2,
     },
 ];
 
@@ -316,7 +351,7 @@ const HeroSection = ({ previewData }: HeroSectionProps = {}) => {
 
                 {/* Image dots */}
                 <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-                    {images.map((_, index) => (
+                    {images.map((_: any, index: number) => (
                         <button key={index} onClick={() => setCurrentImage(index)}
                             className={`h-1.5 rounded-full transition-all ${currentImage === index ? "w-7 bg-white" : "w-3 bg-white/40"}`} />
                     ))}

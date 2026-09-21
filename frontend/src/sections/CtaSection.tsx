@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Calendar } from 'lucide-react';
 
 const CtaSection = () => {
-    const { t, i18n } = useTranslation();
+    const { i18n } = useTranslation();
     const navigate = useNavigate();
     const { data: homepage } = useCmsQuery(() => cmsPublic.homepage(), []);
 

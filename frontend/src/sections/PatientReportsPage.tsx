@@ -26,20 +26,8 @@ interface PatientData {
     reports: Report[];
 }
 
-const mockPatientData: PatientData = {
-    name: 'Ram Bahadur',
-    patientId: 'DHMA-12345',
-    lastVisit: '2026-03-01',
-    reports: [
-        { id: 'rep001', title: 'Complete Blood Count (CBC)', date: '2026-03-01', department: 'Pathology', status: 'Ready', priority: 'Normal', downloadUrl: '#' },
-        { id: 'rep002', title: 'Abdominal Ultrasound (USG)', date: '2026-02-25', department: 'Radiology', status: 'Ready', priority: 'Urgent', downloadUrl: '#' },
-        { id: 'rep003', title: 'Lipid Profile & Glucose', date: '2026-02-20', department: 'Laboratory', status: 'Ready', priority: 'Normal', downloadUrl: '#' },
-        { id: 'rep004', title: 'Chest X-Ray (PA View)', date: '2026-02-18', department: 'Radiology', status: 'Ready', priority: 'Normal', downloadUrl: '#' },
-    ]
-};
-
 const PatientReportsPage = () => {
-    const { t, i18n } = useTranslation();
+    const { i18n } = useTranslation();
     const navigate = useNavigate();
     const [patientId, setPatientId] = useState('');
     const [password, setPassword] = useState('');

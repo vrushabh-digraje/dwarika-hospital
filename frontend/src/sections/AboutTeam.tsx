@@ -18,7 +18,7 @@ const CATEGORIES = [
 ];
 
 const AboutTeam = () => {
-    const { t, i18n } = useTranslation();
+    const { i18n } = useTranslation();
     const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
     const [activeCategory, setActiveCategory] = useState('ALL');
 

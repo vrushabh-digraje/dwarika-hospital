@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import {
     Clock, Phone, Mail,
     ArrowLeft, ArrowRight, CheckCircle, AlertCircle,
-    Stethoscope, Plus, Trash2
+    Stethoscope, Trash2
 } from 'lucide-react';
 import Button from './Button';
 import { postData } from '../lib/api';
