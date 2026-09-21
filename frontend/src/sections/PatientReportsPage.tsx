@@ -44,23 +44,52 @@ const PatientReportsPage = () => {
         setIsLoading(true);
         setError('');
         try {
-            const loginRes = await fetch('/api/public/patients/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: patientId, password }),
-            });
-            if (!loginRes.ok) {
-                const errData = await loginRes.json();
-                throw new Error(errData.message || 'Login failed');
+            let loginRes: Response;
+            try {
+                loginRes = await fetch('/api/public/patients/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: patientId, password }),
+                });
+            } catch {
+                loginRes = await fetch('https://dwarika-hospital.onrender.com/api/public/patients/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: patientId, password }),
+                });
             }
-            const loginData = await loginRes.json();
+
+            const loginText = await loginRes.text();
+            let loginData: any = {};
+            try {
+                loginData = JSON.parse(loginText);
+            } catch {
+                throw new Error('Backend server is waking up (Render free tier). Please wait a few seconds and try again.');
+            }
+
+            if (!loginRes.ok) {
+                throw new Error(loginData.message || 'Login failed');
+            }
             const patientObj = loginData.data;
 
-            const reportsRes = await fetch(`/api/public/patients/${patientObj._id}/reports`);
+            let reportsRes: Response;
+            try {
+                reportsRes = await fetch(`/api/public/patients/${patientObj._id}/reports`);
+            } catch {
+                reportsRes = await fetch(`https://dwarika-hospital.onrender.com/api/public/patients/${patientObj._id}/reports`);
+            }
+
+            const reportsText = await reportsRes.text();
+            let reportsData: any = {};
+            try {
+                reportsData = JSON.parse(reportsText);
+            } catch {
+                throw new Error('Could not fetch patient reports. Please try again.');
+            }
+
             if (!reportsRes.ok) {
                 throw new Error('Could not fetch patient reports');
             }
-            const reportsData = await reportsRes.json();
             const rawReports = reportsData.data || [];
 
             const currentLang = i18n.language;

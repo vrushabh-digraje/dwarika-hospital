@@ -17,15 +17,51 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim(), password }),
-      });
+      let res: Response;
+      try {
+        res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+      } catch (networkErr: any) {
+        // If Vercel proxy network fails, attempt direct backend call
+        res = await fetch('https://dwarika-hospital.onrender.com/api/admin/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+      }
 
-      const data = await res.json();
+      // If Vercel proxy returned 502/504 or HTML (timeout while Render wakes up)
+      if (!res.ok && (res.status === 502 || res.status === 504 || res.headers.get('content-type')?.includes('text/html'))) {
+        try {
+          res = await fetch('https://dwarika-hospital.onrender.com/api/admin/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email.trim(), password }),
+          });
+        } catch {
+          // fallback failed, continue to parse res
+        }
+      }
+
+      let data: any = null;
+      const text = await res.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        if (res.status === 502 || res.status === 504 || text.includes('<!DOCTYPE')) {
+          throw new Error('Backend server is waking up (Render free tier cold start). Please wait 15-20 seconds and click Sign In again.');
+        }
+        throw new Error('Unable to parse server response. Please try again.');
+      }
 
       if (!res.ok || !data.success) {
         throw new Error(data.message || 'Invalid admin credentials');
