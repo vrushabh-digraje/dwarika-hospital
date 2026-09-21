@@ -1,0 +1,27 @@
+export { default as Media } from './Media.js';
+export { default as SiteSettings } from './SiteSettings.js';
+export { default as Homepage } from './Homepage.js';
+export { default as About } from './About.js';
+export { default as Doctor } from './Doctor.js';
+export { default as Department } from './Department.js';
+export { default as Service } from './Service.js';
+export { default as Facility } from './Facility.js';
+export { default as GalleryItem } from './GalleryItem.js';
+export { default as Testimonial } from './Testimonial.js';
+export { default as Blog } from './Blog.js';
+export { default as Event } from './Event.js';
+export { default as HealthPackage } from './HealthPackage.js';
+export { default as Career } from './Career.js';
+export { default as Enquiry } from './Enquiry.js';
+export { default as Appointment } from './Appointment.js';
+export { default as Faq } from './Faq.js';
+export { default as Download } from './Download.js';
+export { default as Partner } from './Partner.js';
+export { default as Insurance } from './Insurance.js';
+export { default as Announcement } from './Announcement.js';
+export { default as SeoSetting } from './SeoSetting.js';
+export { default as Video } from './Video.js';
+export { default as Certificate } from './Certificate.js';
+export { default as Patient } from './Patient.js';
+export { default as LabReport } from './LabReport.js';
+

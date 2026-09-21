@@ -1,0 +1,42 @@
+/* Admin-only design tokens (does not affect public site classes) */
+.admin-shell {
+  --color-brand-50: #eef7f4;
+  --color-brand-100: #d5ebe3;
+  --color-brand-500: #2f7d67;
+  --color-brand-600: #246453;
+  --color-brand-700: #1f5144;
+  --color-brand-800: #1b4238;
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-200: #d5dae3;
+  --color-ink-400: #8590a6;
+  --color-ink-500: #667288;
+  --color-ink-600: #515b6f;
+  --color-ink-700: #434a5a;
+  --color-ink-800: #3a404d;
+  --color-ink-900: #1f2430;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+.admin-shell .font-display,
+.admin-shell .font-display * {
+  font-family: "Source Serif 4", Georgia, serif;
+}
+
+@theme {
+  --color-brand-50: #eef7f4;
+  --color-brand-100: #d5ebe3;
+  --color-brand-500: #2f7d67;
+  --color-brand-600: #246453;
+  --color-brand-700: #1f5144;
+  --color-brand-800: #1b4238;
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-200: #d5dae3;
+  --color-ink-400: #8590a6;
+  --color-ink-500: #667288;
+  --color-ink-600: #515b6f;
+  --color-ink-700: #434a5a;
+  --color-ink-800: #3a404d;
+  --color-ink-900: #1f2430;
+}
