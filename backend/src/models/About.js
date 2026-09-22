@@ -44,6 +44,20 @@ const aboutSchema = new mongoose.Schema(
         sortOrder: { type: Number, default: 0 },
       },
     ],
+    leadershipTitle: { type: String, default: 'Our Leadership' },
+    leadershipSubtitle: {
+      type: String,
+      default:
+        'Guided by a team of dedicated professionals committed to delivering world-class healthcare to our community.',
+    },
+    leaders: [
+      {
+        name: { type: String, default: '' },
+        role: { type: String, default: '' },
+        image: { type: String, default: '' },
+        bio: { type: String, default: '' },
+      },
+    ],
     images: [{ type: String }],
   },
   { timestamps: true }

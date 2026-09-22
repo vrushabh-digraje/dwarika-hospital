@@ -1,8 +1,17 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Linkedin, Mail, X } from 'lucide-react';
 import { useState } from 'react';
+import { cmsPublic } from '../lib/cmsClient';
+import { useCmsQuery } from '../hooks/useCmsQuery';
 
-const leaders = [
+interface Leader {
+    name: string;
+    role: string;
+    image: string;
+    bio: string;
+}
+
+const DEFAULT_LEADERS: Leader[] = [
     {
         name: "Dr. Rajesh Kumar",
         role: "Managing Director",
@@ -18,23 +27,30 @@ const leaders = [
 ];
 
 const AboutLeadership = () => {
-    const [selectedLeader, setSelectedLeader] = useState<typeof leaders[0] | null>(null);
+    const { data: aboutData } = useCmsQuery(() => cmsPublic.about(), []);
+    const leaders: Leader[] = (aboutData?.leaders && aboutData.leaders.length > 0)
+        ? aboutData.leaders
+        : DEFAULT_LEADERS;
+    const title = aboutData?.leadershipTitle || "Our Leadership";
+    const subtitle = aboutData?.leadershipSubtitle || "Guided by a team of dedicated professionals committed to delivering world-class healthcare to our community.";
+
+    const [selectedLeader, setSelectedLeader] = useState<Leader | null>(null);
 
     return (
         <section className="py-20 bg-white">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl font-black text-blue-950 uppercase tracking-tight mb-4">Our Leadership</h2>
+                    <h2 className="text-4xl font-black text-blue-950 uppercase tracking-tight mb-4">{title}</h2>
                     <div className="w-20 h-1.5 bg-blue-600 mx-auto rounded-full mb-6"></div>
                     <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-                        Guided by a team of dedicated professionals committed to delivering world-class healthcare to our community.
+                        {subtitle}
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 max-w-3xl mx-auto">
                     {leaders.map((leader, index) => (
                         <motion.div
-                            key={leader.name}
+                            key={leader.name + index}
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -44,7 +60,7 @@ const AboutLeadership = () => {
                         >
                             <div className="relative overflow-hidden rounded-full mx-auto mb-6 w-48 h-48 sm:w-56 sm:h-56 shadow-xl border-4 border-white ring-2 ring-gray-100 transition-transform duration-300 group-hover:scale-105">
                                 <img
-                                    src={leader.image}
+                                    src={leader.image || "/leadership/leader2.jpg"}
                                     alt={leader.name}
                                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
                                 />
