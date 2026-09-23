@@ -35,6 +35,7 @@ export type FieldType =
   | 'select'
   | 'toggle'
   | 'image'
+  | 'images'
   | 'file'
   | 'date'
   | 'tags'
@@ -338,6 +339,7 @@ export const modules: ModuleConfig[] = [
       { key: 'url', label: 'Media', type: 'image' },
       { key: 'title', label: 'Title' },
       { key: 'album', label: 'Album', type: 'badge' },
+      { key: 'date', label: 'Event Date', type: 'date' },
       { key: 'type', label: 'Type', type: 'badge' },
       { key: 'status', label: 'Status', type: 'status' },
       { key: 'updatedAt', label: 'Last Updated', type: 'date' },
@@ -356,6 +358,7 @@ export const modules: ModuleConfig[] = [
     ],
     fields: [
       { name: 'title', label: 'Title', type: 'text', required: true },
+      { name: 'date', label: 'Event / Photo Date', type: 'date' },
       {
         name: 'type',
         label: 'Type',
@@ -376,7 +379,8 @@ export const modules: ModuleConfig[] = [
           { label: 'Other', value: 'other' },
         ],
       },
-      { name: 'url', label: 'Image / Media URL', type: 'image', required: true },
+      { name: 'url', label: 'Main Cover Image / Media URL', type: 'image', required: true },
+      { name: 'images', label: 'Related Album Photos', type: 'images', fullWidth: true },
       { name: 'videoUrl', label: 'Video URL', type: 'text' },
       { name: 'thumbnailUrl', label: 'Thumbnail', type: 'image' },
       { name: 'duration', label: 'Duration', type: 'text' },

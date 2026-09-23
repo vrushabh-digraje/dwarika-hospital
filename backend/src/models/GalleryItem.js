@@ -6,6 +6,8 @@ const galleryItemSchema = new mongoose.Schema(
     title: { type: String, required: true },
     type: { type: String, enum: ['photo', 'video'], default: 'photo' },
     url: { type: String, required: true },
+    images: [{ type: String }],
+    date: { type: Date, default: Date.now },
     videoUrl: { type: String, default: '' },
     thumbnailUrl: { type: String, default: '' },
     album: {
