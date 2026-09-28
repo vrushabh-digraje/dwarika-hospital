@@ -52,7 +52,7 @@ const PatientReportsPage = () => {
                     body: JSON.stringify({ username: patientId, password }),
                 });
             } catch {
-                loginRes = await fetch('https://dwarika-hospital.onrender.com/api/public/patients/login', {
+                loginRes = await fetch('https://dwarika-hospital-backend.onrender.com/api/public/patients/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: patientId, password }),
@@ -64,6 +64,9 @@ const PatientReportsPage = () => {
             try {
                 loginData = JSON.parse(loginText);
             } catch {
+                if (loginText.includes('Service Suspended') || loginRes.status === 503) {
+                    throw new Error('Backend service is suspended on Render. Please contact administrator to resume the service.');
+                }
                 throw new Error('Backend server is waking up (Render free tier). Please wait a few seconds and try again.');
             }
 
@@ -76,7 +79,7 @@ const PatientReportsPage = () => {
             try {
                 reportsRes = await fetch(`/api/public/patients/${patientObj._id}/reports`);
             } catch {
-                reportsRes = await fetch(`https://dwarika-hospital.onrender.com/api/public/patients/${patientObj._id}/reports`);
+                reportsRes = await fetch(`https://dwarika-hospital-backend.onrender.com/api/public/patients/${patientObj._id}/reports`);
             }
 
             const reportsText = await reportsRes.text();

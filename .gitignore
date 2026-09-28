@@ -32,3 +32,4 @@ backend/uploads/media/**
 Thumbs.db
 .vscode/
 .idea/
+*.zip

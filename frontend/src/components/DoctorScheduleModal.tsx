@@ -12,13 +12,13 @@ interface DoctorScheduleModalProps {
 }
 
 const SHIFTS = [
-    { id: 'Morning', label: 'Morning Shift' },
-    { id: 'Afternoon', label: 'Afternoon Shift' },
-    { id: 'Evening', label: 'Evening Shift' },
-    { id: 'Other', label: 'Other' }
+    { id: 'Morning', label: 'Morning', timeRange: '08:00 - 12:00' },
+    { id: 'Afternoon', label: 'Afternoon', timeRange: '12:00 - 16:00' },
+    { id: 'Evening', label: 'Evening', timeRange: '16:00 - 19:00' },
+    { id: 'Other', label: 'Other', timeRange: '19:00 - 21:00' }
 ];
 
-// Mock data for time slots
+// Mock data for time slots across 7 days (index 0 to 6)
 const MOCK_SLOTS: Record<string, any> = {
     'Morning': {
         0: '9:00 AM - 10:00 AM',
@@ -67,7 +67,7 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                 const [y, m, day] = bsDateStr.split('-').map(Number);
                 bsDayNum = day;
                 bsYear = y;
-                // Mock month names for BS
+                // Nepali month names for BS
                 const bsMonths = ['BAISAKH', 'JESTHA', 'ASHADH', 'SHRAWAN', 'BHADRA', 'ASHWIN', 'KARTIK', 'MANGSIR', 'POUSH', 'MAGH', 'FALGUN', 'CHAITRA'];
                 bsMonthName = bsMonths[m - 1];
             } catch (e) {
@@ -108,28 +108,31 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                         className="fixed inset-0 bg-blue-950/40 backdrop-blur-md z-[100]"
                     />
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 40 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 40 }}
-                        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-7xl bg-white rounded-[40px] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.3)] z-[110] overflow-hidden flex flex-col max-h-[92vh]"
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[96%] max-w-6xl bg-white rounded-3xl shadow-[0_24px_80px_-15px_rgba(0,0,0,0.3)] z-[110] overflow-hidden flex flex-col"
                     >
-                        {/* Header Section */}
-                        <div className="p-10 pb-6 shrink-0">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-1">
-                                    <h2 className="text-4xl font-black text-blue-950 uppercase tracking-tighter flex items-center gap-4">
-                                        <div className="p-3 bg-blue-50 rounded-2xl">
-                                            <Calendar className="w-8 h-8 text-blue-600" />
-                                        </div>
-                                        Doctor Weekly Schedule
-                                    </h2>
-                                    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-sm pl-2">
-                                        {doctorName} • <span className="text-blue-600">{department}</span>
-                                    </p>
+                        {/* Compact Header Section */}
+                        <div className="px-6 pt-4 sm:pt-5 pb-2.5 shrink-0">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="p-2 bg-blue-50 rounded-xl text-blue-600 border border-blue-100/60 shadow-xs shrink-0">
+                                        <Calendar className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl sm:text-2xl font-black text-blue-950 uppercase tracking-tight leading-tight">
+                                            Weekly Schedule
+                                        </h2>
+                                        <p className="text-slate-500 font-bold uppercase tracking-[0.14em] text-[11px]">
+                                            {doctorName} • <span className="text-blue-600">{department}</span>
+                                        </p>
+                                    </div>
                                 </div>
 
-                                <div className="flex items-center gap-10">
-                                    <div className="flex bg-slate-100/80 p-1.5 rounded-[20px] backdrop-blur-sm border border-slate-200/50">
+                                <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap">
+                                    {/* Week pagination */}
+                                    <div className="flex bg-slate-100/80 p-0.5 rounded-xl border border-slate-200/50">
                                         {[
                                             { label: 'Prev Week', offset: weekOffset - 1 },
                                             { label: 'This Week', offset: 0 },
@@ -137,10 +140,11 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                                         ].map((btn) => (
                                             <button
                                                 key={btn.label}
+                                                type="button"
                                                 onClick={() => setWeekOffset(btn.offset)}
-                                                className={`px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-XV transition-all duration-300 rounded-2xl
+                                                className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all duration-150 cursor-pointer
                                                     ${(btn.label === 'This Week' && weekOffset === 0) || (btn.label !== 'This Week' && weekOffset === btn.offset)
-                                                        ? 'bg-white text-blue-900 shadow-sm ring-1 ring-slate-200'
+                                                        ? 'bg-white text-blue-900 shadow-xs ring-1 ring-slate-200'
                                                         : 'text-slate-500 hover:text-blue-600'
                                                     }`}
                                             >
@@ -149,17 +153,19 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                                         ))}
                                     </div>
 
-                                    <div className="flex bg-slate-100/80 p-1.5 rounded-[20px] backdrop-blur-sm border border-slate-200/50">
+                                    {/* Calendar Mode BS/AD */}
+                                    <div className="flex bg-slate-100/80 p-0.5 rounded-xl border border-slate-200/50">
                                         {[
                                             { label: 'BS', mode: 'BS' },
                                             { label: 'AD', mode: 'AD' }
                                         ].map((btn) => (
                                             <button
                                                 key={btn.label}
+                                                type="button"
                                                 onClick={() => setCalendarMode(btn.mode as 'BS' | 'AD')}
-                                                className={`px-5 py-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300 rounded-2xl
+                                                className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all duration-150 rounded-lg cursor-pointer
                                                     ${calendarMode === btn.mode
-                                                        ? 'bg-blue-900 text-white shadow-lg shadow-blue-900/20'
+                                                        ? 'bg-blue-900 text-white shadow-xs'
                                                         : 'text-slate-500 hover:text-blue-600'
                                                     }`}
                                             >
@@ -168,11 +174,12 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                                         ))}
                                     </div>
 
-                                    <div className="text-right min-w-[120px]">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                                    {/* Month/Year Display */}
+                                    <div className="text-right hidden md:block pl-1">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">
                                             {calendarMode === 'BS' ? 'Nepali Calendar' : 'English Calendar'}
                                         </p>
-                                        <p className="text-xl font-black text-blue-950">
+                                        <p className="text-xs sm:text-sm font-black text-blue-950 leading-tight">
                                             {calendarMode === 'BS' 
                                                 ? `${days[0].bsMonthName}, ${days[0].bsYear}` 
                                                 : `${days[0].adMonthName}, ${days[0].adYear}`
@@ -180,118 +187,149 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                                         </p>
                                     </div>
 
-                                    <button onClick={onClose} className="p-3 hover:bg-slate-100 rounded-2xl transition-all active:scale-90 bg-slate-50 border border-slate-100">
-                                        <X className="w-6 h-6 text-slate-400" />
+                                    {/* Close Button */}
+                                    <button 
+                                        type="button"
+                                        onClick={onClose} 
+                                        className="p-1.5 hover:bg-slate-100 rounded-xl transition-all bg-slate-50 border border-slate-200/70 text-slate-400 hover:text-slate-700 cursor-pointer"
+                                        aria-label="Close Schedule"
+                                    >
+                                        <X className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="mt-8 flex items-center gap-3 py-3 px-5 bg-blue-50/50 rounded-2xl border border-blue-100/50 w-fit">
-                                <Info className="w-4 h-4 text-blue-600" />
-                                <p className="text-xs font-bold text-blue-900/70">Select an available time slot below to automatically update your appointment details.</p>
+                            {/* Slim Info alert */}
+                            <div className="mt-2.5 flex items-center gap-2 py-1.5 px-3 bg-blue-50/70 rounded-xl border border-blue-100/60 w-fit text-blue-950">
+                                <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                <p className="text-[11px] font-medium text-blue-900/80">
+                                    Select an available time slot below to automatically update your appointment details.
+                                </p>
                             </div>
                         </div>
 
-                        {/* Day Columns Slot Grid */}
-                        <div className="flex-1 overflow-auto px-10 pb-10">
-                            <div className="grid grid-cols-7 gap-4 min-w-[900px]">
-                                {days.map((day, dIdx) => {
-                                    // Gather available slots for this day across all shifts
-                                    const daySlots = SHIFTS.map(shift => {
-                                        const time = MOCK_SLOTS[shift.id]?.[dIdx];
-                                        return time ? { shiftId: shift.id, shiftLabel: shift.label, time } : null;
-                                    }).filter(Boolean) as { shiftId: string; shiftLabel: string; time: string }[];
+                        {/* Timetable Grid with Separate Shift Column - Fits Single View */}
+                        <div className="px-6 py-2 overflow-x-auto">
+                            <div className="min-w-[860px] bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+                                {/* Table Header Row */}
+                                <div className="grid grid-cols-[120px_repeat(7,1fr)] bg-slate-50 border-b border-slate-200/80">
+                                    {/* Separate Shift Column Header */}
+                                    <div className="p-2 flex flex-col items-center justify-center border-r border-slate-200/80 bg-slate-100/70 text-center">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Shift</span>
+                                        <span className="text-[11px] font-black text-blue-950 uppercase tracking-wider mt-0.5">Timeline</span>
+                                    </div>
 
-                                    return (
+                                    {/* 7 Days Columns */}
+                                    {days.map((day, dIdx) => (
                                         <div 
                                             key={dIdx} 
-                                            className="bg-slate-50/50 border border-slate-200/80 rounded-3xl p-4 flex flex-col items-center min-h-[220px]"
+                                            className={`p-2 text-center ${dIdx < 6 ? 'border-r border-slate-200/60' : ''}`}
                                         >
-                                            {/* Day Header */}
-                                            <div className="text-center pb-3 border-b border-slate-200/50 w-full mb-3">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 opacity-60">
-                                                    {day.adDayName}
-                                                </p>
-                                                <p className="text-xl font-black text-blue-950 uppercase tracking-tight">
-                                                    {calendarMode === 'BS' ? day.bsDayNum : day.adDayNum}
-                                                </p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5 opacity-70">
+                                                {day.adDayName}
+                                            </p>
+                                            <p className="text-base font-black text-blue-950 uppercase tracking-tight leading-none">
+                                                {calendarMode === 'BS' ? day.bsDayNum : day.adDayNum}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Shift Rows */}
+                                <div className="divide-y divide-slate-200/60">
+                                    {SHIFTS.map((shift) => (
+                                        <div key={shift.id} className="grid grid-cols-[120px_repeat(7,1fr)] items-stretch hover:bg-slate-50/40 transition-colors">
+                                            {/* Separate Shift Column Cell */}
+                                            <div className="p-2 border-r border-slate-200/80 bg-slate-50/60 flex flex-col justify-center items-center text-center">
+                                                <span className="text-[11px] font-black text-blue-950 uppercase tracking-wider leading-tight">
+                                                    {shift.label}
+                                                </span>
+                                                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
+                                                    {shift.timeRange}
+                                                </span>
                                             </div>
 
-                                            {/* Slots List */}
-                                            <div className="flex-1 w-full flex flex-col gap-2.5 justify-center">
-                                                {daySlots.length > 0 ? (
-                                                    daySlots.map((slot) => {
-                                                        const isSelected = selectedSlot?.dayIdx === dIdx && selectedSlot?.shiftId === slot.shiftId;
-                                                        return (
+                                            {/* 7 Day Slot Cells for this Shift */}
+                                            {days.map((_, dIdx) => {
+                                                const slotTime = MOCK_SLOTS[shift.id]?.[dIdx];
+                                                const isSelected = selectedSlot?.dayIdx === dIdx && selectedSlot?.shiftId === shift.id;
+
+                                                return (
+                                                    <div 
+                                                        key={dIdx} 
+                                                        className={`p-1.5 flex items-center justify-center ${dIdx < 6 ? 'border-r border-slate-200/60' : ''}`}
+                                                    >
+                                                        {slotTime ? (
                                                             <button
-                                                                key={slot.shiftId}
-                                                                onClick={() => setSelectedSlot({ dayIdx: dIdx, shiftId: slot.shiftId, time: slot.time })}
-                                                                className={`w-full p-2.5 rounded-xl border text-center transition-all duration-300 flex flex-col items-center justify-center gap-1
+                                                                type="button"
+                                                                onClick={() => setSelectedSlot({ dayIdx: dIdx, shiftId: shift.id, time: slotTime })}
+                                                                className={`w-full py-1.5 px-1 rounded-xl border text-center transition-all duration-150 flex flex-col items-center justify-center gap-0.5 cursor-pointer
                                                                     ${isSelected 
-                                                                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20 scale-[0.98]' 
-                                                                        : 'bg-white border-blue-100 hover:border-blue-300 text-blue-950 shadow-sm'
+                                                                        ? 'bg-blue-600 border-blue-600 text-white shadow-xs scale-[0.98]' 
+                                                                        : 'bg-white border-blue-100 hover:border-blue-400 hover:shadow-2xs text-blue-950'
                                                                     }
                                                                 `}
                                                             >
-                                                                <span className="text-[10px] font-black tracking-tight leading-none">
-                                                                    {slot.time}
+                                                                <span className="text-[10px] font-black tracking-tight leading-tight">
+                                                                    {slotTime}
                                                                 </span>
-                                                                <span className={`text-[8px] font-black uppercase tracking-wider
-                                                                    ${isSelected ? 'text-blue-100' : 'text-slate-400'}
-                                                                `}>
-                                                                    {slot.shiftId}
+                                                                <span className={`text-[7px] font-black uppercase tracking-wider ${
+                                                                    isSelected ? 'text-blue-100' : 'text-emerald-600'
+                                                                }`}>
+                                                                    Available
                                                                 </span>
                                                             </button>
-                                                        );
-                                                    })
-                                                ) : (
-                                                    <div className="flex flex-col items-center justify-center py-6 opacity-30">
-                                                        <span className="text-slate-300 font-black text-lg">—</span>
-                                                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest mt-1">OFF</span>
+                                                        ) : (
+                                                            <span className="text-slate-300 font-bold text-xs select-none">
+                                                                —
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
+                                                );
+                                            })}
                                         </div>
-                                    );
-                                })}
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Footer Section */}
-                        <div className="p-10 bg-slate-50/80 border-t border-slate-100 flex justify-between items-center shrink-0 backdrop-blur-sm">
-                            <div className="flex items-center gap-8">
-                                <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-slate-200 shadow-sm">
-                                    <Clock className="w-4 h-4 text-slate-400" />
-                                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nepal Standard Time (NST)</span>
+                        {/* Compact Footer Section */}
+                        <div className="px-6 py-3 bg-slate-50/90 border-t border-slate-200/80 flex flex-col sm:flex-row justify-between items-center gap-2.5 shrink-0 backdrop-blur-sm">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex items-center gap-2 px-2.5 py-1 bg-white rounded-lg border border-slate-200 shadow-2xs">
+                                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nepal Standard Time (NST)</span>
                                 </div>
                                 {selectedSlot && (
                                     <motion.div 
-                                        initial={{ opacity: 0, x: -20 }}
+                                        initial={{ opacity: 0, x: -8 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        className="flex items-center gap-3 px-4 py-2 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-600/20"
+                                        className="flex items-center gap-2 px-3 py-1 bg-blue-600 rounded-lg text-white shadow-xs"
                                     >
-                                        <Check className="w-4 h-4" />
-                                        <span className="text-xs font-black uppercase tracking-widest">
-                                            Selected: {calendarMode === 'BS' ? `BS ${days[selectedSlot.dayIdx].bsDateStr}` : `AD ${days[selectedSlot.dayIdx].date}`} • {selectedSlot.time}
+                                        <Check className="w-3.5 h-3.5" />
+                                        <span className="text-[11px] font-bold tracking-wide">
+                                            Selected: {calendarMode === 'BS' ? `BS ${days[selectedSlot.dayIdx].bsDateStr}` : `AD ${days[selectedSlot.dayIdx].date}`} • {selectedSlot.shiftId} ({selectedSlot.time})
                                         </span>
                                     </motion.div>
                                 )}
                             </div>
 
-                            <div className="flex gap-4">
+                            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                                 <button 
+                                    type="button"
                                     onClick={onClose}
-                                    className="px-10 py-4 bg-white text-slate-600 rounded-2xl font-black uppercase tracking-[0.2em] text-xs border border-slate-200 hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
+                                    className="px-5 py-2 bg-white text-slate-600 rounded-xl font-bold uppercase tracking-wider text-[11px] border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer shadow-2xs"
                                 >
                                     Cancel
                                 </button>
                                 <button 
+                                    type="button"
                                     onClick={handleConfirm}
                                     disabled={!selectedSlot}
                                     className={`
-                                        px-12 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all active:scale-95 shadow-xl
+                                        px-7 py-2 rounded-xl font-bold uppercase tracking-wider text-[11px] transition-all shadow-xs
                                         ${selectedSlot 
-                                            ? 'bg-blue-900 text-white shadow-blue-900/20 hover:shadow-blue-900/40 hover:-translate-y-0.5' 
+                                            ? 'bg-blue-900 text-white shadow-blue-900/20 hover:bg-blue-950 cursor-pointer active:scale-95' 
                                             : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                         }
                                     `}

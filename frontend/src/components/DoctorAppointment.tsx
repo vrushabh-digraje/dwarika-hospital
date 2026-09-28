@@ -1188,12 +1188,18 @@ const DoctorAppointment = () => {
                                                                     {formData.diseases.length > 0 && (
                                                                         <div className="flex flex-wrap gap-1.5">
                                                                             {formData.diseases.map((d, idx) => (
-                                                                                <div key={idx} className="flex items-center gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1 text-[10px]">
+                                                                                <div
+                                                                                    key={idx}
+                                                                                    className="flex items-center gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1 text-[10px]"
+                                                                                    title={[d.condition, d.duration && `(${d.duration})`, d.medication && `Meds: ${d.medication}`, d.note && `Note: ${d.note}`].filter(Boolean).join(' • ')}
+                                                                                >
                                                                                     <span className="font-bold text-blue-900">{d.condition}</span>
+                                                                                    {d.duration && <span className="text-slate-500 font-medium text-[9px]">({d.duration})</span>}
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => removeDisease(idx)}
-                                                                                        className="text-red-400 hover:text-red-600"
+                                                                                        className="text-red-400 hover:text-red-600 cursor-pointer ml-0.5"
+                                                                                        title="Remove condition"
                                                                                     >
                                                                                         <Trash2 className="w-3 h-3" />
                                                                                     </button>
@@ -1202,17 +1208,72 @@ const DoctorAppointment = () => {
                                                                         </div>
                                                                     )}
                                                                     <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                                                                        <div className="grid grid-cols-2 gap-2">
-                                                                            <input list="icd11-diseases" name="condition" value={formData.currentDisease.condition} onChange={handleDiseaseChange} placeholder="Select Disease..." className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900" />
-                                                                            <input list="disease-durations" name="duration" value={formData.currentDisease.duration} onChange={handleDiseaseChange} placeholder="Duration" className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900" />
+                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                            <input
+                                                                                list="icd11-diseases"
+                                                                                name="condition"
+                                                                                value={formData.currentDisease.condition}
+                                                                                onChange={handleDiseaseChange}
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === 'Enter') {
+                                                                                        e.preventDefault();
+                                                                                        addDisease();
+                                                                                    }
+                                                                                }}
+                                                                                placeholder="Select Disease..."
+                                                                                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900"
+                                                                            />
+                                                                            <input
+                                                                                list="disease-durations"
+                                                                                name="duration"
+                                                                                value={formData.currentDisease.duration}
+                                                                                onChange={handleDiseaseChange}
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === 'Enter') {
+                                                                                        e.preventDefault();
+                                                                                        addDisease();
+                                                                                    }
+                                                                                }}
+                                                                                placeholder="Duration"
+                                                                                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900"
+                                                                            />
                                                                         </div>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <input type="text" name="medication" value={formData.currentDisease.medication} onChange={handleDiseaseChange} placeholder="Medication Details" className="flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900" />
+                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                            <input
+                                                                                type="text"
+                                                                                name="medication"
+                                                                                value={formData.currentDisease.medication}
+                                                                                onChange={handleDiseaseChange}
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === 'Enter') {
+                                                                                        e.preventDefault();
+                                                                                        addDisease();
+                                                                                    }
+                                                                                }}
+                                                                                placeholder="Medication Details"
+                                                                                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900"
+                                                                            />
+                                                                            <input
+                                                                                type="text"
+                                                                                name="note"
+                                                                                value={formData.currentDisease.note}
+                                                                                onChange={handleDiseaseChange}
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === 'Enter') {
+                                                                                        e.preventDefault();
+                                                                                        addDisease();
+                                                                                    }
+                                                                                }}
+                                                                                placeholder="Additional Notes"
+                                                                                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex justify-end pt-0.5">
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={addDisease}
                                                                                 disabled={!formData.currentDisease.condition.trim()}
-                                                                                className="px-3 py-1.5 bg-blue-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-blue-800 disabled:opacity-40"
+                                                                                className="px-3.5 py-1.5 bg-blue-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-blue-800 disabled:opacity-40 transition-all cursor-pointer shadow-xs disabled:cursor-not-allowed"
                                                                             >
                                                                                 + Add
                                                                             </button>

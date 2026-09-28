@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
         });
       } catch (networkErr: any) {
         // If Vercel proxy network fails, attempt direct backend call
-        res = await fetch('https://dwarika-hospital.onrender.com/api/admin/login', {
+        res = await fetch('https://dwarika-hospital-backend.onrender.com/api/admin/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
       // If Vercel proxy returned 502/504 or HTML (timeout while Render wakes up)
       if (!res.ok && (res.status === 502 || res.status === 504 || res.headers.get('content-type')?.includes('text/html'))) {
         try {
-          res = await fetch('https://dwarika-hospital.onrender.com/api/admin/login', {
+          res = await fetch('https://dwarika-hospital-backend.onrender.com/api/admin/login', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -57,6 +57,9 @@ export default function AdminLoginPage() {
       try {
         data = JSON.parse(text);
       } catch {
+        if (text.includes('Service Suspended') || res.status === 503) {
+          throw new Error('Backend service is suspended on Render. Please log in to dashboard.render.com to resume the service.');
+        }
         if (res.status === 502 || res.status === 504 || text.includes('<!DOCTYPE')) {
           throw new Error('Backend server is waking up (Render free tier cold start). Please wait 15-20 seconds and click Sign In again.');
         }

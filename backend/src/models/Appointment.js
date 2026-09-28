@@ -15,7 +15,7 @@ const appointmentSchema = new mongoose.Schema(
     appointmentDate: { type: Date, default: null },
     shift: { type: String, default: '' },
     message: { type: String, default: '' },
-    diseases: [{ type: String }],
+    diseases: [{ type: mongoose.Schema.Types.Mixed }],
     address: { type: mongoose.Schema.Types.Mixed, default: {} },
     meta: { type: mongoose.Schema.Types.Mixed, default: {} },
     status: {
