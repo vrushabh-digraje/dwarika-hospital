@@ -71,31 +71,34 @@ const AboutTeam = () => {
                     </p>
                 </div>
 
-                {/* Category Filtering Tabs */}
-                <div className="flex flex-wrap justify-center gap-3 mb-16 max-w-5xl mx-auto">
-                    {CATEGORIES.map((cat) => {
-                        const isActive = activeCategory === cat.key;
-                        return (
-                            <button
-                                key={cat.key}
-                                onClick={() => setActiveCategory(cat.key)}
-                                className={`relative px-5 py-3 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm ${
-                                    isActive
-                                        ? 'bg-blue-900 text-white border-blue-900 shadow-blue-900/10'
-                                        : 'bg-white text-slate-600 hover:text-blue-950 border-slate-200 hover:border-blue-200'
-                                }`}
-                            >
-                                {isActive && (
-                                    <motion.span
-                                        layoutId="activeCategoryGlow"
-                                        className="absolute inset-0 bg-blue-900 rounded-full -z-10"
-                                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                                    />
-                                )}
-                                {cat.label}
-                            </button>
-                        );
-                    })}
+                {/* Category Filtering Tabs - All in One Line */}
+                <div className="w-full mb-16 overflow-x-auto no-scrollbar py-1">
+                    <div className="flex items-center justify-start lg:justify-center gap-2 sm:gap-2.5 md:gap-3 min-w-max px-2 mx-auto">
+                        {CATEGORIES.map((cat) => {
+                            const isActive = activeCategory === cat.key;
+                            return (
+                                <button
+                                    key={cat.key}
+                                    type="button"
+                                    onClick={() => setActiveCategory(cat.key)}
+                                    className={`relative px-4 sm:px-4.5 py-2.5 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-xs shrink-0 whitespace-nowrap cursor-pointer ${
+                                        isActive
+                                            ? 'bg-blue-900 text-white border-blue-900 shadow-blue-900/10'
+                                            : 'bg-white text-slate-600 hover:text-blue-950 border-slate-200 hover:border-blue-200'
+                                    }`}
+                                >
+                                    {isActive && (
+                                        <motion.span
+                                            layoutId="activeCategoryGlow"
+                                            className="absolute inset-0 bg-blue-900 rounded-full -z-10"
+                                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                                        />
+                                    )}
+                                    {cat.label}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Team Grid */}
