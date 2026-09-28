@@ -14,7 +14,12 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || config.corsOrigin.includes(origin) || config.nodeEnv === 'development') {
+      if (
+        !origin ||
+        config.corsOrigin.includes('*') ||
+        config.corsOrigin.includes(origin) ||
+        config.nodeEnv === 'development'
+      ) {
         return cb(null, true);
       }
       return cb(new Error('Not allowed by CORS'));
