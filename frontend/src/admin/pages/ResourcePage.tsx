@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ExternalLink, Pencil, Plus, RefreshCw, Search, Trash2, Eye } from 'lucide-react';
+import { ExternalLink, Pencil, Plus, RefreshCw, Search, Trash2, Eye, Pill, CheckCircle2, AlertTriangle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ModuleConfig } from '../config/modules';
 import {
@@ -141,6 +141,127 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
         }
       />
 
+      {module.key === 'medicines' && (
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <button
+            type="button"
+            onClick={() => {
+              setPage(1);
+              setExtraFilters((prev) => {
+                const next = { ...prev };
+                delete next.stockStatus;
+                return next;
+              });
+            }}
+            className={`rounded-2xl border p-3.5 text-left transition shadow-xs ${
+              !extraFilters.stockStatus
+                ? 'border-brand-500 bg-brand-50/70 ring-2 ring-brand-200'
+                : 'border-ink-100 bg-white hover:border-ink-300'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500">All Medicines</span>
+              <Pill className="h-4 w-4 text-brand-600" />
+            </div>
+            <p className="mt-1 font-display text-xl font-bold text-ink-900">{meta.total ?? items.length}</p>
+            <p className="text-[10px] text-ink-400 mt-0.5">Click to view full catalog</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setPage(1);
+              setExtraFilters((prev) => {
+                const next = { ...prev };
+                if (prev.stockStatus === 'In Stock') {
+                  delete next.stockStatus;
+                } else {
+                  next.stockStatus = 'In Stock';
+                }
+                return next;
+              });
+            }}
+            className={`rounded-2xl border p-3.5 text-left transition shadow-xs ${
+              extraFilters.stockStatus === 'In Stock'
+                ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
+                : 'border-ink-100 bg-white hover:border-emerald-300'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">In Stock</span>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            </div>
+            <p className="mt-1 font-display text-xl font-bold text-emerald-800">
+              {items.filter((i) => i.stockStatus === 'In Stock').length}
+              <span className="text-xs font-normal text-emerald-600 ml-1">in page</span>
+            </p>
+            <p className="text-[10px] text-emerald-600/80 mt-0.5">🟢 Sufficient inventory</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setPage(1);
+              setExtraFilters((prev) => {
+                const next = { ...prev };
+                if (prev.stockStatus === 'Low Stock') {
+                  delete next.stockStatus;
+                } else {
+                  next.stockStatus = 'Low Stock';
+                }
+                return next;
+              });
+            }}
+            className={`rounded-2xl border p-3.5 text-left transition shadow-xs ${
+              extraFilters.stockStatus === 'Low Stock'
+                ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-200'
+                : 'border-ink-100 bg-white hover:border-amber-300'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Low Stock Alert</span>
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+            </div>
+            <p className="mt-1 font-display text-xl font-bold text-amber-800">
+              {items.filter((i) => i.stockStatus === 'Low Stock').length}
+              <span className="text-xs font-normal text-amber-600 ml-1">in page</span>
+            </p>
+            <p className="text-[10px] text-amber-600/80 mt-0.5">🟠 Reorder needed soon</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setPage(1);
+              setExtraFilters((prev) => {
+                const next = { ...prev };
+                if (prev.stockStatus === 'Out of Stock') {
+                  delete next.stockStatus;
+                } else {
+                  next.stockStatus = 'Out of Stock';
+                }
+                return next;
+              });
+            }}
+            className={`rounded-2xl border p-3.5 text-left transition shadow-xs ${
+              extraFilters.stockStatus === 'Out of Stock'
+                ? 'border-rose-500 bg-rose-50 ring-2 ring-rose-200'
+                : 'border-ink-100 bg-white hover:border-rose-300'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700">Out of Stock</span>
+              <AlertCircle className="h-4 w-4 text-rose-600" />
+            </div>
+            <p className="mt-1 font-display text-xl font-bold text-rose-800">
+              {items.filter((i) => i.stockStatus === 'Out of Stock').length}
+              <span className="text-xs font-normal text-rose-600 ml-1">in page</span>
+            </p>
+            <p className="text-[10px] text-rose-600/80 mt-0.5">🔴 Immediate restock</p>
+          </button>
+        </div>
+      )}
+
       <Card className="mb-4 p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           {module.searchable !== false && (
@@ -230,7 +351,27 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
                           ) : col.type === 'date' ? (
                             formatDate(value)
                           ) : col.type === 'badge' ? (
-                            <Badge tone="brand">{value || '—'}</Badge>
+                            <Badge
+                              tone={
+                                value === 'In Stock'
+                                  ? 'success'
+                                  : value === 'Low Stock'
+                                    ? 'warning'
+                                    : value === 'Out of Stock'
+                                      ? 'danger'
+                                      : 'brand'
+                              }
+                            >
+                              {value === 'In Stock'
+                                ? '● In Stock'
+                                : value === 'Low Stock'
+                                  ? '▲ Low Stock'
+                                  : value === 'Out of Stock'
+                                    ? '✕ Out of Stock'
+                                    : value || '—'}
+                            </Badge>
+                          ) : col.key === 'rate' ? (
+                            <span className="font-semibold text-ink-900 font-mono">Rs. {Number(value || 0).toFixed(2)}</span>
                           ) : (
                             <span className="text-ink-800">{truncate(String(value ?? '—'), 48)}</span>
                           )}

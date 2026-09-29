@@ -6,7 +6,8 @@ import type { FieldConfig, ModuleConfig } from '../config/modules';
 import { Button, Input, Label, Select, Textarea } from './ui';
 import { RichTextEditor } from './RichTextEditor';
 import { MediaPicker } from './MediaPicker';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pill, Calculator, AlertTriangle, CheckCircle, Ban } from 'lucide-react';
+import { cn } from '../lib/format';
 
 function MultiImagePicker({
   value = [],
@@ -189,6 +190,49 @@ export function ResourceForm({
     form.reset(normalizeIncoming(module.fields, initialValues));
   }, [initialValues, module.key]);
 
+  const isMedicine = module.key === 'medicines';
+  const watchRateType = form.watch('rateType');
+  const watchRateIC = form.watch('rateIC');
+  const watchRate = form.watch('rate');
+  const watchQuantity = form.watch('quantity');
+  const watchStock = form.watch('stock');
+  const watchMinAlert = form.watch('minStockAlert');
+
+  // Reactively calculate rate in NC when rateType is IC (1 IC = 1.60 NC)
+  useEffect(() => {
+    if (!isMedicine) return;
+    if (watchRateType === 'IC') {
+      const ic = parseFloat(watchRateIC);
+      if (!isNaN(ic) && ic >= 0) {
+        const nc = parseFloat((ic * 1.6).toFixed(2));
+        form.setValue('rate', nc, { shouldValidate: true, shouldDirty: true });
+      }
+    }
+  }, [isMedicine, watchRateType, watchRateIC, form]);
+
+  // Reactively calculate totalAmount = quantity * rate
+  useEffect(() => {
+    if (!isMedicine) return;
+    const qty = parseFloat(watchQuantity) || 0;
+    const rate = parseFloat(watchRate) || 0;
+    const total = parseFloat((qty * rate).toFixed(2));
+    form.setValue('totalAmount', total, { shouldDirty: true });
+  }, [isMedicine, watchQuantity, watchRate, form]);
+
+  // Reactively calculate stockStatus based on stock vs minStockAlert
+  useEffect(() => {
+    if (!isMedicine) return;
+    const stockVal = parseFloat(watchStock);
+    const minAlertVal = parseFloat(watchMinAlert) || 10;
+    if (isNaN(stockVal) || stockVal <= 0) {
+      form.setValue('stockStatus', 'Out of Stock', { shouldDirty: true });
+    } else if (stockVal <= minAlertVal) {
+      form.setValue('stockStatus', 'Low Stock', { shouldDirty: true });
+    } else {
+      form.setValue('stockStatus', 'In Stock', { shouldDirty: true });
+    }
+  }, [isMedicine, watchStock, watchMinAlert, form]);
+
   return (
     <form
       className="space-y-4"
@@ -196,6 +240,67 @@ export function ResourceForm({
         await onSubmit(normalizeOutgoing(module.fields, values as Record<string, any>));
       })}
     >
+      {isMedicine && (
+        <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-xs shadow-sm space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-200/60 pb-2.5">
+            <div className="flex items-center gap-2 font-bold text-sky-950">
+              <Pill className="h-4 w-4 text-sky-600" />
+              <span className="uppercase tracking-wider">Medicine Valuation & Stock Assistant</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  'px-3 py-1 rounded-full font-bold text-xs flex items-center gap-1.5 shadow-xs border',
+                  form.watch('stockStatus') === 'In Stock'
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : form.watch('stockStatus') === 'Low Stock'
+                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                      : 'bg-rose-100 text-rose-800 border-rose-300'
+                )}
+              >
+                {form.watch('stockStatus') === 'In Stock' && <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />}
+                {form.watch('stockStatus') === 'Low Stock' && <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />}
+                {form.watch('stockStatus') === 'Out of Stock' && <Ban className="h-3.5 w-3.5 text-rose-600" />}
+                {form.watch('stockStatus') || 'In Stock'}
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-ink-700">
+            <div className="rounded-xl bg-white p-2.5 border border-sky-100 shadow-xs">
+              <p className="text-[10px] text-ink-500 font-semibold uppercase tracking-wider">Currency Mode</p>
+              <p className="font-bold text-ink-900 mt-0.5">
+                {watchRateType === 'IC' ? '🇮🇳 IC (INR × 1.60)' : '🇳🇵 NC (NPR)'}
+              </p>
+            </div>
+            <div className="rounded-xl bg-white p-2.5 border border-sky-100 shadow-xs">
+              <p className="text-[10px] text-ink-500 font-semibold uppercase tracking-wider">Unit Rate (NC)</p>
+              <p className="font-bold text-brand-700 mt-0.5 font-mono text-sm">
+                Rs. {Number(watchRate || 0).toFixed(2)}
+              </p>
+            </div>
+            <div className="rounded-xl bg-white p-2.5 border border-sky-100 shadow-xs">
+              <p className="text-[10px] text-ink-500 font-semibold uppercase tracking-wider">Batch Total Value</p>
+              <p className="font-bold text-emerald-700 mt-0.5 font-mono text-sm">
+                Rs. {Number(form.watch('totalAmount') || 0).toFixed(2)}
+              </p>
+            </div>
+            <div className="rounded-xl bg-white p-2.5 border border-sky-100 shadow-xs">
+              <p className="text-[10px] text-ink-500 font-semibold uppercase tracking-wider">Stock / Threshold</p>
+              <p className="font-bold text-ink-900 mt-0.5 font-mono">
+                {watchStock ?? 0} <span className="text-[10px] text-ink-400 font-normal">/ min {watchMinAlert ?? 10}</span>
+              </p>
+            </div>
+          </div>
+          {watchRateType === 'IC' && (
+            <p className="text-[11px] text-sky-800 bg-sky-100/60 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
+              <Calculator className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+              <span>
+                Indian Currency (IC) peg auto-applied: <strong>{watchRateIC || 0} IC × 1.60 = Rs. {Number(watchRate || 0).toFixed(2)} NC</strong> (Hospital Rate Standard).
+              </span>
+            </p>
+          )}
+        </div>
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         {module.fields.map((field) => (
           <div key={field.name} className={field.fullWidth ? 'md:col-span-2' : ''}>

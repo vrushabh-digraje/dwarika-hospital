@@ -48,6 +48,7 @@ export const cmsPublic = {
   homepage: () => request<any>('/public/homepage'),
   about: () => request<any>('/public/about'),
   doctors: (params?: Record<string, string | number>) => fetchPublicList<any>('doctors', params),
+  staff: (params?: Record<string, string | number>) => fetchPublicList<any>('staff', params),
   departments: () => fetchPublicList<any>('departments'),
   services: () => fetchPublicList<any>('services'),
   facilities: () => fetchPublicList<any>('facilities'),
@@ -65,6 +66,7 @@ export const cmsPublic = {
   partners: () => fetchPublicList<any>('partners'),
   insurance: () => fetchPublicList<any>('insurance'),
   seo: () => fetchPublicList<any>('seo'),
+  medicines: (params?: Record<string, string | number>) => fetchPublicList<any>('medicines', params),
 };
 
 export async function submitEnquiry(payload: unknown) {

@@ -24,22 +24,39 @@ const AboutTeam = () => {
 
     const currentLang = i18n.language;
 
-    const { data: dbData } = useCmsQuery(() => cmsPublic.doctors(), []);
+    const { data: doctorsData } = useCmsQuery(() => cmsPublic.doctors({ limit: 100 }), []);
+    const { data: staffData } = useCmsQuery(() => cmsPublic.staff({ limit: 100 }), []);
 
     const teamMembers = useMemo(() => {
-        const items = dbData?.items || [];
-        if (items.length === 0) {
-            return medicalTeam;
-        }
-        return items.map((item: any) => ({
-            name: (currentLang === 'np' && item.nameNp) ? item.nameNp : item.name,
-            specialty: (currentLang === 'np' && item.specialtyNp) ? item.specialtyNp : item.specialty,
-            category: item.category,
-            image: item.imageUrl || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800',
-            bio: (currentLang === 'np' && item.bioNp) ? item.bioNp : (item.bio || ''),
-            teamCategory: item.teamCategory || 'DOCTOR'
-        }));
-    }, [dbData, currentLang]);
+        const doctorItems = doctorsData?.items || [];
+        const staffItems = staffData?.items || [];
+
+        const nonDoctorFallback = medicalTeam.filter(m => m.teamCategory && m.teamCategory !== 'DOCTOR');
+
+        const doctorsMapped = doctorItems.length > 0
+            ? doctorItems.map((item: any) => ({
+                name: (currentLang === 'np' && item.nameNp) ? item.nameNp : item.name,
+                specialty: (currentLang === 'np' && item.specialtyNp) ? item.specialtyNp : item.specialty,
+                category: item.category,
+                image: item.imageUrl || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800',
+                bio: (currentLang === 'np' && item.bioNp) ? item.bioNp : (item.bio || ''),
+                teamCategory: item.teamCategory || 'DOCTOR'
+            }))
+            : medicalTeam.filter(m => m.teamCategory === 'DOCTOR');
+
+        const staffMapped = staffItems.length > 0
+            ? staffItems.map((item: any) => ({
+                name: (currentLang === 'np' && item.nameNp) ? item.nameNp : item.name,
+                specialty: (currentLang === 'np' && item.specialtyNp) ? item.specialtyNp : item.specialty,
+                category: item.category,
+                image: item.imageUrl || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800',
+                bio: (currentLang === 'np' && item.bioNp) ? item.bioNp : (item.bio || ''),
+                teamCategory: item.teamCategory || 'NURSING STAFF'
+            }))
+            : nonDoctorFallback;
+
+        return [...doctorsMapped, ...staffMapped];
+    }, [doctorsData, staffData, currentLang]);
 
     const filteredMembers = teamMembers.filter(
         member => activeCategory === 'ALL' || member.teamCategory === activeCategory

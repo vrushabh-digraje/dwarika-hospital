@@ -26,6 +26,8 @@ export function createCrudService(Model, options = {}) {
     if (query.teamCategory) filter.teamCategory = query.teamCategory;
     if (query.isFeatured !== undefined) filter.isFeatured = query.isFeatured === 'true';
     if (query.isFeaturedOnHero !== undefined) filter.isFeaturedOnHero = query.isFeaturedOnHero === 'true';
+    if (query.stockStatus) filter.stockStatus = query.stockStatus;
+    if (query.group) filter.group = query.group;
 
     if (query.search && searchFields.length) {
       const regex = new RegExp(query.search, 'i');

@@ -21,6 +21,7 @@ import {
   Certificate,
   Patient,
   LabReport,
+  Medicine,
 } from '../models/index.js';
 import { createCrudService } from '../services/crudService.js';
 import { createCrudController } from '../controllers/crudController.js';
@@ -180,6 +181,13 @@ const modules = [
     model: LabReport,
     resourceName: 'Lab Report',
     searchFields: ['testName', 'patientUsername', 'department'],
+  },
+  {
+    key: 'medicines',
+    model: Medicine,
+    resourceName: 'Medicine',
+    searchFields: ['name', 'genericName', 'brandName', 'supplierName', 'companyName'],
+    slugFrom: 'name',
   },
 ];
 

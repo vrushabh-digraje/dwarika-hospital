@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
 });
 
 const allowed = new Set([
-  'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/x-icon',
+  'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/x-icon', 'image/avif',
   'application/pdf',
   'video/mp4', 'video/webm',
   'application/msword',

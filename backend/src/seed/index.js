@@ -21,7 +21,9 @@ import {
   HealthPackage,
   Career,
   Certificate,
+  Medicine,
 } from '../models/index.js';
+import { initialMedicines } from './medicinesSeed.js';
 
 export async function runSeed({ connect = true } = {}) {
   if (connect) await connectDB();
@@ -49,6 +51,7 @@ export async function runSeed({ connect = true } = {}) {
     HealthPackage.deleteMany({}),
     Career.deleteMany({}),
     Certificate.deleteMany({}),
+    Medicine.deleteMany({}),
   ]);
 
   await SiteSettings.create({
@@ -451,6 +454,8 @@ export async function runSeed({ connect = true } = {}) {
     { pageKey: 'about', pageName: 'About', title: 'About Us | Dwarika Hospital', description: 'Learn about our mission, vision and legacy of care.', status: 'published' },
     { pageKey: 'contact', pageName: 'Contact', title: 'Contact Us | Dwarika Hospital', description: 'Get in touch with Dwarika Hospital.', status: 'published' },
   ]);
+
+  await Medicine.insertMany(initialMedicines);
 
   console.log('Seed completed successfully.');
 }
