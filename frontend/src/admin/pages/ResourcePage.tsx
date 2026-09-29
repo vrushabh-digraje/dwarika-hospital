@@ -23,6 +23,7 @@ import {
   Select,
   StatusBadge,
 } from '../components/ui';
+import { resolveImageUrl } from '../../lib/utils';
 import { ResourceForm } from '../components/ResourceForm';
 import { formatDate, truncate } from '../lib/format';
 
@@ -436,7 +437,7 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
             </div>
             {preview.imageUrl || preview.url || preview.logoUrl ? (
               <img
-                src={preview.imageUrl || preview.url || preview.logoUrl}
+                src={resolveImageUrl(preview.imageUrl || preview.url || preview.logoUrl)}
                 alt=""
                 className="max-h-64 w-full rounded-2xl object-cover"
               />

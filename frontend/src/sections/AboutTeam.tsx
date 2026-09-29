@@ -6,6 +6,7 @@ import type { TeamMember } from '../lib/teamData';
 import { cmsPublic } from '../lib/cmsClient';
 import { useCmsQuery } from '../hooks/useCmsQuery';
 import { useTranslation } from 'react-i18next';
+import { resolveImageUrl } from '../lib/utils';
 
 const CATEGORIES = [
     { key: 'ALL', label: 'All Staff' },
@@ -38,7 +39,7 @@ const AboutTeam = () => {
                 name: (currentLang === 'np' && item.nameNp) ? item.nameNp : item.name,
                 specialty: (currentLang === 'np' && item.specialtyNp) ? item.specialtyNp : item.specialty,
                 category: item.category,
-                image: item.imageUrl || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800',
+                image: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800',
                 bio: (currentLang === 'np' && item.bioNp) ? item.bioNp : (item.bio || ''),
                 teamCategory: item.teamCategory || 'DOCTOR'
             }))
@@ -49,7 +50,7 @@ const AboutTeam = () => {
                 name: (currentLang === 'np' && item.nameNp) ? item.nameNp : item.name,
                 specialty: (currentLang === 'np' && item.specialtyNp) ? item.specialtyNp : item.specialty,
                 category: item.category,
-                image: item.imageUrl || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800',
+                image: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800',
                 bio: (currentLang === 'np' && item.bioNp) ? item.bioNp : (item.bio || ''),
                 teamCategory: item.teamCategory || 'NURSING STAFF'
             }))

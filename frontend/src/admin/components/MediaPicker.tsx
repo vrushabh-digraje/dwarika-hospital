@@ -3,6 +3,7 @@ import { ImagePlus, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { listMedia, uploadMedia } from '../api/cmsApi';
 import { Button, Input, Modal } from './ui';
+import { resolveImageUrl } from '../../lib/utils';
 
 export function MediaPicker({
   value,
@@ -35,7 +36,7 @@ export function MediaPicker({
     setUploading(true);
     try {
       const uploaded = await uploadMedia(files[0], folder === 'all' ? 'general' : folder);
-      onChange(uploaded.url);
+      onChange(resolveImageUrl(uploaded.url));
       toast.success('Uploaded');
       setOpen(false);
     } catch (e: any) {
@@ -58,7 +59,7 @@ export function MediaPicker({
           {/\.(mp4|webm|pdf)$/i.test(value) || value.includes('/document') ? (
             <div className="px-3 py-4 text-xs text-ink-500">{value}</div>
           ) : (
-            <img src={value} alt="" className="h-28 w-full object-cover" />
+            <img src={resolveImageUrl(value)} alt="" className="h-28 w-full object-cover" />
           )}
         </div>
       ) : null}
@@ -86,13 +87,13 @@ export function MediaPicker({
                 key={item._id}
                 type="button"
                 onClick={() => {
-                  onChange(item.url);
+                  onChange(resolveImageUrl(item.url));
                   setOpen(false);
                 }}
                 className="overflow-hidden rounded-xl border border-ink-100 bg-ink-50 text-left transition hover:border-brand-400 hover:shadow-md"
               >
                 {item.type === 'image' ? (
-                  <img src={item.url} alt={item.alt || item.originalName} className="h-28 w-full object-cover" />
+                  <img src={resolveImageUrl(item.url)} alt={item.alt || item.originalName} className="h-28 w-full object-cover" />
                 ) : (
                   <div className="flex h-28 items-center justify-center px-2 text-center text-xs text-ink-500">
                     {item.originalName}

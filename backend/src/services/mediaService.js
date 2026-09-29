@@ -15,7 +15,10 @@ function detectType(mimeType) {
 }
 
 function publicUrl(folder, filename) {
-  return `${config.publicBaseUrl}/uploads/media/${folder}/${filename}`;
+  const base = config.publicBaseUrl && !config.publicBaseUrl.includes('localhost') && !config.publicBaseUrl.includes('127.0.0.1')
+    ? config.publicBaseUrl.replace(/\/$/, '')
+    : '';
+  return `${base}/uploads/media/${folder}/${filename}`;
 }
 
 export async function listMedia(query = {}) {

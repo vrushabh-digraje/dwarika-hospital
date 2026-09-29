@@ -7,6 +7,7 @@ import Button from '../components/Button';
 import { useTranslation } from 'react-i18next';
 import { cmsPublic } from '../lib/cmsClient';
 import { useCmsQuery } from '../hooks/useCmsQuery';
+import { resolveImageUrl } from '../lib/utils';
 
 type DoctorCard = {
     name: string;
@@ -31,7 +32,7 @@ const Doctors = () => {
                 name: (currentLang === 'np' && d.nameNp) ? d.nameNp : d.name,
                 specialty: (currentLang === 'np' && d.specialtyNp) ? d.specialtyNp : (d.specialty || d.specialization || ''),
                 category: d.category || 'General',
-                image: d.imageUrl || d.image || '',
+                image: resolveImageUrl(d.imageUrl) || d.image || '',
                 bio: (currentLang === 'np' && d.bioNp) ? d.bioNp : (d.bio || ''),
             })),
         [data, currentLang]

@@ -7,6 +7,7 @@ import Button from "../components/Button";
 import { useTranslation } from "react-i18next";
 import { cmsPublic } from '../lib/cmsClient';
 import { useCmsQuery } from '../hooks/useCmsQuery';
+import { resolveImageUrl } from '../lib/utils';
 
 interface HeroDoctor {
     name: string;
@@ -125,7 +126,7 @@ const HeroSection = ({ previewData }: HeroSectionProps = {}) => {
                 name: d.name,
                 nameNp: d.nameNp || '',
                 nmcNo: d.nmcNo || '',
-                image: d.imageUrl || d.image || '',
+                image: resolveImageUrl(d.imageUrl) || d.image || '',
                 specialty: d.specialty || d.specialization || '',
                 specialtyNp: d.specialtyNp || '',
                 qualification: d.qualification || '',
