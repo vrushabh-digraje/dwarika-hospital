@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BikramSambat from 'bikram-sambat-js';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     User, Phone, Mail, MapPin,
     Upload, CheckCircle2, ArrowRight, ArrowLeft,
     BookOpen, Briefcase, Award, Globe, Shield, Info,
-    QrCode, Plus, CreditCard, FileText, Pencil, Trash2, ChevronDown
+    QrCode, Plus, CreditCard, FileText, Pencil, Trash2, ChevronDown,
+    Printer, Loader2, Home, CheckCircle, Copy, AlertCircle
 } from 'lucide-react';
 import DualDatePicker from './DualDatePicker';
 import {
@@ -236,10 +238,16 @@ const ComplexOnlineRegistrationForm = () => {
         return { y: String(years), m: String(months), d: String(days) };
     };
 
+    const navigate = useNavigate();
     const [step, setStep] = useState(0);
     const [isMailingSameAsPermanent, setIsMailingSameAsPermanent] = useState(false);
     const [trainingError, setTrainingError] = useState('');
     const [workError, setWorkError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submissionSuccess, setSubmissionSuccess] = useState(false);
+    const [submittedData, setSubmittedData] = useState<any | null>(null);
+    const [submitError, setSubmitError] = useState('');
+    const [copiedRegNo, setCopiedRegNo] = useState(false);
     const dobSyncSource = useRef<'AD' | 'BS' | null>(null);
 
     const [formData, setFormData] = useState({
@@ -608,9 +616,221 @@ const ComplexOnlineRegistrationForm = () => {
                 };
             });
         }
+        if (step === STEPS.length - 1) {
+            handleSubmitRegistration();
+            return;
+        }
         setStep(prev => Math.min(prev + 1, STEPS.length - 1));
     };
     const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
+
+    const uploadFileHelper = async (file: any, folder = 'registrations'): Promise<string> => {
+        if (!file || typeof file !== 'object' || !(file instanceof File)) return '';
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('folder', folder);
+            const res = await fetch('/api/public/upload', {
+                method: 'POST',
+                body: fd,
+            });
+            if (!res.ok) return '';
+            const json = await res.json();
+            return json?.data?.url || '';
+        } catch (e) {
+            console.warn('Document upload error:', e);
+            return '';
+        }
+    };
+
+    const handleSubmitRegistration = async () => {
+        // Validation
+        if (!formData.firstName.trim() && !formData.lastName.trim()) {
+            alert('Please provide your Name in the Profile step.');
+            setStep(1);
+            return;
+        }
+        if (!formData.mobile.trim()) {
+            alert('Please provide your Mobile Number in the Profile step.');
+            setStep(1);
+            return;
+        }
+        if (!formData.email.trim()) {
+            alert('Please provide your Email Address in the Profile step.');
+            setStep(1);
+            return;
+        }
+        const voucherNo = (formData as any).paymentVoucherNo || '';
+        const voucherFile = (formData as any).paymentVoucher;
+        if (!voucherNo.trim() && !voucherFile) {
+            alert('Please enter your Payment Transaction / Voucher No. or upload your payment receipt.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setSubmitError('');
+
+        try {
+            // Upload documents in parallel
+            const [
+                photoUrl,
+                paymentVoucherUrl,
+                citizenshipFrontUrl,
+                citizenshipBackUrl,
+                councilCertUrl,
+                panFileUrl,
+                passportFileUrl,
+            ] = await Promise.all([
+                uploadFileHelper(formData.photo, 'registrations'),
+                uploadFileHelper((formData as any).paymentVoucher, 'registrations'),
+                uploadFileHelper((formData as any).citizenshipFront, 'registrations'),
+                uploadFileHelper((formData as any).citizenshipBack, 'registrations'),
+                uploadFileHelper((formData as any).councilCert, 'registrations'),
+                uploadFileHelper((formData as any).panFile, 'registrations'),
+                uploadFileHelper((formData as any).passportFile, 'registrations'),
+            ]);
+
+            const fullName = [formData.title, formData.firstName, formData.middleName, formData.lastName].filter(Boolean).join(' ');
+            const fullNameNp = [formData.firstNameNp, formData.middleNameNp, formData.lastNameNp].filter(Boolean).join(' ');
+
+            const payload = {
+                entryYear: '2082 B.S.',
+                userType: formData.userType || 'STUDENT',
+                userTypeOther: formData.userTypeOther || '',
+                postApplied: formData.postApplied || '',
+                entryCode: formData.entryCode || '',
+
+                title: formData.title || 'Mr.',
+                firstName: formData.firstName,
+                middleName: formData.middleName,
+                lastName: formData.lastName,
+                fullName: fullName || 'Applicant',
+                firstNameNp: formData.firstNameNp,
+                middleNameNp: formData.middleNameNp,
+                lastNameNp: formData.lastNameNp,
+                fullNameNp: fullNameNp || '',
+                gender: formData.gender,
+                bloodGroup: formData.bloodGroup,
+                religion: formData.religion,
+                nationality: formData.nationality || 'Nepali',
+                casteGroup: formData.casteGroup,
+                caste: formData.caste,
+                casteOther: formData.casteOther,
+                maritalStatus: formData.maritalStatus,
+                photoUrl: photoUrl || '',
+
+                mobile: formData.mobile,
+                phone: formData.phone,
+                email: formData.email,
+
+                fatherName: formData.fatherName,
+                fatherNameNp: formData.fatherNameNp,
+                motherName: formData.motherName,
+                motherNameNp: formData.motherNameNp,
+                grandfatherName: formData.grandfatherName,
+                grandfatherNameNp: formData.grandfatherNameNp,
+                spouseName: formData.spouseName,
+                spouseNameNp: formData.spouseNameNp,
+
+                dobAD: formData.dobAD,
+                dobBS: formData.dobBS,
+                citizenshipNo: formData.citizenshipNo,
+                citizenshipIssueDate: formData.citizenshipIssueDate,
+                citizenshipIssuePlace: formData.citizenshipIssuePlace,
+                citizenshipFrontUrl: citizenshipFrontUrl || '',
+                citizenshipBackUrl: citizenshipBackUrl || '',
+                panNo: formData.panNo,
+                panFileUrl: panFileUrl || '',
+                passportNo: formData.passportNo,
+                passportIssueDate: formData.passportIssueDate,
+                passportIssuePlace: formData.passportIssuePlace,
+                passportFileUrl: passportFileUrl || '',
+                nIdNo: formData.nIdNo,
+                localIdNo: formData.localIdNo,
+
+                permanentAddress: {
+                    country: formData.permanentCountry || 'Nepal',
+                    province: formData.permanentProvince || '',
+                    district: formData.permanentDistrict || '',
+                    municipality: formData.permanentMunicipality || '',
+                    municipalityType: formData.permanentMunicipalityType || 'MUNICIPALITY',
+                    ward: formData.permanentWard || '',
+                    street: formData.permanentStreet || '',
+                },
+                oldPermanentAddress: {
+                    country: formData.oldCountry || 'Nepal',
+                    zone: formData.oldZone || '',
+                    district: formData.oldDistrict || '',
+                    municipality: formData.oldMunicipality || '',
+                    municipalityType: formData.oldMunicipalityType || 'MUNICIPALITY',
+                    ward: formData.oldWard || '',
+                    street: formData.oldStreet || '',
+                },
+                mailingAddress: {
+                    country: formData.mailingCountry || 'Nepal',
+                    province: formData.mailingProvince || '',
+                    district: formData.mailingDistrict || '',
+                    municipality: formData.mailingMunicipality || '',
+                    municipalityType: formData.mailingMunicipalityType || 'MUNICIPALITY',
+                    ward: formData.mailingWard || '',
+                    street: formData.mailingStreet || '',
+                    foreignAddress: formData.mailingForeignAddress || '',
+                },
+
+                academicDetails: formData.academicDetails.map(a => ({
+                    level: a.level,
+                    degree: a.degree,
+                    passedYear: a.passedYear,
+                    school: a.school,
+                    university: a.university,
+                    address: a.address,
+                    markGpa: a.markGpa,
+                    division: a.division,
+                    speciality: a.speciality,
+                })),
+
+                councilDetails: {
+                    councilName: (formData as any).councilName || '',
+                    regNo: (formData as any).councilRegNo || '',
+                    regDate: (formData as any).councilRegDate || '',
+                    type: (formData as any).councilType || '',
+                    councilCertUrl: councilCertUrl || '',
+                },
+
+                trainingEntries: formData.trainingEntries,
+                workEntries: formData.workEntries,
+
+                payment: {
+                    mode: 'eSewa / QR / Bank',
+                    voucherNo: (formData as any).paymentVoucherNo || '',
+                    paymentDate: (formData as any).paymentDate || '',
+                    voucherUrl: paymentVoucherUrl || '',
+                },
+                paymentVoucherNo: (formData as any).paymentVoucherNo || '',
+                paymentVoucherUrl: paymentVoucherUrl || '',
+                status: 'pending',
+            };
+
+            const res = await fetch('/api/public/registrations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const json = await res.json();
+            if (!res.ok) {
+                throw new Error(json.message || 'Failed to submit registration');
+            }
+
+            setSubmittedData(json.data);
+            setSubmissionSuccess(true);
+        } catch (err: any) {
+            console.error('Registration Error:', err);
+            setSubmitError(err.message || 'Submission failed. Please check your network and try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const renderStepHeader = () => (
         <div className="mb-12 overflow-x-auto pb-6 scrollbar-hide">
@@ -2432,6 +2652,119 @@ const ComplexOnlineRegistrationForm = () => {
         }
     };
 
+    if (submissionSuccess && submittedData) {
+        return (
+            <div className="min-h-screen bg-slate-100 py-16 px-4 sm:px-6 flex items-center justify-center">
+                <div className="max-w-3xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+                    {/* Official Hospital Top Header */}
+                    <div className="bg-gradient-to-r from-blue-900 via-blue-950 to-indigo-950 p-8 text-white text-center relative overflow-hidden">
+                        <div className="relative z-10 space-y-2">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-black uppercase tracking-widest mb-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Application Successfully Received
+                            </div>
+                            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">
+                                Dwarika Hospital & Medical Academy
+                            </h2>
+                            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">
+                                Online Registration Portal — Academic / Career Session 2082 B.S.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="p-8 space-y-6">
+                        {/* Registration Number Highlight Card */}
+                        <div className="bg-blue-50/80 border-2 border-blue-200 rounded-2xl p-6 text-center space-y-2">
+                            <p className="text-xs font-black text-blue-900 uppercase tracking-widest">
+                                Official Registration / Roll Reference Number
+                            </p>
+                            <div className="flex items-center justify-center gap-3">
+                                <span className="font-mono text-3xl sm:text-4xl font-black text-blue-950 tracking-wider">
+                                    {submittedData.registrationNumber}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(submittedData.registrationNumber);
+                                        setCopiedRegNo(true);
+                                        setTimeout(() => setCopiedRegNo(false), 2000);
+                                    }}
+                                    className="p-2 rounded-xl bg-white border border-blue-200 text-blue-900 hover:bg-blue-100 transition shadow-sm cursor-pointer"
+                                    title="Copy Registration Number"
+                                >
+                                    {copiedRegNo ? <CheckCircle className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            <p className="text-xs text-slate-500 font-medium">
+                                Please screenshot or write down this number for entrance cards, verification, and future correspondence.
+                            </p>
+                        </div>
+
+                        {/* Submission Summary Table */}
+                        <div className="rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100 text-sm">
+                            <div className="grid grid-cols-2 p-3 bg-slate-50/60 font-semibold">
+                                <span className="text-slate-500 text-xs uppercase font-bold">Applicant Full Name</span>
+                                <span className="text-slate-900 font-bold">{submittedData.fullName} {submittedData.fullNameNp ? `(${submittedData.fullNameNp})` : ''}</span>
+                            </div>
+                            <div className="grid grid-cols-2 p-3">
+                                <span className="text-slate-500 text-xs uppercase font-bold">Post / Program Applied</span>
+                                <span className="text-blue-900 font-bold">{submittedData.postApplied || 'General Registration'}</span>
+                            </div>
+                            <div className="grid grid-cols-2 p-3 bg-slate-50/60">
+                                <span className="text-slate-500 text-xs uppercase font-bold">Entry Year</span>
+                                <span className="text-slate-900 font-bold">{submittedData.entryYear || '2082 B.S.'}</span>
+                            </div>
+                            <div className="grid grid-cols-2 p-3">
+                                <span className="text-slate-500 text-xs uppercase font-bold">Contact Details</span>
+                                <span className="text-slate-900 font-semibold">{submittedData.mobile} • {submittedData.email}</span>
+                            </div>
+                            <div className="grid grid-cols-2 p-3 bg-slate-50/60">
+                                <span className="text-slate-500 text-xs uppercase font-bold">Payment Voucher No.</span>
+                                <span className="font-mono text-slate-900 font-bold">{submittedData.paymentVoucherNo || submittedData.payment?.voucherNo || '—'}</span>
+                            </div>
+                            <div className="grid grid-cols-2 p-3">
+                                <span className="text-slate-500 text-xs uppercase font-bold">Application Status</span>
+                                <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full w-fit">
+                                    ● Pending Admin Verification
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200">
+                            <button
+                                type="button"
+                                onClick={() => window.print()}
+                                className="w-full sm:w-auto px-6 py-3.5 bg-blue-900 hover:bg-blue-800 text-white rounded-2xl font-black uppercase text-xs tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 transition active:scale-95 cursor-pointer"
+                            >
+                                <Printer className="w-4 h-4" /> Print / Save Slip
+                            </button>
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSubmissionSuccess(false);
+                                        setSubmittedData(null);
+                                        setStep(0);
+                                    }}
+                                    className="flex-1 sm:flex-initial px-5 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-2xl font-black uppercase text-xs tracking-wider transition cursor-pointer"
+                                >
+                                    New Registration
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => navigate('/')}
+                                    className="flex-1 sm:flex-initial px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black uppercase text-xs tracking-wider flex items-center justify-center gap-2 transition cursor-pointer"
+                                >
+                                    <Home className="w-4 h-4" /> Home
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-slate-50 py-20 px-4">
             <div className="max-w-5xl mx-auto">
@@ -2478,22 +2811,43 @@ const ComplexOnlineRegistrationForm = () => {
                                 </AnimatePresence>
                             </div>
 
+                            {/* Error Alert */}
+                            {submitError && (
+                                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
+                                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                                    <span>{submitError}</span>
+                                </div>
+                            )}
+
                             {/* Navigation Buttons */}
                             <div className="flex justify-between pt-8 mt-auto border-t border-gray-200">
                                 <button
                                     type="button"
                                     onClick={handleBack}
-                                    disabled={step === 0}
-                                    className={`px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-all ${step === 0 ? 'opacity-0 pointer-events-none' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:-translate-x-1'}`}
+                                    disabled={step === 0 || isSubmitting}
+                                    className={`px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-all ${step === 0 ? 'opacity-0 pointer-events-none' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:-translate-x-1 cursor-pointer'}`}
                                 >
                                     <ArrowLeft className="w-4 h-4" /> Go Back
                                 </button>
                                 <button
                                     type="button"
+                                    disabled={isSubmitting}
                                     onClick={handleNext}
-                                    className="px-8 py-4 bg-blue-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest flex items-center gap-2 hover:bg-blue-800 transition-all hover:translate-x-1 shadow-xl shadow-blue-900/30"
+                                    className="px-8 py-4 bg-blue-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest flex items-center gap-2 hover:bg-blue-800 transition-all hover:translate-x-1 shadow-xl shadow-blue-900/30 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                                 >
-                                    {step === STEPS.length - 1 ? 'Finish & Submit' : 'Save & Continue'} <ArrowRight className="w-4 h-4" />
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" /> Submitting Application...
+                                        </>
+                                    ) : step === STEPS.length - 1 ? (
+                                        <>
+                                            Finish &amp; Submit <ArrowRight className="w-4 h-4" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            Save &amp; Continue <ArrowRight className="w-4 h-4" />
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </form>

@@ -25,4 +25,5 @@ export { default as Certificate } from './Certificate.js';
 export { default as Patient } from './Patient.js';
 export { default as LabReport } from './LabReport.js';
 export { default as Medicine } from './Medicine.js';
+export { default as Registration } from './Registration.js';
 

@@ -22,6 +22,7 @@ import {
   Patient,
   LabReport,
   Medicine,
+  Registration,
 } from '../models/index.js';
 import { createCrudService } from '../services/crudService.js';
 import { createCrudController } from '../controllers/crudController.js';
@@ -188,6 +189,13 @@ const modules = [
     resourceName: 'Medicine',
     searchFields: ['name', 'genericName', 'brandName', 'supplierName', 'companyName'],
     slugFrom: 'name',
+  },
+  {
+    key: 'registrations',
+    model: Registration,
+    resourceName: 'Registration',
+    searchFields: ['registrationNumber', 'fullName', 'email', 'mobile', 'citizenshipNo', 'postApplied', 'entryYear', 'paymentVoucherNo'],
+    includeToggle: false,
   },
 ];
 

@@ -8,6 +8,9 @@ import Enquiry from '../models/Enquiry.js';
 import Appointment from '../models/Appointment.js';
 import Patient from '../models/Patient.js';
 import LabReport from '../models/LabReport.js';
+import Registration from '../models/Registration.js';
+import { upload } from '../middleware/upload.js';
+import * as mediaController from '../controllers/mediaController.js';
 import { created, success, fail } from '../utils/ApiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
@@ -99,6 +102,35 @@ publicRouter.post(
   })
 );
 
+// Public upload for application documents (voucher, photo, certificates)
+publicRouter.post(
+  '/upload',
+  upload.single('file'),
+  mediaController.uploadOne
+);
+
+// Public online registration portal submissions
+publicRouter.post(
+  '/registrations',
+  asyncHandler(async (req, res) => {
+    const body = { ...req.body };
+    if (!body.fullName && (body.firstName || body.lastName)) {
+      body.fullName = [body.title, body.firstName, body.middleName, body.lastName].filter(Boolean).join(' ');
+    }
+    if (!body.fullNameNp && (body.firstNameNp || body.lastNameNp)) {
+      body.fullNameNp = [body.firstNameNp, body.middleNameNp, body.lastNameNp].filter(Boolean).join(' ');
+    }
+    if (body.payment?.voucherNo && !body.paymentVoucherNo) {
+      body.paymentVoucherNo = body.payment.voucherNo;
+    }
+    if (body.payment?.voucherUrl && !body.paymentVoucherUrl) {
+      body.paymentVoucherUrl = body.payment.voucherUrl;
+    }
+    const doc = await Registration.create({ ...body, status: 'pending' });
+    return created(res, doc, 'Registration application submitted successfully');
+  })
+);
+
 // Legacy-compatible aliases used by existing website mocks
 router.post(
   '/inquiry',
@@ -117,6 +149,27 @@ router.post(
     }
     const doc = await Appointment.create({ ...body, status: 'pending' });
     return created(res, doc, 'Appointment request logged');
+  })
+);
+
+router.post(
+  '/registrations',
+  asyncHandler(async (req, res) => {
+    const body = { ...req.body };
+    if (!body.fullName && (body.firstName || body.lastName)) {
+      body.fullName = [body.title, body.firstName, body.middleName, body.lastName].filter(Boolean).join(' ');
+    }
+    if (!body.fullNameNp && (body.firstNameNp || body.lastNameNp)) {
+      body.fullNameNp = [body.firstNameNp, body.middleNameNp, body.lastNameNp].filter(Boolean).join(' ');
+    }
+    if (body.payment?.voucherNo && !body.paymentVoucherNo) {
+      body.paymentVoucherNo = body.payment.voucherNo;
+    }
+    if (body.payment?.voucherUrl && !body.paymentVoucherUrl) {
+      body.paymentVoucherUrl = body.payment.voucherUrl;
+    }
+    const doc = await Registration.create({ ...body, status: 'pending' });
+    return created(res, doc, 'Registration application submitted successfully');
   })
 );
 
