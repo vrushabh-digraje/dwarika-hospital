@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, useEffect, forwardRef } from 'react';
+import { type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, useEffect, useRef, forwardRef } from 'react';
 import { Loader2, X } from 'lucide-react';
 import { cn, formatDate } from '../lib/format';
 
@@ -224,8 +224,13 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
 }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!open) return;
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
@@ -245,7 +250,7 @@ export function Modal({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="max-h-[calc(92vh-64px)] overflow-y-auto px-5 py-4">{children}</div>
+        <div ref={contentRef} className="max-h-[calc(92vh-64px)] overflow-y-auto px-5 py-4">{children}</div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import SiteSettings from '../models/SiteSettings.js';
 import Doctor from '../models/Doctor.js';
 import { runSeed } from '../seed/index.js';
 import { seedMedicines } from '../seed/medicinesSeed.js';
+import { seedAppointmentsAndSchedules } from '../seed/appointmentAndScheduleSeed.js';
 
 /**
  * If the database has no settings/doctors, run seed once.
@@ -16,13 +17,17 @@ export async function ensureSeed() {
   if (settingsCount === 0 && doctorCount === 0) {
     console.log('Empty database detected — running seed…');
     await runSeed({ connect: false });
+    await seedAppointmentsAndSchedules();
     return true;
   }
 
   // Ensure medicine inventory is seeded if not present
   await seedMedicines();
+
+  // Ensure appointments & doctor schedules are seeded if missing
+  await seedAppointmentsAndSchedules();
+
   return false;
 }
 
 export default ensureSeed;
-

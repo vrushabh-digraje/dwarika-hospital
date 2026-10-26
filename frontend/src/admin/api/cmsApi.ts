@@ -12,6 +12,9 @@ export type ListParams = {
   folder?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  doctor?: string;
+  doctorId?: string;
+  department?: string;
 };
 
 function toQuery(params: ListParams = {}) {
@@ -166,11 +169,59 @@ export async function deleteMedia(id: string) {
   await apiClient.delete(`/admin/media/${id}`);
 }
 
+/** Doctor Schedules & Appointments Helpers */
+export async function getDoctorSchedules() {
+  const { data } = await apiClient.get<ApiResponse<any[]>>('/admin/schedules');
+  return data.data || [];
+}
+
+export async function addDoctorScheduleSlot(payload: {
+  doctorId: string;
+  day: string;
+  shift?: string;
+  startTime?: string;
+  endTime?: string;
+  room?: string;
+  maxPatients?: number;
+  isActive?: boolean;
+}) {
+  const { data } = await apiClient.post<ApiResponse<any>>('/admin/schedules', payload);
+  return data.data;
+}
+
+export async function updateDoctorScheduleSlot(
+  doctorId: string,
+  slotId: string,
+  payload: {
+    day?: string;
+    shift?: string;
+    startTime?: string;
+    endTime?: string;
+    room?: string;
+    maxPatients?: number;
+    isActive?: boolean;
+  }
+) {
+  const { data } = await apiClient.put<ApiResponse<any>>(`/admin/schedules/${doctorId}/${slotId}`, payload);
+  return data.data;
+}
+
+export async function deleteDoctorScheduleSlot(doctorId: string, slotId: string) {
+  const { data } = await apiClient.delete<ApiResponse<any>>(`/admin/schedules/${doctorId}/${slotId}`);
+  return data.data;
+}
+
+export async function updateAppointmentStatus(id: string, status: string, notes?: string) {
+  const { data } = await apiClient.patch<ApiResponse<any>>(`/admin/appointments/${id}/status`, { status, notes });
+  return data.data;
+}
+
 /** Public website API helpers */
 export const publicApi = {
   settings: () => apiClient.get<ApiResponse<any>>('/public/settings').then((r) => r.data.data),
   homepage: () => apiClient.get<ApiResponse<any>>('/public/homepage').then((r) => r.data.data),
   about: () => apiClient.get<ApiResponse<any>>('/public/about').then((r) => r.data.data),
+  schedules: () => apiClient.get<ApiResponse<any[]>>('/public/schedules').then((r) => r.data.data || []),
   list: <T>(resource: string, params: ListParams = {}) =>
     listResource<T>(resource, { ...params, status: 'published', limit: params.limit || 100 }, 'public'),
   get: <T>(resource: string, id: string) => getResource<T>(resource, id, 'public'),

@@ -4,8 +4,8 @@ import { Lock, Mail, ShieldCheck, Eye, EyeOff, Loader2, ArrowRight } from 'lucid
 import { toast } from 'sonner';
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('admin@dwarikahospital.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -113,16 +113,16 @@ export default function AdminLoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                Admin Email
+                Admin Email / Staff ID
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@dwarikahospital.com"
+                  placeholder="e.g. admin@dwarika.com or STF-101"
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/10 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>

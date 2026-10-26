@@ -7,7 +7,7 @@ import {
     Upload, CheckCircle2, ArrowRight, ArrowLeft,
     BookOpen, Briefcase, Award, Globe, Shield, Info,
     QrCode, Plus, CreditCard, FileText, Pencil, Trash2, ChevronDown,
-    Printer, Loader2, Home, CheckCircle, Copy, AlertCircle
+    Printer, Loader2, Home, CheckCircle, Copy, AlertCircle, Lock, LogOut
 } from 'lucide-react';
 import DualDatePicker from './DualDatePicker';
 import {
@@ -239,6 +239,95 @@ const ComplexOnlineRegistrationForm = () => {
     };
 
     const navigate = useNavigate();
+    const [accessMode, setAccessMode] = useState<'open' | 'authorized'>('open');
+    const [loadingSettings, setLoadingSettings] = useState(true);
+    const [applicantUser, setApplicantUser] = useState<any>(() => {
+        try {
+            return JSON.parse(localStorage.getItem('dh_applicant_user') || 'null');
+        } catch {
+            return null;
+        }
+    });
+
+    // Applicant Login state
+    const [loginUsername, setLoginUsername] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+    const [loginLoading, setLoginLoading] = useState(false);
+    const [loginError, setLoginError] = useState('');
+    const [showLoginPassword, setShowLoginPassword] = useState(false);
+
+    // Fetch registration settings (open vs authorized)
+    useEffect(() => {
+        fetch('/api/public/registration-settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.data?.accessMode) {
+                    setAccessMode(data.data.accessMode);
+                }
+            })
+            .catch(err => console.error('Failed to fetch registration settings:', err))
+            .finally(() => setLoadingSettings(false));
+    }, []);
+
+    // Check applicant status if logged in
+    useEffect(() => {
+        if (applicantUser?._id) {
+            fetch(`/api/public/applicant/status/${applicantUser._id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.data?.applicant) {
+                        const updated = { ...applicantUser, ...data.data.applicant };
+                        setApplicantUser(updated);
+                        localStorage.setItem('dh_applicant_user', JSON.stringify(updated));
+                    }
+                    if (data.data?.registration && !submittedData) {
+                        setSubmittedData(data.data.registration);
+                    }
+                })
+                .catch(() => {});
+        }
+    }, [applicantUser?._id]);
+
+    const handleApplicantLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoginLoading(true);
+        setLoginError('');
+        try {
+            const res = await fetch('/api/public/applicant/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: loginUsername, password: loginPassword }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                throw new Error(json.message || 'Invalid username or password');
+            }
+            const user = json.data;
+            setApplicantUser(user);
+            localStorage.setItem('dh_applicant_user', JSON.stringify(user));
+
+            if (user.fullName) {
+                const parts = user.fullName.split(' ');
+                setFormData(prev => ({
+                    ...prev,
+                    firstName: prev.firstName || parts[0] || '',
+                    lastName: prev.lastName || (parts.length > 1 ? parts.slice(1).join(' ') : ''),
+                    mobile: prev.mobile || user.mobile || '',
+                    email: prev.email || user.email || '',
+                    postApplied: prev.postApplied || user.postApplied || '',
+                }));
+            }
+        } catch (err: any) {
+            setLoginError(err.message || 'Login failed. Please check credentials.');
+        } finally {
+            setLoginLoading(false);
+        }
+    };
+
+    const handleApplicantLogout = () => {
+        localStorage.removeItem('dh_applicant_user');
+        setApplicantUser(null);
+    };
     const [step, setStep] = useState(0);
     const [isMailingSameAsPermanent, setIsMailingSameAsPermanent] = useState(false);
     const [trainingError, setTrainingError] = useState('');
@@ -811,9 +900,26 @@ const ComplexOnlineRegistrationForm = () => {
                 status: 'pending',
             };
 
+            let activeApplicantId = applicantUser?._id || applicantUser?.id;
+            if (!activeApplicantId) {
+                try {
+                    const stored = JSON.parse(localStorage.getItem('dh_applicant_user') || 'null');
+                    activeApplicantId = stored?._id || stored?.id || stored?.username;
+                } catch {}
+            }
+
+            if (activeApplicantId) {
+                (payload as any).applicantId = activeApplicantId;
+            }
+
+            const reqHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (activeApplicantId) {
+                reqHeaders['x-applicant-id'] = String(activeApplicantId);
+            }
+
             const res = await fetch('/api/public/registrations', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: reqHeaders,
                 body: JSON.stringify(payload),
             });
 
@@ -824,6 +930,11 @@ const ComplexOnlineRegistrationForm = () => {
 
             setSubmittedData(json.data);
             setSubmissionSuccess(true);
+            if (applicantUser?._id || activeApplicantId) {
+                const updated = { ...(applicantUser || {}), hasSubmitted: true, submittedRegistrationId: json.data?._id };
+                setApplicantUser(updated);
+                localStorage.setItem('dh_applicant_user', JSON.stringify(updated));
+            }
         } catch (err: any) {
             console.error('Registration Error:', err);
             setSubmitError(err.message || 'Submission failed. Please check your network and try again.');
@@ -2765,6 +2876,171 @@ const ComplexOnlineRegistrationForm = () => {
         );
     }
 
+        if (!loadingSettings && accessMode === 'authorized' && !applicantUser) {
+        return (
+            <div className="min-h-screen bg-slate-50 py-16 px-4 flex items-center justify-center">
+                <div className="max-w-md w-full">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-3xl shadow-2xl p-8 border border-slate-200 relative overflow-hidden"
+                    >
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-blue-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-900/30">
+                                <Lock className="w-8 h-8" />
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-900 border border-amber-300">
+                                🔒 Pre-Authorization Required
+                            </span>
+                            <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mt-3">
+                                Online Registration
+                            </h2>
+                            <p className="text-xs text-slate-500 font-medium mt-1">
+                                Enter your authorized login credentials issued by Dwarika Hospital administration.
+                            </p>
+                        </div>
+
+                        {loginError && (
+                            <div className="mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                                <span>{loginError}</span>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleApplicantLogin} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                                    Username / Mobile Number
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        required
+                                        value={loginUsername}
+                                        onChange={(e) => setLoginUsername(e.target.value)}
+                                        placeholder="e.g. ramesh_2026"
+                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/10 transition"
+                                    />
+                                    <User className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                                    Password
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showLoginPassword ? 'text' : 'password'}
+                                        required
+                                        value={loginPassword}
+                                        onChange={(e) => setLoginPassword(e.target.value)}
+                                        placeholder="Enter password"
+                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:border-blue-900 focus:ring-2 focus:ring-blue-900/10 transition"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                        className="text-xs text-slate-400 hover:text-slate-600 font-bold absolute right-4 top-1/2 -translate-y-1/2"
+                                    >
+                                        {showLoginPassword ? 'Hide' : 'Show'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loginLoading}
+                                className="w-full py-4 bg-blue-900 hover:bg-blue-800 text-white rounded-2xl font-black uppercase text-xs tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30 transition active:scale-95 disabled:opacity-60 cursor-pointer"
+                            >
+                                {loginLoading ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" /> Verifying Credentials...
+                                    </>
+                                ) : (
+                                    <>
+                                        Sign In & Proceed to Form <ArrowRight className="w-4 h-4" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+                            <p className="text-[11px] text-slate-500 font-medium">
+                                Don&apos;t have login credentials? Please visit the hospital administration desk or contact support to obtain your authorization code.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/')}
+                                className="mt-3 text-xs font-bold text-blue-900 hover:underline inline-flex items-center gap-1"
+                            >
+                                <Home className="w-3.5 h-3.5" /> Back to Hospital Home
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!loadingSettings && applicantUser?.hasSubmitted && !submissionSuccess) {
+        return (
+            <div className="min-h-screen bg-slate-50 py-16 px-4 flex items-center justify-center">
+                <div className="max-w-md w-full">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white rounded-3xl shadow-xl p-8 border border-slate-200 text-center"
+                    >
+                        <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-200">
+                            <CheckCircle2 className="w-8 h-8" />
+                        </div>
+                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            ● Application Already Submitted
+                        </span>
+                        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mt-3">
+                            {applicantUser.fullName}
+                        </h2>
+                        <p className="text-xs text-slate-500 font-medium mt-1">
+                            Username: <strong className="font-mono text-slate-800">{applicantUser.username}</strong>
+                        </p>
+
+                        <div className="mt-5 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left text-xs space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-slate-500 font-semibold">Status:</span>
+                                <span className="font-bold text-amber-700 uppercase">Under Review</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500 font-semibold">Cycle:</span>
+                                <span className="font-bold text-slate-800">2082 B.S.</span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 pt-1 border-t border-slate-200">
+                                Your registration form has been received and is currently under verification by the administrative team.
+                            </p>
+                        </div>
+
+                        <div className="mt-6 flex flex-col gap-2">
+                            <button
+                                type="button"
+                                onClick={handleApplicantLogout}
+                                className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-black uppercase text-xs tracking-wider transition cursor-pointer"
+                            >
+                                Log Out / Switch Account
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/')}
+                                className="w-full py-3 bg-blue-900 hover:bg-blue-800 text-white rounded-2xl font-black uppercase text-xs tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer"
+                            >
+                                <Home className="w-4 h-4" /> Return to Homepage
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-slate-50 py-20 px-4">
             <div className="max-w-5xl mx-auto">
@@ -2785,8 +3061,31 @@ const ComplexOnlineRegistrationForm = () => {
                                 </p>
                             </div>
                             <div className="hidden md:flex flex-col items-end rounded-2xl bg-white/[0.06] px-5 py-4 ring-1 ring-white/10 backdrop-blur-[2px]">
-                                <span className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em] mb-1">Entry Year</span>
-                                <span className="text-2xl font-black text-white drop-shadow-[0_2px_8px_rgba(15,23,42,0.3)]">2082 B.S.</span>
+                                {applicantUser ? (
+                                    <div className="text-right">
+                                        <div className="text-[10px] font-black text-emerald-300 uppercase tracking-[0.2em] flex items-center gap-1.5 justify-end">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                            Authorized Candidate
+                                        </div>
+                                        <span className="text-sm font-bold text-white block mt-0.5">
+                                            {applicantUser.fullName}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={handleApplicantLogout}
+                                            className="text-[10px] text-blue-200 hover:text-white underline font-bold mt-1 inline-flex items-center gap-1 cursor-pointer"
+                                        >
+                                            <LogOut className="w-3 h-3" /> Sign Out
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <span className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em] mb-1">
+                                            {accessMode === 'open' ? '🌐 Public Registration' : 'Entry Year'}
+                                        </span>
+                                        <span className="text-2xl font-black text-white drop-shadow-[0_2px_8px_rgba(15,23,42,0.3)]">2082 B.S.</span>
+                                    </>
+                                )}
                             </div>
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-r from-white/[0.03] via-transparent to-white/[0.06]" />

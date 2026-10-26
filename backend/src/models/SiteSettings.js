@@ -38,6 +38,7 @@ const siteSettingsSchema = new mongoose.Schema(
     marqueeLines: [{ type: String }],
     footerText: { type: String, default: '' },
     copyrightText: { type: String, default: '' },
+    registrationAccessMode: { type: String, enum: ['open', 'authorized'], default: 'open' },
   },
   { timestamps: true }
 );

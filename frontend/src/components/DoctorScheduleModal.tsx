@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, Check, Info } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import BikramSambat from 'bikram-sambat-js';
 
 interface DoctorScheduleModalProps {
@@ -18,7 +18,7 @@ const SHIFTS = [
     { id: 'Other', label: 'Other', timeRange: '19:00 - 21:00' }
 ];
 
-// Mock data for time slots across 7 days (index 0 to 6)
+// Fallback mock data for time slots across 7 days
 const MOCK_SLOTS: Record<string, any> = {
     'Morning': {
         0: '9:00 AM - 10:00 AM',
@@ -44,6 +44,28 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
     const [selectedSlot, setSelectedSlot] = useState<{ dayIdx: number, shiftId: string, time: string } | null>(null);
     const [weekOffset, setWeekOffset] = useState(0);
     const [calendarMode, setCalendarMode] = useState<'BS' | 'AD'>('BS');
+    const [dbSchedules, setDbSchedules] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        fetch('/api/public/schedules')
+            .then((r) => r.json())
+            .then((data) => {
+                if (data?.success && data?.data) {
+                    setDbSchedules(data.data);
+                }
+            })
+            .catch(() => {});
+    }, [isOpen]);
+
+    const currentDoc = useMemo(() => {
+        if (!doctorName || !dbSchedules.length) return null;
+        return dbSchedules.find(
+            (d) =>
+                d.name?.toLowerCase().includes(doctorName.toLowerCase()) ||
+                doctorName.toLowerCase().includes(d.name?.toLowerCase())
+        );
+    }, [doctorName, dbSchedules]);
 
     const days = useMemo(() => {
         const result = [];
@@ -78,6 +100,7 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                 date: adDateStr,
                 adDayNum: d.getDate(),
                 adDayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                fullDayName: d.toLocaleDateString('en-US', { weekday: 'long' }),
                 adMonthName: d.toLocaleDateString('en-US', { month: 'long' }).toUpperCase(),
                 adYear: d.getFullYear(),
                 bsDayNum,
@@ -250,8 +273,25 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                                             </div>
 
                                             {/* 7 Day Slot Cells for this Shift */}
-                                            {days.map((_, dIdx) => {
-                                                const slotTime = MOCK_SLOTS[shift.id]?.[dIdx];
+                                            {days.map((day, dIdx) => {
+                                                // Check doctor real schedule first
+                                                let slotTime = '';
+                                                if (currentDoc?.schedule?.length) {
+                                                    const match = currentDoc.schedule.find(
+                                                        (s: any) =>
+                                                            s.day === day.fullDayName &&
+                                                            s.shift?.toLowerCase() === shift.id.toLowerCase() &&
+                                                            s.isActive !== false
+                                                    );
+                                                    if (match) {
+                                                        slotTime = `${match.startTime} - ${match.endTime}`;
+                                                    }
+                                                }
+                                                // Fallback to mock slots if doctor has no custom schedule configured for this slot
+                                                if (!slotTime && (!currentDoc || !currentDoc.schedule?.length)) {
+                                                    slotTime = MOCK_SLOTS[shift.id]?.[dIdx];
+                                                }
+
                                                 const isSelected = selectedSlot?.dayIdx === dIdx && selectedSlot?.shiftId === shift.id;
 
                                                 return (
@@ -317,14 +357,14 @@ const DoctorScheduleModal = ({ isOpen, onClose, department, doctorName, onSelect
                             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                                 <button 
                                     type="button"
-                                    onClick={onClose}
+                                    onClick={onClose} 
                                     className="px-5 py-2 bg-white text-slate-600 rounded-xl font-bold uppercase tracking-wider text-[11px] border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer shadow-2xs"
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     type="button"
-                                    onClick={handleConfirm}
+                                    onClick={handleConfirm} 
                                     disabled={!selectedSlot}
                                     className={`
                                         px-7 py-2 rounded-xl font-bold uppercase tracking-wider text-[11px] transition-all shadow-xs

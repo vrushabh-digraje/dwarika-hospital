@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { FieldConfig, ModuleConfig } from '../config/modules';
+import { apiClient } from '../api/client';
 import { Button, Input, Label, Select, Textarea } from './ui';
 import { RichTextEditor } from './RichTextEditor';
 import { MediaPicker } from './MediaPicker';
-import { Plus, Trash2, Pill, Calculator, AlertTriangle, CheckCircle, Ban } from 'lucide-react';
+import { Plus, Trash2, Pill, Calculator, AlertTriangle, CheckCircle, Ban, FileText } from 'lucide-react';
 import { cn } from '../lib/format';
 
 function MultiImagePicker({
@@ -86,6 +87,144 @@ function MultiImagePicker({
   );
 }
 
+
+function CreatableSelectField({
+  field,
+  value,
+  onChange,
+}: {
+  field: FieldConfig;
+  value: any;
+  onChange: (v: any) => void;
+}) {
+  const isPreset = field.options?.some((opt) => opt.value === value);
+  const isExistingCustom = Boolean(value && !isPreset);
+  const [isCustom, setIsCustom] = useState(isExistingCustom);
+
+  useEffect(() => {
+    if (value && !field.options?.some((opt) => opt.value === value)) {
+      setIsCustom(true);
+    }
+  }, [value, field.options]);
+
+  const selectValue = isCustom ? '__custom__' : (value || '');
+
+  return (
+    <div className="space-y-2">
+      <Select
+        value={selectValue}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (val === '__custom__') {
+            setIsCustom(true);
+            onChange('');
+          } else {
+            setIsCustom(false);
+            onChange(val);
+          }
+        }}
+      >
+        <option value="">Select {field.label}…</option>
+        {field.options?.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+        <option value="__custom__">Custom</option>
+      </Select>
+
+      {isCustom && (
+        <Input
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={`Enter custom ${field.label.toLowerCase()} (e.g. Cream, Tube, Sachet)...`}
+          autoFocus
+        />
+      )}
+    </div>
+  );
+}
+
+
+function PermissionCheckboxesField({
+  options = [],
+  value = [],
+  onChange,
+}: {
+  options?: { label: string; value: string }[];
+  value?: string[];
+  onChange: (val: string[]) => void;
+}) {
+  const current = Array.isArray(value) ? value : [];
+
+  const toggle = (val: string) => {
+    if (current.includes(val)) {
+      onChange(current.filter((item) => item !== val));
+    } else {
+      onChange([...current, val]);
+    }
+  };
+
+  const selectAll = () => {
+    onChange(options.map((opt) => opt.value));
+  };
+
+  const clearAll = () => {
+    onChange([]);
+  };
+
+  return (
+    <div className="space-y-3 rounded-2xl border border-ink-200 bg-ink-50/60 p-4">
+      <div className="flex items-center justify-between pb-2 border-b border-ink-200/60">
+        <span className="text-xs font-bold text-ink-700">
+          Allowed Sections: <strong className="text-brand-700 font-mono">{current.length}</strong> of {options.length}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={selectAll}
+            className="text-[11px] font-bold text-brand-700 hover:text-brand-900 bg-white px-2.5 py-1 rounded-lg border border-brand-200 shadow-2xs hover:bg-brand-50 transition cursor-pointer"
+          >
+            Select All
+          </button>
+          <button
+            type="button"
+            onClick={clearAll}
+            className="text-[11px] font-bold text-ink-600 hover:text-ink-900 bg-white px-2.5 py-1 rounded-lg border border-ink-200 shadow-2xs hover:bg-ink-100 transition cursor-pointer"
+          >
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+        {options.map((opt) => {
+          const isChecked = current.includes(opt.value);
+          return (
+            <label
+              key={opt.value}
+              className={cn(
+                'flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition select-none',
+                isChecked
+                  ? 'bg-brand-50/80 border-brand-400 text-brand-950 ring-1 ring-brand-300 shadow-xs'
+                  : 'bg-white border-ink-200 text-ink-700 hover:border-ink-300'
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={() => toggle(opt.value)}
+                className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-ink-300"
+              />
+              <span className="truncate">{opt.label}</span>
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function buildSchema(fields: FieldConfig[]) {
   const shape: Record<string, z.ZodTypeAny> = {};
   fields.forEach((field) => {
@@ -106,6 +245,9 @@ function buildSchema(fields: FieldConfig[]) {
       case 'status':
         schema = z.enum(['draft', 'published']).optional();
         break;
+      case 'permissions':
+        schema = z.array(z.string()).optional();
+        break;
       default:
         schema = field.required ? z.string().min(1, `${field.label} is required`) : z.string().optional();
     }
@@ -116,6 +258,15 @@ function buildSchema(fields: FieldConfig[]) {
 
 function normalizeOutgoing(fields: FieldConfig[], values: Record<string, any>) {
   const out = { ...values };
+    if (out.masterId && !out.patientUsername) {
+    out.patientUsername = out.masterId;
+  }
+  // Sync name & brandName for medicines
+  if (out.name && !out.brandName) {
+    out.brandName = out.name;
+  } else if (out.brandName && !out.name) {
+    out.name = out.brandName;
+  }
   fields.forEach((field) => {
     if (field.type === 'tags') {
       const v = out[field.name];
@@ -125,6 +276,9 @@ function normalizeOutgoing(fields: FieldConfig[], values: Record<string, any>) {
           .map((s) => s.trim())
           .filter(Boolean);
       }
+    }
+    if (field.type === 'permissions') {
+      out[field.name] = Array.isArray(out[field.name]) ? out[field.name] : [];
     }
     if (field.type === 'images') {
       const v = out[field.name];
@@ -146,6 +300,9 @@ function normalizeOutgoing(fields: FieldConfig[], values: Record<string, any>) {
 function normalizeIncoming(fields: FieldConfig[], values: Record<string, any> = {}) {
   const out = { ...values };
   fields.forEach((field) => {
+    if (field.type === 'permissions') {
+      out[field.name] = Array.isArray(out[field.name]) ? out[field.name] : [];
+    }
     if (field.type === 'images') {
       if (!Array.isArray(out[field.name])) {
         out[field.name] = typeof out[field.name] === 'string' && out[field.name] ? [out[field.name]] : [];
@@ -161,7 +318,10 @@ function normalizeIncoming(fields: FieldConfig[], values: Record<string, any> = 
       out[field.name] = false;
     }
     if (field.type === 'status' && !out[field.name]) {
-      out[field.name] = 'draft';
+      out[field.name] = 'published';
+    }
+    if (field.name === 'group' && !out[field.name]) {
+      out[field.name] = 'Medicine';
     }
   });
   return out;
@@ -189,6 +349,70 @@ export function ResourceForm({
   useEffect(() => {
     form.reset(normalizeIncoming(module.fields, initialValues));
   }, [initialValues, module.key]);
+
+    const isLabReport = module.key === 'labreports';
+  const watchMasterId = form.watch('masterId');
+  const [patientLookup, setPatientLookup] = useState<{
+    loading: boolean;
+    foundPatient?: any;
+    error?: string;
+  }>({ loading: false });
+
+  // Auto-fill patient details in Lab Report when Master ID is entered
+  useEffect(() => {
+    if (!isLabReport) return;
+    const trimmedId = String(watchMasterId || '').trim();
+    if (!trimmedId || trimmedId.length < 2) {
+      setPatientLookup({ loading: false });
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setPatientLookup({ loading: true });
+      try {
+        const res = await apiClient.get(`/admin/patients/by-master-id/${encodeURIComponent(trimmedId)}`);
+        const patient = res.data?.data;
+        if (patient) {
+          setPatientLookup({ loading: false, foundPatient: patient });
+          if (patient.name) {
+            form.setValue('patientName', patient.name, { shouldValidate: true, shouldDirty: true });
+          }
+          if (patient.age) {
+            form.setValue('age', patient.age, { shouldValidate: true, shouldDirty: true });
+          }
+          if (patient.address) {
+            form.setValue('address', patient.address, { shouldValidate: true, shouldDirty: true });
+          }
+          if (patient.doctorName) {
+            form.setValue('doctorName', patient.doctorName, { shouldValidate: true, shouldDirty: true });
+          }
+          if (patient.masterId || patient.username) {
+            form.setValue('patientUsername', patient.masterId || patient.username, { shouldValidate: true, shouldDirty: true });
+          }
+          return;
+        }
+      } catch (err) {
+        try {
+          const searchRes = await apiClient.get(`/admin/patients?search=${encodeURIComponent(trimmedId)}&limit=1`);
+          const first = searchRes.data?.data?.[0];
+          if (first && (String(first.masterId).toLowerCase() === trimmedId.toLowerCase() || String(first.username).toLowerCase() === trimmedId.toLowerCase())) {
+            setPatientLookup({ loading: false, foundPatient: first });
+            if (first.name) form.setValue('patientName', first.name, { shouldValidate: true, shouldDirty: true });
+            if (first.age) form.setValue('age', first.age, { shouldValidate: true, shouldDirty: true });
+            if (first.address) form.setValue('address', first.address, { shouldValidate: true, shouldDirty: true });
+            if (first.doctorName) form.setValue('doctorName', first.doctorName, { shouldValidate: true, shouldDirty: true });
+            if (first.masterId || first.username) form.setValue('patientUsername', first.masterId || first.username, { shouldValidate: true, shouldDirty: true });
+            return;
+          }
+        } catch {}
+      }
+      setPatientLookup({ loading: false, error: 'No patient record found for this Master ID' });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [isLabReport, watchMasterId, form]);
+
+
 
   const isMedicine = module.key === 'medicines';
   const watchRateType = form.watch('rateType');
@@ -273,7 +497,7 @@ export function ResourceForm({
               </p>
             </div>
             <div className="rounded-xl bg-white p-2.5 border border-sky-100 shadow-xs">
-              <p className="text-[10px] text-ink-500 font-semibold uppercase tracking-wider">Unit Rate (NC)</p>
+              <p className="text-[10px] text-ink-500 font-semibold uppercase tracking-wider">Selling Price (NC)</p>
               <p className="font-bold text-brand-700 mt-0.5 font-mono text-sm">
                 Rs. {Number(watchRate || 0).toFixed(2)}
               </p>
@@ -301,6 +525,41 @@ export function ResourceForm({
           )}
         </div>
       )}
+            {isLabReport && (
+        <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-xs shadow-sm space-y-2">
+          <div className="flex items-center justify-between gap-2 border-b border-sky-200/60 pb-2">
+            <div className="flex items-center gap-2 font-bold text-sky-950">
+              <FileText className="h-4 w-4 text-sky-600" />
+              <span className="uppercase tracking-wider">Patient Master ID Auto-Fill Assistant</span>
+            </div>
+            {patientLookup.loading && (
+              <span className="text-sky-700 font-semibold animate-pulse">Searching Master ID…</span>
+            )}
+            {patientLookup.foundPatient && (
+              <span className="px-2.5 py-0.5 rounded-full font-bold text-xs bg-emerald-100 text-emerald-800 border border-emerald-300">
+                ✓ Patient Verified
+              </span>
+            )}
+            {patientLookup.error && !patientLookup.loading && !patientLookup.foundPatient && (
+              <span className="px-2.5 py-0.5 rounded-full font-medium text-xs bg-amber-100 text-amber-800 border border-amber-300">
+                {patientLookup.error}
+              </span>
+            )}
+          </div>
+          {patientLookup.foundPatient ? (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-ink-700">
+              <span><strong>Patient:</strong> {patientLookup.foundPatient.name}</span>
+              <span><strong>Age:</strong> {patientLookup.foundPatient.age || '—'}</span>
+              <span><strong>Address:</strong> {patientLookup.foundPatient.address || '—'}</span>
+              <span><strong>Doctor:</strong> {patientLookup.foundPatient.doctorName || '—'}</span>
+            </div>
+          ) : (
+            <p className="text-ink-500">
+              Enter the patient&apos;s <strong>Master ID</strong> below — their Full Name, Age, Address, and Doctor Name will populate automatically.
+            </p>
+          )}
+        </div>
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         {module.fields.map((field) => (
           <div key={field.name} className={field.fullWidth ? 'md:col-span-2' : ''}>
@@ -316,6 +575,9 @@ export function ResourceForm({
                   return <RichTextEditor value={rhf.value} onChange={rhf.onChange} placeholder={field.placeholder} />;
                 }
                 if (field.type === 'select') {
+                  if (field.allowCustom || field.name === 'form' || field.name === 'unit') {
+                    return <CreatableSelectField field={field} value={rhf.value} onChange={rhf.onChange} />;
+                  }
                   return (
                     <Select {...rhf} value={rhf.value || ''}>
                       <option value="">Select…</option>
@@ -323,6 +585,15 @@ export function ResourceForm({
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
                       ))}
                     </Select>
+                  );
+                }
+                if (field.type === 'permissions') {
+                  return (
+                    <PermissionCheckboxesField
+                      options={field.options}
+                      value={rhf.value}
+                      onChange={rhf.onChange}
+                    />
                   );
                 }
                 if (field.type === 'status') {

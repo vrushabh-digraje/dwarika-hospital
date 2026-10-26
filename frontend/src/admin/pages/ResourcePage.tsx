@@ -29,6 +29,7 @@ import {
 import { resolveImageUrl } from '../../lib/utils';
 import { ResourceForm } from '../components/ResourceForm';
 import { formatDate, truncate, cn } from '../lib/format';
+import { apiClient } from '../api/client';
 
 export default function ResourcePage({ module }: { module: ModuleConfig }) {
   const [items, setItems] = useState<any[]>([]);
@@ -44,6 +45,34 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<any | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [accessMode, setAccessMode] = useState<'open' | 'authorized'>('open');
+  const [togglingAccess, setTogglingAccess] = useState(false);
+
+  useEffect(() => {
+    if (module.key === 'registrations' || module.key === 'applicants') {
+      apiClient.get('/registration-settings')
+        .then((res) => {
+          if (res.data?.data?.accessMode) {
+            setAccessMode(res.data.data.accessMode);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [module.key]);
+
+  const handleToggleAccessMode = async () => {
+    const nextMode = accessMode === 'open' ? 'authorized' : 'open';
+    setTogglingAccess(true);
+    try {
+      await apiClient.put('/admin/registration-settings', { accessMode: nextMode });
+      setAccessMode(nextMode);
+      toast.success(`Registration access mode set to: ${nextMode === 'open' ? 'Open for All (Public)' : 'Authorized Only (Login Required)'}`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to update access mode');
+    } finally {
+      setTogglingAccess(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,6 +96,12 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [module.key]);
 
   const openCreate = () => {
     setEditing(null);
@@ -156,6 +191,40 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
           </>
         }
       />
+
+      {(module.key === 'registrations' || module.key === 'applicants') && (
+        <div className="mb-5 p-4 rounded-2xl border bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-wider text-blue-200">Online Registration Access Mode:</span>
+              <span className={cn(
+                "px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-xs",
+                accessMode === 'open' ? "bg-emerald-500 text-white" : "bg-amber-400 text-amber-950"
+              )}>
+                {accessMode === 'open' ? "● Open for All (Public)" : "🔒 Authorized Only (Login Required)"}
+              </span>
+            </div>
+            <p className="text-xs text-blue-100/80">
+              {accessMode === 'open'
+                ? "Anyone visiting the main website can freely open and fill out the online registration form."
+                : "Restricted to pre-approved candidates. Visitors must log in with credentials created by Admin."}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            onClick={handleToggleAccessMode}
+            loading={togglingAccess}
+            className={cn(
+              "font-bold text-xs shrink-0 cursor-pointer shadow-sm border",
+              accessMode === 'open'
+                ? "bg-amber-400 hover:bg-amber-300 text-amber-950 border-amber-300"
+                : "bg-emerald-500 hover:bg-emerald-400 text-white border-emerald-400"
+            )}
+          >
+            {accessMode === 'open' ? "Switch to: 🔒 Authorized Only" : "Switch to: 🌐 Open for All"}
+          </Button>
+        </div>
+      )}
 
       {module.key === 'medicines' && (
         <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -422,7 +491,7 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
               </tbody>
             </table>
           </div>
-          <Pagination page={meta.page} totalPages={meta.totalPages} onChange={setPage} />
+          <Pagination page={meta.page} totalPages={meta.totalPages} onChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
         </Card>
       )}
 

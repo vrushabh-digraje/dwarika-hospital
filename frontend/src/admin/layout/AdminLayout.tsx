@@ -1,10 +1,12 @@
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, PanelLeftClose, PanelLeftOpen, Sparkles, LogOut } from 'lucide-react';
+import { Menu, PanelLeftClose, PanelLeftOpen, Sparkles, LogOut, ArrowUp } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { modules, navGroups, specialNav } from '../config/modules';
 import { setSidebarOpen, toggleSidebarCollapsed, type RootState } from '../store';
 import { cn } from '../lib/format';
 import { Button } from '../components/ui';
+import { apiClient } from '../api/client';
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -18,9 +20,75 @@ export default function AdminLayout() {
     navigate('/admin/login', { replace: true });
   };
 
+  const [user, setUser] = useState<any>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('admin_user') || '{}');
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    // Keep user state in sync with server profile (guarantees Super Admin gets full permissions)
+    apiClient
+      .get('/admin/me')
+      .then((res) => {
+        if (res.data?.data) {
+          const freshUser = res.data.data;
+          localStorage.setItem('admin_user', JSON.stringify(freshUser));
+          setUser(freshUser);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Automatically scroll window and document to top whenever ANY admin section or route is clicked/opened
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 240);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
+
+  // Super Admin check: Anyone who is NOT a restricted Staff account is Super Admin and gets full access to EVERYTHING.
+  const isStaff = user?.role === 'STAFF' && Boolean(user?.staffId);
+  const isSuperAdmin = !isStaff || (Array.isArray(user?.permissions) && user?.permissions.includes('*'));
+  const userPermissions: string[] = Array.isArray(user?.permissions) ? user.permissions : [];
+
+  // Super Admin sees ALL 24 modules. Staff only sees the specific checkboxes assigned to them.
+  const filteredModules = isSuperAdmin
+    ? modules
+    : modules.filter((m) => userPermissions.includes(m.key));
+
+  // Super Admin sees ALL special navigation pages (Dashboard, Settings, Homepage, About, Media).
+  const filteredSpecialNav = isSuperAdmin
+    ? specialNav
+    : specialNav.filter((s) => {
+        if (!s.path) return true; // Dashboard is always accessible
+        if (s.path === 'settings') return userPermissions.includes('settings');
+        if (s.path === 'media') return userPermissions.includes('media');
+        if (s.path === 'homepage' || s.path === 'about') return userPermissions.includes('content') || userPermissions.includes('homepage') || userPermissions.includes('about');
+        return true;
+      });
+
   const navItems = [
-    ...specialNav,
-    ...modules.map((m) => ({
+    ...filteredSpecialNav,
+    ...filteredModules.map((m) => ({
       path: m.path,
       label: m.label,
       icon: m.icon,
@@ -67,7 +135,12 @@ export default function AdminLayout() {
                       key={to}
                       to={to}
                       end={!item.path}
-                      onClick={() => dispatch(setSidebarOpen(false))}
+                      onClick={() => {
+                        dispatch(setSidebarOpen(false));
+                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                        document.documentElement.scrollTop = 0;
+                        document.body.scrollTop = 0;
+                      }}
                       className={({ isActive }) =>
                         cn(
                           'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition',
@@ -136,10 +209,29 @@ export default function AdminLayout() {
               View Website
             </a>
             <div className="hidden items-center gap-2 rounded-2xl border border-ink-100 bg-ink-50 px-3 py-1.5 sm:flex">
-              <div className="h-8 w-8 rounded-xl bg-[#17372f] text-center text-sm font-semibold leading-8 text-white">A</div>
+              <div
+                className={cn(
+                  'h-8 w-8 rounded-xl text-center text-sm font-semibold leading-8 text-white flex items-center justify-center',
+                  isSuperAdmin ? 'bg-[#17372f]' : 'bg-blue-700'
+                )}
+              >
+                {isSuperAdmin ? '👑' : '👤'}
+              </div>
               <div className="text-xs">
-                <div className="font-semibold text-ink-800">Administrator</div>
-                <div className="text-ink-500 text-[11px]">admin@dwarikahospital.com</div>
+                <div className="font-semibold text-ink-800">
+                  {user.name || (isSuperAdmin ? 'Hospital Administrator' : 'Staff Member')}
+                </div>
+                <div className="text-ink-500 text-[11px] flex items-center gap-1.5 mt-0.5">
+                  {isSuperAdmin ? (
+                    <span className="font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full text-[10px] tracking-wide">
+                      Super Admin (All Sections)
+                    </span>
+                  ) : (
+                    <span className="font-semibold text-blue-800 bg-blue-100/90 px-2 py-0.5 rounded-full text-[10px]">
+                      Staff ID: {user.staffId || 'Restricted'}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <button
@@ -157,6 +249,18 @@ export default function AdminLayout() {
         <main className="flex-1 px-4 py-5 md:px-6 md:py-6">
           <Outlet />
         </main>
+
+        {showScrollTop && (
+          <button
+            type="button"
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-[#17372f] px-3.5 py-2.5 text-xs font-bold text-white shadow-xl hover:bg-[#1f5144] hover:shadow-2xl transition-all cursor-pointer ring-2 ring-white/30"
+            title="Scroll back to top"
+          >
+            <ArrowUp className="h-4 w-4" />
+            <span>Top</span>
+          </button>
+        )}
       </div>
     </div>
   );

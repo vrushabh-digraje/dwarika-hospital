@@ -27,6 +27,7 @@ import {
   FileText,
   Pill,
   ClipboardCheck,
+  UserCheck,
 } from 'lucide-react';
 
 export type FieldType =
@@ -41,6 +42,7 @@ export type FieldType =
   | 'file'
   | 'date'
   | 'tags'
+  | 'permissions'
   | 'status';
 
 export type FieldConfig = {
@@ -52,6 +54,7 @@ export type FieldConfig = {
   options?: { label: string; value: string }[];
   fullWidth?: boolean;
   rows?: number;
+  allowCustom?: boolean;
 };
 
 export type ModuleConfig = {
@@ -93,6 +96,7 @@ export const modules: ModuleConfig[] = [
     previewPath: (item) => (item?.slug ? `/appointment` : null),
     columns: [
       { key: 'imageUrl', label: 'Photo', type: 'image' },
+      { key: 'staffId', label: 'Staff ID' },
       { key: 'name', label: 'Name' },
       { key: 'specialty', label: 'Specialty' },
       { key: 'category', label: 'Department', type: 'badge' },
@@ -110,9 +114,9 @@ export const modules: ModuleConfig[] = [
     ],
     fields: [
       { name: 'name', label: 'Full Name (English)', type: 'text', required: true },
-      { name: 'nameNp', label: 'पूरा नाम (नेपाली)', type: 'text', required: true },
+      { name: 'nameNp', label: 'पूरा नाम (नेपाली)', type: 'text' },
       { name: 'specialty', label: 'Specialty / Title (English)', type: 'text', required: true },
-      { name: 'specialtyNp', label: 'विशेषज्ञता / पद (नेपाली)', type: 'text', required: true },
+      { name: 'specialtyNp', label: 'विशेषज्ञता / पद (नेपाली)', type: 'text' },
       { name: 'category', label: 'Department Category', type: 'text' },
       {
         name: 'teamCategory',
@@ -174,14 +178,15 @@ export const modules: ModuleConfig[] = [
     ],
     fields: [
       { name: 'name', label: 'Full Name (English)', type: 'text', required: true },
-      { name: 'nameNp', label: 'पूरा नाम (नेपाली)', type: 'text', required: true },
+      { name: 'nameNp', label: 'पूरा नाम (नेपाली)', type: 'text' },
       { name: 'specialty', label: 'Specialty / Title (English)', type: 'text', required: true },
-      { name: 'specialtyNp', label: 'विशेषज्ञता / पद (नेपाली)', type: 'text', required: true },
+      { name: 'specialtyNp', label: 'विशेषज्ञता / पद (नेपाली)', type: 'text' },
       { name: 'category', label: 'Specialization (e.g. Lab, Nursing)', type: 'text' },
       {
         name: 'teamCategory',
         label: 'Team Category',
         type: 'select',
+        required: true,
         options: [
           { label: 'Nursing Staff', value: 'NURSING STAFF' },
           { label: 'Paramedical Staff', value: 'PARAMEDICAL STAFF' },
@@ -198,6 +203,45 @@ export const modules: ModuleConfig[] = [
       { name: 'specializationNp', label: 'विशिष्टता (नेपाली)', type: 'text' },
       { name: 'email', label: 'Email', type: 'text' },
       { name: 'phone', label: 'Phone', type: 'text' },
+      { name: 'staffId', label: 'Staff Login ID (for Admin Panel access)', type: 'text', placeholder: 'e.g. STF-101 or ramesh_pharma' },
+      { name: 'password', label: 'Staff Portal Password', type: 'text', placeholder: 'Enter login password (e.g. 123456)' },
+      {
+        name: 'permissions',
+        label: 'Section Access Permissions (Checkboxes for Admin Panel)',
+        type: 'permissions',
+        fullWidth: true,
+        options: [
+          { label: '⭐ Full Access (Super Admin - All Sections)', value: '*' },
+          { label: '💊 Pharmacy & Medicines', value: 'medicines' },
+          { label: '🧪 Lab Reports', value: 'labreports' },
+          { label: '📅 Appointments & OPD', value: 'appointments' },
+          { label: '👥 Patients & Master IDs', value: 'patients' },
+          { label: '📋 Online Registrations', value: 'registrations' },
+          { label: '🔑 Authorized Applicants', value: 'applicants' },
+          { label: '📬 Contact Inquiries', value: 'enquiries' },
+          { label: '🩺 Doctors Directory', value: 'doctors' },
+          { label: '👥 Staff Directory', value: 'staff' },
+          { label: '🏢 Departments', value: 'departments' },
+          { label: '🏥 Services', value: 'services' },
+          { label: '🏨 Facilities', value: 'facilities' },
+          { label: '📰 Blogs & News', value: 'blogs' },
+          { label: '🎉 Events', value: 'events' },
+          { label: '📦 Health Packages', value: 'health-packages' },
+          { label: '💼 Careers', value: 'careers' },
+          { label: '💬 Testimonials', value: 'testimonials' },
+          { label: '🖼️ Gallery', value: 'gallery' },
+          { label: '❓ FAQs', value: 'faqs' },
+          { label: '⬇️ Downloads & Forms', value: 'downloads' },
+          { label: '🛡️ Insurance Partners', value: 'insurance' },
+          { label: '🤝 Hospital Partners', value: 'partners' },
+          { label: '📢 Announcements', value: 'announcements' },
+          { label: '🔍 SEO Settings', value: 'seo' },
+          { label: '📁 Media Library', value: 'media' },
+          { label: '🏠 Homepage Content', value: 'homepage' },
+          { label: 'ℹ️ About Hospital Content', value: 'about' },
+          { label: '⚙️ Website Settings', value: 'settings' },
+        ],
+      },
       { name: 'imageUrl', label: 'Profile Image', type: 'image' },
       { name: 'bio', label: 'Biography (English)', type: 'richtext', fullWidth: true },
       { name: 'bioNp', label: 'जीवनी (नेपाली)', type: 'richtext', fullWidth: true },
@@ -655,22 +699,23 @@ export const modules: ModuleConfig[] = [
     ],
   },
   {
-    key: 'enquiries',
+        key: 'enquiries',
     path: 'enquiries',
-    label: 'Contact Enquiries',
-    singular: 'Enquiry',
+    label: 'Contact Inquiries',
+    singular: 'Inquiry',
     icon: Inbox,
     resource: 'enquiries',
-    description: 'Contact form and inquiry submissions.',
+    description: 'Contact form and inquiry submissions from website visitors.',
     group: 'operations',
     searchable: true,
     columns: [
       { key: 'name', label: 'Name' },
-      { key: 'email', label: 'Email' },
       { key: 'phone', label: 'Phone' },
+      { key: 'email', label: 'Email' },
       { key: 'subject', label: 'Subject' },
+      { key: 'address', label: 'Address / Location' },
       { key: 'status', label: 'Status', type: 'badge' },
-      { key: 'updatedAt', label: 'Last Updated', type: 'date' },
+      { key: 'createdAt', label: 'Received Date', type: 'date' },
     ],
     filters: [
       {
@@ -685,11 +730,14 @@ export const modules: ModuleConfig[] = [
       },
     ],
     fields: [
-      { name: 'name', label: 'Name', type: 'text', required: true },
-      { name: 'email', label: 'Email', type: 'text' },
-      { name: 'phone', label: 'Phone', type: 'text' },
+      { name: 'name', label: 'Full Name', type: 'text', required: true },
+      { name: 'phone', label: 'Phone Number', type: 'text' },
+      { name: 'email', label: 'Email Address', type: 'text' },
       { name: 'subject', label: 'Subject', type: 'text' },
-      { name: 'message', label: 'Message', type: 'textarea', rows: 5, fullWidth: true },
+      { name: 'address', label: 'Address / Location', type: 'text' },
+      { name: 'gender', label: 'Gender', type: 'text' },
+      { name: 'dob', label: 'Age / DOB', type: 'text' },
+      { name: 'message', label: 'Message / Feedback', type: 'textarea', rows: 5, fullWidth: true },
       {
         name: 'status',
         label: 'Status',
@@ -716,12 +764,12 @@ export const modules: ModuleConfig[] = [
     searchable: true,
     statusFilter: true,
     columns: [
-      { key: 'name', label: 'Medicine / Brand' },
-      { key: 'genericName', label: 'Generic Name' },
+      { key: 'name', label: 'Medicine / Item Name' },
+      { key: 'genericName', label: 'Generic / Primary Name' },
       { key: 'form', label: 'Form' },
       { key: 'strength', label: 'Strength' },
       { key: 'unit', label: 'Unit' },
-      { key: 'rate', label: 'Rate (NC)' },
+      { key: 'rate', label: 'Selling Price (NC)' },
       { key: 'stock', label: 'Stock' },
       { key: 'stockStatus', label: 'Stock Alert', type: 'badge' },
       { key: 'status', label: 'Status', type: 'status' },
@@ -746,12 +794,7 @@ export const modules: ModuleConfig[] = [
         ],
       },
     ],
-    fields: [
-      { name: 'name', label: 'Medicine / Brand Choice', type: 'text', required: true, placeholder: 'e.g. Pantop 40' },
-      { name: 'genericName', label: 'Generic / Chemical Name', type: 'text', required: true, placeholder: 'e.g. Pantoprazole' },
-      { name: 'brandName', label: 'Brand Name', type: 'text', placeholder: 'e.g. Pantop' },
-      { name: 'companyName', label: 'Company / Manufacturer', type: 'text', placeholder: 'e.g. Aristo Pharmaceuticals' },
-      { name: 'supplierName', label: 'Supplier / Party Name', type: 'text', placeholder: 'e.g. Parul Drug Distributors' },
+        fields: [
       {
         name: 'group',
         label: 'Category Group',
@@ -762,10 +805,16 @@ export const modules: ModuleConfig[] = [
           { label: 'Extra Item', value: 'Extra Item' },
         ],
       },
+      { name: 'name', label: 'Medicine / Item Name', type: 'text', required: true, placeholder: 'e.g. Pantop 40' },
+      { name: 'genericName', label: 'Generic / Primary Name', type: 'text', required: true, placeholder: 'e.g. Pantoprazole' },
+      { name: 'brandName', label: 'Brand Name', type: 'text', placeholder: 'e.g. Pantop' },
+      { name: 'companyName', label: 'Company / Manufacturer', type: 'text', placeholder: 'e.g. Aristo Pharmaceuticals' },
+      { name: 'supplierName', label: 'Supplier / Party Name', type: 'text', placeholder: 'e.g. Parul Drug Distributors' },
       {
         name: 'form',
         label: 'Form',
         type: 'select',
+        allowCustom: true,
         options: [
           { label: 'Tab.', value: 'Tab.' },
           { label: 'Syp.', value: 'Syp.' },
@@ -785,6 +834,7 @@ export const modules: ModuleConfig[] = [
         name: 'unit',
         label: 'Unit',
         type: 'select',
+        allowCustom: true,
         options: [
           { label: 'Pcs', value: 'Pcs' },
           { label: 'File', value: 'File' },
@@ -796,6 +846,7 @@ export const modules: ModuleConfig[] = [
           { label: 'Set', value: 'Set' },
         ],
       },
+      { name: 'costPrice', label: 'Cost Price (NPR)', type: 'number', placeholder: 'Enter purchase / cost price' },
       {
         name: 'rateType',
         label: 'Rate Currency Type',
@@ -806,9 +857,9 @@ export const modules: ModuleConfig[] = [
         ],
       },
       { name: 'rateIC', label: 'Rate IC (INR)', type: 'number', placeholder: 'Enter rate in IC' },
-      { name: 'rate', label: 'Rate NC (NPR per unit)', type: 'number', required: true, placeholder: 'Rate in NC (NPR)' },
+      { name: 'rate', label: 'Selling Price (NPR per unit)', type: 'number', placeholder: 'Selling price in NC (NPR)' },
       { name: 'quantity', label: 'Quantity', type: 'number', placeholder: '1' },
-      { name: 'totalAmount', label: 'Total Amount (Qty × Rate)', type: 'number', placeholder: 'Auto-calculated' },
+      { name: 'totalAmount', label: 'Total Amount (Qty × Selling Price)', type: 'number', placeholder: 'Auto-calculated' },
       { name: 'stock', label: 'Current Available Stock', type: 'number', placeholder: '0' },
       { name: 'minStockAlert', label: 'Min Stock Alert Threshold', type: 'number', placeholder: '10' },
       {
@@ -888,6 +939,45 @@ export const modules: ModuleConfig[] = [
         ],
       },
       { name: 'adminRemarks', label: 'Admin Remarks / Notes', type: 'textarea', rows: 3, fullWidth: true },
+    ],
+  },
+  {
+    key: 'applicants',
+    path: 'applicants',
+    label: 'Authorized Applicants',
+    singular: 'Applicant Account',
+    icon: UserCheck,
+    resource: 'applicants',
+    description: 'Pre-approved credentials for candidates authorized to fill the online registration form.',
+    group: 'operations',
+    searchable: true,
+    columns: [
+      { key: 'fullName', label: 'Candidate Name' },
+      { key: 'username', label: 'Username' },
+      { key: 'password', label: 'Password' },
+      { key: 'mobile', label: 'Mobile' },
+      { key: 'postApplied', label: 'Applied For' },
+      { key: 'status', label: 'Status', type: 'badge' },
+      { key: 'hasSubmitted', label: 'Submitted Form?' },
+      { key: 'createdAt', label: 'Issued Date', type: 'date' },
+    ],
+    fields: [
+      { name: 'fullName', label: 'Candidate Full Name', type: 'text', required: true, placeholder: 'e.g. Ramesh Thapa' },
+      { name: 'username', label: 'Login Username (Portal ID)', type: 'text', required: true, placeholder: 'e.g. ramesh_2026' },
+      { name: 'password', label: 'Portal Password', type: 'text', required: true, placeholder: 'e.g. 123456' },
+      { name: 'mobile', label: 'Mobile Number', type: 'text', placeholder: 'e.g. 98XXXXXXXX' },
+      { name: 'email', label: 'Email Address', type: 'text', placeholder: 'Optional' },
+      { name: 'postApplied', label: 'Post / Course Applied For', type: 'text', placeholder: 'e.g. PCL Nursing / Staff Nurse' },
+      {
+        name: 'status',
+        label: 'Account Status',
+        type: 'select',
+        options: [
+          { label: 'Active (Can Register)', value: 'active' },
+          { label: 'Blocked (Access Denied)', value: 'blocked' },
+        ],
+      },
+      { name: 'notes', label: 'Admin Remarks / Voucher Notes', type: 'textarea', rows: 2, fullWidth: true, placeholder: 'e.g. Verified entrance fee payment voucher' },
     ],
   },
   {
@@ -1072,21 +1162,41 @@ export const modules: ModuleConfig[] = [
     singular: 'Patient',
     icon: Users,
     resource: 'patients',
-    description: 'Manage patient accounts and login credentials.',
+    description: 'Manage patient accounts, Master IDs, age, address, and doctor references.',
     group: 'system',
     searchable: true,
     columns: [
-      { key: 'username', label: 'Patient ID (Username)' },
-      { key: 'name', label: 'Name' },
+      { key: 'masterId', label: 'Master ID' },
+      { key: 'username', label: 'Portal Username' },
+      { key: 'name', label: 'Patient Name' },
+      { key: 'nameNp', label: 'नाम (नेपाली)' },
+      { key: 'age', label: 'Age' },
+      { key: 'address', label: 'Address' },
+      { key: 'doctorName', label: 'Doctor Name' },
       { key: 'phone', label: 'Phone' },
       { key: 'updatedAt', label: 'Last Updated', type: 'date' },
     ],
     fields: [
-      { name: 'name', label: 'Full Name', type: 'text', required: true },
-      { name: 'username', label: 'Patient ID (Username)', type: 'text', required: true },
-      { name: 'password', label: 'Password (Plain text to show on slips)', type: 'text', required: true },
-      { name: 'phone', label: 'Phone', type: 'text' },
-      { name: 'email', label: 'Email', type: 'text' },
+      { name: 'masterId', label: 'Master ID (Unique Patient ID)', type: 'text', required: true, placeholder: 'e.g. DH-2026-001' },
+      { name: 'name', label: 'Full Name (English)', type: 'text', required: true, placeholder: 'e.g. Sita Adhikari' },
+      { name: 'nameNp', label: 'Full Name (नेपाली)', type: 'text', placeholder: 'वैकल्पिक / Optional (e.g. सीता अधिकारी)' },
+      { name: 'age', label: 'Age', type: 'text', placeholder: 'e.g. 28 yrs' },
+      {
+        name: 'gender',
+        label: 'Gender',
+        type: 'select',
+        options: [
+          { label: 'Male', value: 'Male' },
+          { label: 'Female', value: 'Female' },
+          { label: 'Other', value: 'Other' },
+        ],
+      },
+      { name: 'doctorName', label: 'Doctor Name (Consultant / Referring Dr.)', type: 'text', placeholder: 'e.g. Dr. Suman Bhusal' },
+      { name: 'phone', label: 'Phone Number', type: 'text', placeholder: 'e.g. 98XXXXXXXX' },
+      { name: 'email', label: 'Email Address', type: 'text', placeholder: 'Optional' },
+      { name: 'address', label: 'Address', type: 'text', fullWidth: true, placeholder: 'e.g. Rajbiraj-4, Saptari' },
+      { name: 'username', label: 'Portal Username', type: 'text', required: true, placeholder: 'Enter login ID / username (e.g. sita_adhikari)' },
+      { name: 'password', label: 'Portal Password', type: 'text', required: true, placeholder: 'Enter login password (e.g. 123456)' },
     ],
   },
   {
@@ -1096,19 +1206,26 @@ export const modules: ModuleConfig[] = [
     singular: 'Lab Report',
     icon: FileText,
     resource: 'labreports',
-    description: 'Upload and manage patient medical reports.',
+    description: 'Upload and manage patient medical and diagnostic reports.',
     group: 'system',
     searchable: true,
     columns: [
-      { key: 'patientUsername', label: 'Patient ID' },
+      { key: 'masterId', label: 'Master ID' },
+      { key: 'patientName', label: 'Patient Name' },
+      { key: 'age', label: 'Age' },
+      { key: 'doctorName', label: 'Doctor Name' },
       { key: 'testName', label: 'Test Name' },
       { key: 'testDate', label: 'Test Date', type: 'date' },
       { key: 'status', label: 'Status', type: 'status' },
     ],
     fields: [
-      { name: 'patientUsername', label: 'Patient ID (Username)', type: 'text', required: true },
-      { name: 'testName', label: 'Test Name (English)', type: 'text', required: true },
-      { name: 'testNameNp', label: 'Test Name (नेपाली)', type: 'text', required: true },
+      { name: 'masterId', label: 'Master ID (Enter to auto-fill details)', type: 'text', required: true, placeholder: 'e.g. DH-2026-001' },
+      { name: 'patientName', label: 'Patient Full Name', type: 'text', required: true, placeholder: 'Auto-filled from Master ID' },
+      { name: 'age', label: 'Age', type: 'text', placeholder: 'Auto-filled from Master ID' },
+      { name: 'address', label: 'Address', type: 'text', placeholder: 'Auto-filled from Master ID' },
+      { name: 'doctorName', label: 'Doctor Name', type: 'text', placeholder: 'Auto-filled from Master ID' },
+      { name: 'testName', label: 'Test Name (English)', type: 'text', required: true, placeholder: 'e.g. Complete Blood Count (CBC)' },
+      { name: 'testNameNp', label: 'Test Name (नेपाली)', type: 'text', placeholder: 'Optional' },
       { name: 'testDate', label: 'Test Date', type: 'date', required: true },
       {
         name: 'department',
@@ -1141,6 +1258,7 @@ export const modules: ModuleConfig[] = [
         ],
       },
       { name: 'pdfUrl', label: 'Upload PDF Report', type: 'file', required: true },
+      { name: 'patientUsername', label: 'Patient Portal Username', type: 'text', placeholder: 'Auto-synced with Master ID' },
     ],
   },
 ];

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown, Loader2, Mail, MapPin, Phone, PhoneCall, Send, Globe, MessageCircle } from 'lucide-react';
 import { DISTRICTS_BY_PROVINCE, PROVINCES, WARDS, GET_MUNICIPALITIES } from '../constants/nepalData';
+import { postData } from '../lib/api';
 
 const ALL_DISTRICTS = Object.values(DISTRICTS_BY_PROVINCE).flat().sort();
 
@@ -125,11 +126,32 @@ const ContactUsPage = () => {
         if (!validateForm()) return;
 
         setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setIsLoading(false);
-        setSubmitted(true);
-        setFormData(INITIAL_FORM_DATA);
-        setTimeout(() => setSubmitted(false), 4000);
+        try {
+            await postData('/api/public/enquiries', {
+                fullName: formData.fullName,
+                name: formData.fullName,
+                age: formData.age,
+                gender: formData.gender,
+                country: formData.country,
+                province: formData.province,
+                district: formData.district,
+                municipality: formData.municipality,
+                wardNo: formData.wardNo,
+                placeStreetTole: formData.placeStreetTole,
+                email: formData.email,
+                phone: formData.phone,
+                message: formData.message,
+                subject: `Website Contact Inquiry from ${formData.fullName}`,
+                source: 'website-contact',
+            });
+            setIsLoading(false);
+            setSubmitted(true);
+            setFormData(INITIAL_FORM_DATA);
+            setTimeout(() => setSubmitted(false), 5000);
+        } catch (err: any) {
+            setIsLoading(false);
+            setErrors({ form: err.message || 'Failed to submit inquiry. Please try again.' });
+        }
     };
 
     const fieldClassName = (field: string) =>
@@ -265,6 +287,12 @@ const ContactUsPage = () => {
                         {submitted && (
                             <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
                                 Your message has been received. Our team will get back to you shortly.
+                            </div>
+                        )}
+
+                        {errors.form && (
+                            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                                {errors.form}
                             </div>
                         )}
 

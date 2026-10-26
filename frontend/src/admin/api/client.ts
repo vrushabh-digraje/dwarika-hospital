@@ -9,7 +9,7 @@ export const apiClient = axios.create({
 
 // Future auth: attach token from storage without changing call sites
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('cms_token');
+  const token = localStorage.getItem('cms_token') || localStorage.getItem('admin_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

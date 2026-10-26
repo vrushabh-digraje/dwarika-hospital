@@ -29,23 +29,35 @@ export default function DashboardPage() {
   if (loading) return <LoadingBlock label="Loading dashboard…" />;
   if (!data) return <div className="text-sm text-ink-500">Unable to load dashboard.</div>;
 
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('admin_user') || '{}');
+    } catch {
+      return {};
+    }
+  })();
+
+  const isStaff = user?.role === 'STAFF' && Boolean(user?.staffId);
+  const isSuperAdmin = !isStaff || (Array.isArray(user?.permissions) && user?.permissions.includes('*'));
+  const userPermissions: string[] = Array.isArray(user?.permissions) ? user.permissions : [];
+
   const cards = [
-    { label: 'Doctors', value: data.content?.doctors?.total || 0, hint: data.content?.doctors?.published || 0, icon: Stethoscope, to: '/admin/doctors' },
-    { label: 'Departments', value: data.content?.departments?.total || 0, hint: data.content?.departments?.published || 0, icon: Building2, to: '/admin/departments' },
-    { label: 'Blogs', value: data.content?.blogs?.total || 0, hint: data.content?.blogs?.published || 0, icon: Newspaper, to: '/admin/blogs' },
-    { label: 'Gallery', value: data.content?.gallery?.total || 0, hint: data.content?.gallery?.published || 0, icon: Images, to: '/admin/gallery' },
-    { label: 'Media Files', value: data.media?.total || 0, hint: 'library', icon: FolderOpen, to: '/admin/media' },
-    { label: 'New Enquiries', value: data.inbox?.newEnquiries || 0, hint: 'inbox', icon: Inbox, to: '/admin/enquiries' },
-    { label: 'Pending Appointments', value: data.inbox?.pendingAppointments || 0, hint: 'queue', icon: CalendarCheck2, to: '/admin/appointments' },
-  ];
+    { key: 'doctors', label: 'Doctors', value: data.content?.doctors?.total || 0, hint: data.content?.doctors?.published || 0, icon: Stethoscope, to: '/admin/doctors' },
+    { key: 'departments', label: 'Departments', value: data.content?.departments?.total || 0, hint: data.content?.departments?.published || 0, icon: Building2, to: '/admin/departments' },
+    { key: 'blogs', label: 'Blogs', value: data.content?.blogs?.total || 0, hint: data.content?.blogs?.published || 0, icon: Newspaper, to: '/admin/blogs' },
+    { key: 'gallery', label: 'Gallery', value: data.content?.gallery?.total || 0, hint: data.content?.gallery?.published || 0, icon: Images, to: '/admin/gallery' },
+    { key: 'media', label: 'Media Files', value: data.media?.total || 0, hint: 'library', icon: FolderOpen, to: '/admin/media' },
+    { key: 'enquiries', label: 'New Enquiries', value: data.inbox?.newEnquiries || 0, hint: 'inbox', icon: Inbox, to: '/admin/enquiries' },
+    { key: 'appointments', label: 'Pending Appointments', value: data.inbox?.pendingAppointments || 0, hint: 'queue', icon: CalendarCheck2, to: '/admin/appointments' },
+  ].filter((c) => isSuperAdmin || userPermissions.includes(c.key));
 
   const quickActions = [
-    { label: 'Add Doctor', to: '/admin/doctors' },
-    { label: 'Add Blog', to: '/admin/blogs' },
-    { label: 'Upload Media', to: '/admin/media' },
-    { label: 'Edit Homepage', to: '/admin/homepage' },
-    { label: 'Website Settings', to: '/admin/settings' },
-  ];
+    { key: 'doctors', label: 'Add Doctor', to: '/admin/doctors' },
+    { key: 'blogs', label: 'Add Blog', to: '/admin/blogs' },
+    { key: 'media', label: 'Upload Media', to: '/admin/media' },
+    { key: 'homepage', label: 'Edit Homepage', to: '/admin/homepage' },
+    { key: 'settings', label: 'Website Settings', to: '/admin/settings' },
+  ].filter((a) => isSuperAdmin || userPermissions.includes(a.key));
 
   return (
     <div>

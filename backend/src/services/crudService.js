@@ -10,6 +10,7 @@ export function createCrudService(Model, options = {}) {
     searchFields = [],
     slugFrom = null,
     defaultFilter = {},
+    defaultCreateValues = {},
     populate = [],
   } = options;
 
@@ -72,7 +73,10 @@ export function createCrudService(Model, options = {}) {
   }
 
   async function create(data) {
-    const payload = { ...data };
+    const payload = { ...defaultCreateValues, ...data };
+    if (defaultCreateValues.teamCategory && (!payload.teamCategory || payload.teamCategory === 'DOCTOR')) {
+      payload.teamCategory = defaultCreateValues.teamCategory;
+    }
     if (slugFrom && !payload.slug && payload[slugFrom]) {
       payload.slug = await uniqueSlug(Model, payload[slugFrom]);
     } else if (payload.slug) {

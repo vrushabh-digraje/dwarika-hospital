@@ -23,6 +23,7 @@ import {
   LabReport,
   Medicine,
   Registration,
+  Applicant,
 } from '../models/index.js';
 import { createCrudService } from '../services/crudService.js';
 import { createCrudController } from '../controllers/crudController.js';
@@ -33,19 +34,21 @@ const modules = [
     key: 'doctors',
     model: Doctor,
     resourceName: 'Doctor',
-    searchFields: ['name', 'specialty', 'category', 'bio'],
+    searchFields: ['name', 'staffId', 'email', 'phone', 'specialty', 'category', 'bio'],
     slugFrom: 'name',
     populate: ['department'],
     defaultFilter: { teamCategory: 'DOCTOR' },
+    defaultCreateValues: { teamCategory: 'DOCTOR', status: 'published' },
   },
   {
     key: 'staff',
     model: Doctor,
     resourceName: 'Staff Member',
-    searchFields: ['name', 'specialty', 'category', 'bio'],
+    searchFields: ['name', 'staffId', 'email', 'phone', 'specialty', 'category', 'bio'],
     slugFrom: 'name',
     populate: ['department'],
     defaultFilter: { teamCategory: { $ne: 'DOCTOR' } },
+    defaultCreateValues: { teamCategory: 'NURSING STAFF', status: 'published' },
   },
   {
     key: 'departments',
@@ -112,7 +115,8 @@ const modules = [
     key: 'enquiries',
     model: Enquiry,
     resourceName: 'Enquiry',
-    searchFields: ['name', 'email', 'subject', 'message', 'phone'],
+    searchFields: ['name', 'email', 'subject', 'message', 'phone', 'address'],
+    defaultSort: { createdAt: -1 },
     includeToggle: false,
   },
   {
@@ -175,13 +179,13 @@ const modules = [
     key: 'patients',
     model: Patient,
     resourceName: 'Patient Account',
-    searchFields: ['name', 'username', 'phone', 'email'],
+    searchFields: ['masterId', 'name', 'nameNp', 'username', 'phone', 'email', 'doctorName', 'address'],
   },
   {
     key: 'labreports',
     model: LabReport,
     resourceName: 'Lab Report',
-    searchFields: ['testName', 'patientUsername', 'department'],
+    searchFields: ['masterId', 'patientUsername', 'patientName', 'testName', 'doctorName', 'department'],
   },
   {
     key: 'medicines',
@@ -189,6 +193,7 @@ const modules = [
     resourceName: 'Medicine',
     searchFields: ['name', 'genericName', 'brandName', 'supplierName', 'companyName'],
     slugFrom: 'name',
+    defaultCreateValues: { group: 'Medicine', status: 'published' },
   },
   {
     key: 'registrations',
@@ -196,6 +201,14 @@ const modules = [
     resourceName: 'Registration',
     searchFields: ['registrationNumber', 'fullName', 'email', 'mobile', 'citizenshipNo', 'postApplied', 'entryYear', 'paymentVoucherNo'],
     includeToggle: false,
+  },
+  {
+    key: 'applicants',
+    model: Applicant,
+    resourceName: 'Applicant Account',
+    searchFields: ['fullName', 'username', 'mobile', 'email', 'postApplied', 'notes'],
+    includeToggle: false,
+    defaultCreateValues: { status: 'active', password: '123456' },
   },
 ];
 
@@ -208,6 +221,7 @@ export function registerModuleRoutes(adminRouter, publicRouter) {
       slugFrom: mod.slugFrom,
       populate: mod.populate || [],
       defaultFilter: mod.defaultFilter || {},
+      defaultCreateValues: mod.defaultCreateValues || {},
     });
     services[mod.key] = service;
 
