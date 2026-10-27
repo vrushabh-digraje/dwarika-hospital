@@ -18,7 +18,9 @@ import {
   Edit3,
   Eye,
   Check,
+  FileSpreadsheet,
 } from 'lucide-react';
+import { exportToExcel } from '../lib/exportExcel';
 import { toast } from 'sonner';
 import {
   listResource,
@@ -92,6 +94,26 @@ export default function AppointmentsPage() {
   const [deletingSlot, setDeletingSlot] = useState<{ doctorId: string; slotId: string; doctorName: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [statusBusyId, setStatusBusyId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportXLS = async () => {
+    setExporting(true);
+    try {
+      toast.info('Preparing appointments data for Excel export…');
+      const res = await listResource<any>('appointments', {
+        limit: 5000,
+        search: search || undefined,
+        status: statusFilter || undefined,
+        doctorId: doctorFilter || undefined,
+      });
+      exportToExcel('appointments', 'Appointments', res.items);
+      toast.success('Appointments exported to Excel (.xlsx) successfully!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to export appointments');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Form states
   const [slotForm, setSlotForm] = useState({
@@ -381,6 +403,16 @@ export default function AppointmentsPage() {
         breadcrumbs={[{ label: 'CMS' }, { label: 'Operations' }, { label: 'Appointments' }]}
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportXLS}
+              loading={exporting}
+              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 font-semibold cursor-pointer"
+              title="Download Appointments as Excel (XLS) spreadsheet"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+              <span>Export XLS</span>
+            </Button>
             <Button
               variant="outline"
               onClick={() => {

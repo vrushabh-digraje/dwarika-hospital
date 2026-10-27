@@ -239,7 +239,7 @@ const ComplexOnlineRegistrationForm = () => {
     };
 
     const navigate = useNavigate();
-    const [accessMode, setAccessMode] = useState<'open' | 'authorized'>('open');
+    const [accessMode, setAccessMode] = useState<'open' | 'authorized'>('authorized');
     const [loadingSettings, setLoadingSettings] = useState(true);
     const [applicantUser, setApplicantUser] = useState<any>(() => {
         try {

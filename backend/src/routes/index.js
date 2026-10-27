@@ -133,8 +133,8 @@ publicRouter.get(
     let settings = await SiteSettings.findOne({ key: 'default' });
     if (!settings) settings = await SiteSettings.create({ key: 'default' });
     return success(res, {
-      accessMode: settings.registrationAccessMode || 'open',
-      isOpenForAll: (settings.registrationAccessMode || 'open') === 'open',
+      accessMode: settings.registrationAccessMode || 'authorized',
+      isOpenForAll: (settings.registrationAccessMode || 'authorized') === 'open',
     });
   })
 );
@@ -441,7 +441,7 @@ publicRouter.get(
 // Shared registration submission handler
 async function handleRegistrationSubmission(req, res) {
   let settings = await SiteSettings.findOne({ key: 'default' });
-  const accessMode = settings?.registrationAccessMode || 'open';
+  const accessMode = settings?.registrationAccessMode || 'authorized';
   const applicantId = req.body.applicantId || req.headers['x-applicant-id'];
 
   if (accessMode === 'authorized') {

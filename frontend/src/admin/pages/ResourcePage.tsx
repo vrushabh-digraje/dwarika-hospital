@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ExternalLink, Pencil, Plus, RefreshCw, Search, Trash2, Eye, Pill, CheckCircle2, AlertTriangle, AlertCircle,
-  User, MapPin, CreditCard, GraduationCap
+  User, MapPin, CreditCard, GraduationCap, FileSpreadsheet, Download, FileDown, Files
 } from 'lucide-react';
+import {
+  exportToExcel,
+  getRegistrationDocuments,
+  downloadDocument,
+  downloadAllRegistrationDocuments,
+} from '../lib/exportExcel';
 import { toast } from 'sonner';
 import type { ModuleConfig } from '../config/modules';
 import {
@@ -45,8 +51,10 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<any | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [accessMode, setAccessMode] = useState<'open' | 'authorized'>('open');
+  const [accessMode, setAccessMode] = useState<'open' | 'authorized'>('authorized');
   const [togglingAccess, setTogglingAccess] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [downloadingDocsId, setDownloadingDocsId] = useState<string | null>(null);
 
   useEffect(() => {
     if (module.key === 'registrations' || module.key === 'applicants') {
@@ -111,6 +119,38 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
   const openEdit = (item: any) => {
     setEditing(item);
     setDrawerOpen(true);
+  };
+
+  const handleExportXLS = async () => {
+    setExporting(true);
+    try {
+      toast.info(`Preparing ${module.label} data for Excel export…`);
+      const res = await listResource(module.resource, {
+        limit: 5000,
+        search: search || undefined,
+        status: status || undefined,
+        ...extraFilters,
+      });
+      exportToExcel(module.key, module.label, res.items);
+      toast.success(`${module.label} exported to Excel (.xlsx) successfully!`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to export Excel');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleDownloadAllDocs = async (registration: any) => {
+    setDownloadingDocsId(registration._id);
+    try {
+      toast.info(`Downloading documents for ${registration.fullName || 'applicant'}…`);
+      await downloadAllRegistrationDocuments(registration);
+      toast.success('All documents downloaded successfully!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to download documents');
+    } finally {
+      setDownloadingDocsId(null);
+    }
   };
 
   const onSave = async (values: Record<string, any>) => {
@@ -186,6 +226,16 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
         breadcrumbs={[{ label: 'CMS' }, { label: module.label }]}
         actions={
           <>
+            <Button
+              variant="outline"
+              onClick={handleExportXLS}
+              loading={exporting}
+              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 font-semibold cursor-pointer"
+              title={`Download ${module.label} as Excel (XLS) spreadsheet`}
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+              <span>Export XLS</span>
+            </Button>
             <Button variant="outline" onClick={load}><RefreshCw className="h-4 w-4" /> Refresh</Button>
             <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add {module.singular}</Button>
           </>
@@ -465,9 +515,21 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
                     })}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => setPreview(item)} title="Preview">
+                        <Button size="sm" variant="ghost" onClick={() => setPreview(item)} title="Preview Details">
                           <Eye className="h-4 w-4" />
                         </Button>
+                        {module.key === 'registrations' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDownloadAllDocs(item)}
+                            loading={downloadingDocsId === item._id}
+                            title="Download All Candidate Documents (Photos, ID, Certs, Voucher)"
+                            className="text-blue-700 hover:text-blue-800 hover:bg-blue-50"
+                          >
+                            <FileDown className="h-4 w-4" />
+                          </Button>
+                        )}
                         {module.previewPath?.(item) && (
                           <a
                             href={`${siteUrl}${module.previewPath(item)}`}
@@ -764,6 +826,91 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
                 </div>
               </div>
             </div>
+
+            {/* Card 5: Uploaded Documents & Certificates (Download) */}
+            {(() => {
+              const docs = getRegistrationDocuments(preview);
+              return (
+                <div className="p-4 rounded-2xl border border-blue-200 bg-blue-50/40 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200/80 pb-2.5">
+                    <div className="flex items-center gap-2 font-bold text-blue-950">
+                      <Files className="w-4 h-4 text-blue-600" />
+                      <span>Uploaded Documents & Certificates ({docs.length})</span>
+                    </div>
+                    {docs.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadAllDocs(preview)}
+                        disabled={downloadingDocsId === preview._id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                      >
+                        <FileDown className="w-3.5 h-3.5" />
+                        <span>Download All Documents</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {docs.length === 0 ? (
+                    <p className="text-xs text-ink-500 italic py-2">No uploaded documents found for this candidate.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {docs.map((doc, idx) => {
+                        const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(doc.url) || doc.url.includes('images.unsplash.com');
+                        const ext = doc.url.split('.').pop()?.split('?')[0] || 'file';
+                        const cleanName = (preview.fullName || 'Applicant').replace(/[^a-zA-Z0-9_-]/g, '_');
+                        const filename = `${preview.registrationNumber || 'REG'}_${cleanName}_${doc.label.replace(/[^a-zA-Z0-9_-]/g, '_')}.${ext}`;
+
+                        return (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white border border-blue-100 shadow-xs hover:border-blue-300 transition"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 overflow-hidden">
+                                {isImage ? (
+                                  <img src={doc.url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-[10px] font-bold uppercase text-blue-700 font-mono">
+                                    {ext.slice(0, 3)}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-ink-900 truncate" title={doc.label}>
+                                  {doc.label}
+                                </p>
+                                <span className="text-[10px] text-ink-400 capitalize">{doc.category}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <a
+                                href={doc.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 rounded-lg text-ink-600 hover:bg-ink-100 hover:text-ink-900 transition"
+                                title="View Document in New Tab"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5 text-ink-500" />
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => downloadDocument(doc.url, filename)}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition cursor-pointer"
+                                title="Download Document to Computer"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Save</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {preview.adminRemarks && (
               <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs">
