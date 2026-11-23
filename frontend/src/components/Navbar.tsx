@@ -317,6 +317,7 @@ const Navbar = () => {
                 </div>
 
                 {/* ROW 4: Live Marquee */}
+                {settings?.liveUpdates?.enabled !== false && (
                 <div className="bg-primary text-white relative overflow-hidden border-t border-white/5">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent animate-[shimmer_3s_infinite]" />
                     <div className="flex items-center relative z-10">
@@ -325,7 +326,7 @@ const Navbar = () => {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                             </span>
-                            {t('navbar.live_updates')}
+                            {settings?.liveUpdates?.badgeTextEn || t('navbar.live_updates') || 'LIVE UPDATES'}
                         </div>
                         <div className="flex-1 overflow-hidden whitespace-nowrap">
                             <div className="animate-marquee py-3">
@@ -339,6 +340,7 @@ const Navbar = () => {
                         </div>
                     </div>
                 </div>
+                )}
             </header>
 
             {/* Mobile Menu Drawer */}

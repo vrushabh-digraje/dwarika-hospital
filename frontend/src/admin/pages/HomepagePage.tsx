@@ -6,6 +6,7 @@ import { Button, Card, Input, Label, LoadingBlock, PageHeader, Textarea } from '
 import { MediaPicker } from '../components/MediaPicker';
 import { RichTextEditor } from '../components/RichTextEditor';
 import HeroSection from '../../sections/HeroSection';
+import { PageStatusBanner } from '../components/PageStatusBanner';
 
 export default function HomepagePage() {
   const [loading, setLoading] = useState(true);
@@ -191,6 +192,8 @@ export default function HomepagePage() {
           </div>
         }
       />
+
+      <PageStatusBanner pageKey="home" />
 
       <form onSubmit={onSubmit} className="grid gap-4 xl:grid-cols-2">
         <Card className="space-y-4 p-5 xl:col-span-2">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,7 +7,8 @@ import { apiClient } from '../api/client';
 import { Button, Input, Label, Select, Textarea } from './ui';
 import { RichTextEditor } from './RichTextEditor';
 import { MediaPicker } from './MediaPicker';
-import { Plus, Trash2, Pill, Calculator, AlertTriangle, CheckCircle, Ban, FileText } from 'lucide-react';
+import { Plus, Trash2, Pill, Calculator, AlertTriangle, CheckCircle, Ban, FileText, Search, ChevronDown, Check, X, Stethoscope } from 'lucide-react';
+import { doctors as fallbackDoctors } from '../../lib/teamData';
 import { cn } from '../lib/format';
 
 function MultiImagePicker({
@@ -110,36 +111,69 @@ function CreatableSelectField({
   const selectValue = isCustom ? '__custom__' : (value || '');
 
   return (
-    <div className="space-y-2">
-      <Select
-        value={selectValue}
-        onChange={(e) => {
-          const val = e.target.value;
-          if (val === '__custom__') {
-            setIsCustom(true);
-            onChange('');
-          } else {
-            setIsCustom(false);
-            onChange(val);
-          }
-        }}
-      >
-        <option value="">Select {field.label}…</option>
-        {field.options?.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-        <option value="__custom__">Custom</option>
-      </Select>
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-semibold text-ink-400">
+          {isCustom ? '✍️ Type New / Custom Category' : '📋 Choose from existing list'}
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            const nextCustom = !isCustom;
+            setIsCustom(nextCustom);
+            if (!nextCustom) {
+              onChange('');
+            }
+          }}
+          className="text-xs font-bold text-brand-700 hover:text-brand-900 hover:underline cursor-pointer flex items-center gap-1"
+        >
+          {isCustom ? '← Choose from list' : '✍️ + Type new / custom'}
+        </button>
+      </div>
 
-      {isCustom && (
-        <Input
-          value={value || ''}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={`Enter custom ${field.label.toLowerCase()} (e.g. Cream, Tube, Sachet)...`}
-          autoFocus
-        />
+      {!isCustom ? (
+        <Select
+          value={selectValue}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val === '__custom__') {
+              setIsCustom(true);
+              onChange('');
+            } else {
+              setIsCustom(false);
+              onChange(val);
+            }
+          }}
+        >
+          <option value="">Select {field.label}…</option>
+          {field.options?.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+          <option value="__custom__">➕ + Type New / Custom {field.label}…</option>
+        </Select>
+      ) : (
+        <div className="flex items-center gap-2">
+          <Input
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={`Type new ${field.label.toLowerCase()} (e.g. Physiotherapy Staff, Accounts)...`}
+            autoFocus
+            className="flex-1"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setIsCustom(false);
+              onChange('');
+            }}
+            className="px-3 py-2 text-xs font-bold text-ink-600 hover:text-ink-900 bg-ink-100 hover:bg-ink-200 rounded-xl transition cursor-pointer shrink-0"
+            title="Cancel custom typing and choose from preset dropdown"
+          >
+            Cancel
+          </button>
+        </div>
       )}
     </div>
   );
@@ -221,6 +255,322 @@ function PermissionCheckboxesField({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function AgeInputField({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: any;
+  onChange: (val: string) => void;
+  placeholder?: string;
+}) {
+  const parseVal = (raw: any) => {
+    const str = String(raw ?? '').trim();
+    if (!str) return { num: '', unit: 'Years' };
+    const numMatch = str.match(/^(\d+)/);
+    const num = numMatch ? numMatch[1] : '';
+    let unit = 'Years';
+    if (/(month|mo|महिना)/i.test(str)) {
+      unit = 'Months';
+    } else if (/(day|दिन)/i.test(str)) {
+      unit = 'Days';
+    } else if (/(year|yr|वर्ष)/i.test(str)) {
+      unit = 'Years';
+    }
+    return { num, unit };
+  };
+
+  const initial = parseVal(value);
+  const [numVal, setNumVal] = useState(initial.num);
+  const [unitVal, setUnitVal] = useState(initial.unit);
+
+  useEffect(() => {
+    const p = parseVal(value);
+    setNumVal(p.num);
+    setUnitVal(p.unit);
+  }, [value]);
+
+  const update = (newNum: string, newUnit: string) => {
+    setNumVal(newNum);
+    setUnitVal(newUnit);
+    if (!newNum.trim()) {
+      onChange('');
+    } else {
+      onChange(`${newNum.trim()} ${newUnit}`);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        type="number"
+        min="0"
+        max="150"
+        value={numVal}
+        onChange={(e) => update(e.target.value, unitVal)}
+        placeholder={placeholder || 'e.g. 28'}
+        className="flex-1"
+      />
+      <Select
+        value={unitVal}
+        onChange={(e) => update(numVal, e.target.value)}
+        className="w-36 shrink-0 bg-white font-medium"
+      >
+        <option value="Years">Years (Yrs)</option>
+        <option value="Months">Months (Mos)</option>
+        <option value="Days">Days</option>
+      </Select>
+    </div>
+  );
+}
+
+function DoctorSelectField({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: any;
+  onChange: (val: string) => void;
+  placeholder?: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [doctorsList, setDoctorsList] = useState<Array<{ name: string; specialty?: string; category?: string }>>([]);
+  const [loading, setLoading] = useState(false);
+  const [isTypingCustom, setIsTypingCustom] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+
+    apiClient
+      .get('/doctors', { params: { limit: 200 } })
+      .then((res) => {
+        if (!mounted) return;
+        const apiDocs = (res.data?.data?.items || res.data?.items || res.data?.data || []).map((d: any) => ({
+          name: d.name,
+          specialty: d.specialty || d.specialization || d.designation || '',
+          category: d.category || d.teamCategory || '',
+        }));
+
+        const mergedMap = new Map<string, { name: string; specialty?: string; category?: string }>();
+        apiDocs.forEach((d: any) => {
+          if (d.name) mergedMap.set(d.name.trim().toLowerCase(), d);
+        });
+        fallbackDoctors.forEach((d) => {
+          const key = d.name.trim().toLowerCase();
+          if (!mergedMap.has(key)) {
+            mergedMap.set(key, { name: d.name, specialty: d.specialty, category: d.category });
+          }
+        });
+
+        setDoctorsList(Array.from(mergedMap.values()));
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setDoctorsList(
+          fallbackDoctors.map((d) => ({
+            name: d.name,
+            specialty: d.specialty,
+            category: d.category,
+          }))
+        );
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const filteredDoctors = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return doctorsList;
+    return doctorsList.filter((d) =>
+      d.name.toLowerCase().includes(q) ||
+      (d.specialty && d.specialty.toLowerCase().includes(q)) ||
+      (d.category && d.category.toLowerCase().includes(q))
+    );
+  }, [doctorsList, search]);
+
+  const hasExactMatch = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return doctorsList.some((d) => d.name.trim().toLowerCase() === q);
+  }, [doctorsList, search]);
+
+  const handleSelect = (name: string) => {
+    onChange(name);
+    setIsOpen(false);
+    setSearch('');
+    setIsTypingCustom(false);
+  };
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      {isTypingCustom ? (
+        <div className="flex items-center gap-2">
+          <Input
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Type doctor name (e.g. Dr. Suman Bhusal)..."
+            autoFocus
+            className="flex-1"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setIsTypingCustom(false);
+            }}
+            className="px-3 py-2 text-xs font-bold text-ink-600 hover:text-ink-900 bg-ink-100 hover:bg-ink-200 rounded-xl transition cursor-pointer shrink-0"
+            title="Switch back to doctors list"
+          >
+            ← List
+          </button>
+        </div>
+      ) : (
+        <div>
+          <div
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center justify-between w-full h-10 px-3.5 py-2 text-sm bg-white border border-ink-200 hover:border-ink-300 rounded-xl cursor-pointer shadow-xs transition select-none"
+          >
+            <div className="flex items-center gap-2 truncate">
+              <Stethoscope className="w-4 h-4 text-brand-600 shrink-0" />
+              {value ? (
+                <span className="font-semibold text-ink-900 truncate">{value}</span>
+              ) : (
+                <span className="text-ink-400 truncate">{placeholder || 'Select Consultant / Referring Doctor…'}</span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0 ml-2">
+              {value && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange('');
+                  }}
+                  className="p-1 text-ink-400 hover:text-ink-700 hover:bg-ink-100 rounded-full transition"
+                  title="Clear doctor"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <ChevronDown className={cn('w-4 h-4 text-ink-400 transition-transform duration-200', isOpen && 'rotate-180')} />
+            </div>
+          </div>
+
+          {isOpen && (
+            <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-ink-200 rounded-2xl shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150">
+              <div className="p-2.5 border-b border-ink-100 bg-ink-50/60 sticky top-0 z-10 flex items-center gap-2">
+                <Search className="w-4 h-4 text-ink-400 shrink-0 ml-1" />
+                <input
+                  type="text"
+                  autoFocus
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search doctor by name or specialty..."
+                  className="w-full text-xs font-medium bg-transparent border-none outline-none text-ink-800 placeholder:text-ink-400"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch('')}
+                    className="p-1 text-ink-400 hover:text-ink-700 rounded-full"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              {search.trim() && !hasExactMatch && (
+                <div
+                  onClick={() => handleSelect(search.trim())}
+                  className="p-2.5 mx-2 my-1 rounded-xl bg-brand-50 border border-brand-200 hover:bg-brand-100 cursor-pointer text-xs font-bold text-brand-800 flex items-center gap-2 transition"
+                >
+                  <Plus className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                  <span className="truncate">Use &quot;{search.trim()}&quot; (Custom / Referring Doctor)</span>
+                </div>
+              )}
+
+              <div className="max-h-60 overflow-y-auto p-1 divide-y divide-ink-50">
+                {filteredDoctors.length === 0 && !search.trim() ? (
+                  <div className="p-4 text-center text-xs text-ink-400">
+                    {loading ? 'Loading doctors…' : 'No doctors found in directory.'}
+                  </div>
+                ) : filteredDoctors.length === 0 && search.trim() ? (
+                  <div className="p-3 text-center text-xs text-ink-400">
+                    No directory doctor matches &quot;{search}&quot;. Click above to use it as custom doctor.
+                  </div>
+                ) : (
+                  filteredDoctors.map((doc, idx) => {
+                    const isSelected = value === doc.name;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleSelect(doc.name)}
+                        className={cn(
+                          'flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition text-xs',
+                          isSelected
+                            ? 'bg-brand-50 text-brand-900 font-bold'
+                            : 'hover:bg-ink-50 text-ink-800'
+                        )}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="font-bold truncate text-ink-900">{doc.name}</p>
+                          {(doc.specialty || doc.category) && (
+                            <p className="text-[11px] text-ink-500 truncate">
+                              {[doc.specialty, doc.category].filter(Boolean).join(' • ')}
+                            </p>
+                          )}
+                        </div>
+                        {isSelected && <Check className="w-4 h-4 text-brand-600 shrink-0" />}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="p-2 border-t border-ink-100 bg-ink-50/40 flex items-center justify-between text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTypingCustom(true);
+                    setIsOpen(false);
+                  }}
+                  className="text-brand-700 hover:text-brand-900 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" /> Type other doctor manually
+                </button>
+                <span className="text-[10px] text-ink-400">
+                  {filteredDoctors.length} {filteredDoctors.length === 1 ? 'doctor' : 'doctors'}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -575,7 +925,7 @@ export function ResourceForm({
                   return <RichTextEditor value={rhf.value} onChange={rhf.onChange} placeholder={field.placeholder} />;
                 }
                 if (field.type === 'select') {
-                  if (field.allowCustom || field.name === 'form' || field.name === 'unit') {
+                  if (field.allowCustom || field.name === 'form' || field.name === 'unit' || field.name === 'teamCategory') {
                     return <CreatableSelectField field={field} value={rhf.value} onChange={rhf.onChange} />;
                   }
                   return (
@@ -625,6 +975,12 @@ export function ResourceForm({
                 }
                 if (field.type === 'file') {
                   return <MediaPicker value={rhf.value} onChange={rhf.onChange} label="Select file" accept="*/*" />;
+                }
+                if (field.name === 'age') {
+                  return <AgeInputField value={rhf.value} onChange={rhf.onChange} placeholder={field.placeholder} />;
+                }
+                if (field.name === 'doctorName' || field.name === 'doctor') {
+                  return <DoctorSelectField value={rhf.value} onChange={rhf.onChange} placeholder={field.placeholder} />;
                 }
                 if (field.type === 'number') {
                   return <Input type="number" {...rhf} value={rhf.value ?? ''} />;

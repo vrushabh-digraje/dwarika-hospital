@@ -43,9 +43,6 @@ interface MedicineEntry {
     supplierName?: string;
 }
 
-const MEDICINE_FORMS = ['Tab.', 'Syp.', 'Inj.', 'Ivf', 'Drop', 'Cap.', 'R/H', 'Blade', 'Gloves', 'Catheter', 'NA'];
-const MEDICINE_UNITS = ['Pcs', 'File', 'Bottle', 'Vial', 'Ampoule', 'Box', 'Strip', 'Set'];
-
 export interface CatalogMedicine {
     _id?: string;
     name: string;
@@ -298,7 +295,7 @@ const PharmacyPage = () => {
     });
 
     const [medicines, setMedicines] = useState<MedicineEntry[]>([]);
-    const [financials, setFinancials] = useState({
+    const [financials] = useState({
         discount: 0,
         adjustment: 0,
         roundOff: 0,
@@ -343,16 +340,24 @@ const PharmacyPage = () => {
         setCustomerInfo(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFinancialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFinancials(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
-    };
-
     const handleEntryChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         let finalValue = value;
         if (type === 'number' && parseFloat(value) < 0) finalValue = '0';
-        setCurrentEntry(prev => ({ ...prev, [name]: finalValue }));
+        setCurrentEntry(prev => {
+            const updated = { ...prev, [name]: finalValue };
+            if (name === 'name') {
+                const matched = catalogMedicines.find(m => (m.name || '').toLowerCase() === value.toLowerCase().trim());
+                if (matched) {
+                    setSelectedMedicine(matched);
+                    updated.form = matched.form || 'Tab.';
+                    updated.strength = matched.strength && matched.strength !== 'NA' ? matched.strength : '';
+                    updated.unit = matched.unit || 'Pcs';
+                    updated.rate = String(matched.rate ?? '');
+                }
+            }
+            return updated;
+        });
         if (name === 'name') {
             setIsBarDropdownOpen(true);
         }
@@ -710,22 +715,19 @@ const PharmacyPage = () => {
                                                                         )}
                                                                     </div>
 
-                                                                    <div className="flex items-center justify-between pt-1 border-t border-current/10">
-                                                                        <span className={cn("text-[11px] font-black font-mono", isSelected ? "text-white" : "text-blue-700")}>
-                                                                            Rs. {Number(med.rate).toFixed(2)}
-                                                                        </span>
+                                                                    <div className="flex items-center justify-end pt-1 border-t border-current/10">
                                                                         <span className={cn(
                                                                             "text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1",
                                                                             isSelected
                                                                                 ? "bg-white text-blue-900 font-extrabold"
-                                                                                : med.stockStatus === 'In Stock'
-                                                                                    ? "bg-emerald-100 text-emerald-800"
-                                                                                    : med.stockStatus === 'Low Stock'
-                                                                                        ? "bg-amber-100 text-amber-800"
-                                                                                        : "bg-rose-100 text-rose-800"
+                                                                                : (med.stockStatus === 'Out of Stock' || (med.stock !== undefined && med.stock <= 0))
+                                                                                    ? "bg-rose-100 text-rose-800"
+                                                                                    : "bg-emerald-100 text-emerald-800"
                                                                         )}>
                                                                             <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                                                                            {med.stockStatus === 'In Stock' ? `${med.stock} ${med.unit || 'Pcs'}` : med.stockStatus}
+                                                                            {med.stockStatus === 'Out of Stock' || (med.stock !== undefined && med.stock <= 0)
+                                                                                ? 'Not Available'
+                                                                                : 'Available'}
                                                                         </span>
                                                                     </div>
                                                                 </motion.button>
@@ -759,12 +761,14 @@ const PharmacyPage = () => {
                                                     </div>
                                                     <span className={cn(
                                                         "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-xs border flex items-center gap-1.5",
-                                                        selectedMedicine.stockStatus === 'In Stock' ? "bg-emerald-100 text-emerald-800 border-emerald-300" :
-                                                        selectedMedicine.stockStatus === 'Low Stock' ? "bg-amber-100 text-amber-800 border-amber-300" :
-                                                        "bg-rose-100 text-rose-800 border-rose-300"
+                                                        selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
+                                                            ? "bg-rose-100 text-rose-800 border-rose-300"
+                                                            : "bg-emerald-100 text-emerald-800 border-emerald-300"
                                                     )}>
                                                         <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                                                        {selectedMedicine.stockStatus || 'In Stock'} ({selectedMedicine.stock} {selectedMedicine.unit || 'Pcs'} Available)
+                                                        {selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
+                                                            ? 'Not Available'
+                                                            : 'Available'}
                                                     </span>
                                                 </div>
 
@@ -794,12 +798,21 @@ const PharmacyPage = () => {
                                                         <span className="font-bold text-slate-800 block mt-0.5">{selectedMedicine.unit}</span>
                                                     </div>
                                                     <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Unit Price (NC)</span>
-                                                        <span className="font-black text-blue-700 block mt-0.5 font-mono">Rs. {Number(selectedMedicine.rate).toFixed(2)}</span>
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Category / Group</span>
+                                                        <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.group || 'Hospital Formulary'}</span>
                                                     </div>
                                                     <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Available Stock</span>
-                                                        <span className="font-black text-emerald-700 block mt-0.5">{selectedMedicine.stock} {selectedMedicine.unit}</span>
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Availability</span>
+                                                        <span className={cn(
+                                                            "font-black block mt-0.5",
+                                                            selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
+                                                                ? "text-rose-700"
+                                                                : "text-emerald-700"
+                                                        )}>
+                                                            {selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
+                                                                ? 'Not Available'
+                                                                : 'Available'}
+                                                        </span>
                                                     </div>
                                                 </div>
 
@@ -885,9 +898,16 @@ const PharmacyPage = () => {
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
                                 <div className="md:col-span-1.5 space-y-2">
                                     <label className={labelCls}>Form</label>
-                                    <select name="form" value={currentEntry.form} onChange={handleEntryChange} className={cn(inputCls, "appearance-none pr-10 !py-4")} style={selectIndicatorStyle}>
-                                        {MEDICINE_FORMS.map(f => <option key={f} value={f}>{f}</option>)}
-                                    </select>
+                                    <input
+                                        name="form"
+                                        value={currentEntry.form || ''}
+                                        readOnly
+                                        disabled
+                                        tabIndex={-1}
+                                        placeholder="Form"
+                                        title="Auto-filled from medicine details (fixed)"
+                                        className={cn(inputCls, "!py-4 bg-slate-100 text-slate-700 font-bold text-center cursor-not-allowed select-none border-slate-200")}
+                                    />
                                 </div>
                                 <div className="md:col-span-4 space-y-2 relative">
                                     <div className="flex items-center justify-between">
@@ -924,14 +944,15 @@ const PharmacyPage = () => {
                                                         <p className="text-[10px] text-slate-500 truncate mt-0.5">{sug.genericName} • {sug.supplierName || 'Hospital Supply'}</p>
                                                     </div>
                                                     <div className="text-right shrink-0">
-                                                        <p className="text-xs font-black text-blue-700 font-mono">Rs. {Number(sug.rate).toFixed(2)}</p>
                                                         <span className={cn(
                                                             "text-[9px] font-black uppercase px-2 py-0.5 rounded-full inline-block mt-0.5",
-                                                            sug.stockStatus === 'In Stock' ? "bg-emerald-100 text-emerald-800" :
-                                                            sug.stockStatus === 'Low Stock' ? "bg-amber-100 text-amber-800" :
-                                                            "bg-rose-100 text-rose-800"
+                                                            sug.stockStatus === 'Out of Stock' || (sug.stock !== undefined && sug.stock <= 0)
+                                                                ? "bg-rose-100 text-rose-800"
+                                                                : "bg-emerald-100 text-emerald-800"
                                                         )}>
-                                                            ● {sug.stockStatus || 'In Stock'} ({sug.stock} {sug.unit})
+                                                            ● {sug.stockStatus === 'Out of Stock' || (sug.stock !== undefined && sug.stock <= 0)
+                                                                ? 'Not Available'
+                                                                : 'Available'}
                                                         </span>
                                                     </div>
                                                 </button>
@@ -941,21 +962,55 @@ const PharmacyPage = () => {
                                 </div>
                                 <div className="md:col-span-1.5 space-y-2">
                                     <label className={labelCls}>Strength</label>
-                                    <input name="strength" value={currentEntry.strength} onChange={handleEntryChange} placeholder="500mg" className={cn(inputCls, "!py-4")} />
+                                    <input
+                                        name="strength"
+                                        value={currentEntry.strength || ''}
+                                        readOnly
+                                        disabled
+                                        tabIndex={-1}
+                                        placeholder="—"
+                                        title="Auto-filled from medicine details (fixed)"
+                                        className={cn(inputCls, "!py-4 bg-slate-100 text-slate-700 font-bold text-center cursor-not-allowed select-none border-slate-200")}
+                                    />
                                 </div>
                                 <div className="md:col-span-1 space-y-2">
                                     <label className={labelCls}>Qty</label>
-                                    <input type="number" name="quantity" value={currentEntry.quantity} onChange={handleEntryChange} placeholder="1" className={cn(inputCls, "!py-4 text-center px-2")} />
+                                    <input
+                                        type="number"
+                                        name="quantity"
+                                        min="1"
+                                        value={currentEntry.quantity}
+                                        onChange={handleEntryChange}
+                                        placeholder="1"
+                                        className={cn(inputCls, "!py-4 text-center px-2")}
+                                    />
                                 </div>
                                 <div className="md:col-span-1.5 space-y-2">
                                     <label className={labelCls}>Unit</label>
-                                    <select name="unit" value={currentEntry.unit} onChange={handleEntryChange} className={cn(inputCls, "appearance-none pr-10 !py-4 text-center")} style={selectIndicatorStyle}>
-                                        {MEDICINE_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                                    </select>
+                                    <input
+                                        name="unit"
+                                        value={currentEntry.unit || ''}
+                                        readOnly
+                                        disabled
+                                        tabIndex={-1}
+                                        placeholder="Unit"
+                                        title="Auto-filled from medicine details (fixed)"
+                                        className={cn(inputCls, "!py-4 bg-slate-100 text-slate-700 font-bold text-center cursor-not-allowed select-none border-slate-200")}
+                                    />
                                 </div>
                                 <div className="md:col-span-1.5 space-y-2 font-outfit">
                                     <label className={labelCls}>Rate (P/U NC)</label>
-                                    <input type="number" name="rate" value={currentEntry.rate} onChange={handleEntryChange} placeholder="0" className={cn(inputCls, "!py-4")} />
+                                    <input
+                                        type="number"
+                                        name="rate"
+                                        value={currentEntry.rate || ''}
+                                        readOnly
+                                        disabled
+                                        tabIndex={-1}
+                                        placeholder="0"
+                                        title="Auto-filled from medicine details (fixed)"
+                                        className={cn(inputCls, "!py-4 bg-slate-100 text-slate-700 font-mono font-bold text-center cursor-not-allowed select-none border-slate-200")}
+                                    />
                                 </div>
                                 <div className="md:col-span-1">
                                     <button
@@ -987,12 +1042,14 @@ const PharmacyPage = () => {
                                         {selectedMedicine && (
                                             <span className={cn(
                                                 "px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 border",
-                                                selectedMedicine.stockStatus === 'In Stock' ? "bg-emerald-100 text-emerald-800 border-emerald-300" :
-                                                selectedMedicine.stockStatus === 'Low Stock' ? "bg-amber-100 text-amber-800 border-amber-300" :
-                                                "bg-rose-100 text-rose-800 border-rose-300"
+                                                selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
+                                                    ? "bg-rose-100 text-rose-800 border-rose-300"
+                                                    : "bg-emerald-100 text-emerald-800 border-emerald-300"
                                             )}>
                                                 <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                                                Available Stock: {selectedMedicine.stock} {selectedMedicine.unit} ({selectedMedicine.stockStatus})
+                                                {selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
+                                                    ? 'Not Available'
+                                                    : 'Available'}
                                             </span>
                                         )}
                                     </div>
@@ -1088,19 +1145,55 @@ const PharmacyPage = () => {
                                          <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                                              <div className="space-y-1">
                                                  <label className="text-[11px] font-black text-slate-700 uppercase tracking-widest">Round Off</label>
-                                                 <input type="number" value={financials.roundOff} onChange={handleFinancialChange} name="roundOff" className={cn(inputCls, "!py-3 text-base")} />
+                                                 <input
+                                                     type="number"
+                                                     value={financials.roundOff}
+                                                     readOnly
+                                                     disabled
+                                                     tabIndex={-1}
+                                                     name="roundOff"
+                                                     title="Standard round off (fixed)"
+                                                     className={cn(inputCls, "!py-3 text-base bg-slate-100 text-slate-700 font-bold cursor-not-allowed select-none border-slate-200")}
+                                                 />
                                              </div>
                                              <div className="space-y-1">
                                                  <label className="text-[11px] font-black text-slate-700 uppercase tracking-widest">Discount</label>
-                                                 <input type="number" value={financials.discount} onChange={handleFinancialChange} name="discount" className={cn(inputCls, "!py-3 text-base text-red-700")} />
+                                                 <input
+                                                     type="number"
+                                                     value={financials.discount}
+                                                     readOnly
+                                                     disabled
+                                                     tabIndex={-1}
+                                                     name="discount"
+                                                     title="Authorized discount (fixed)"
+                                                     className={cn(inputCls, "!py-3 text-base bg-slate-100 text-slate-700 font-bold cursor-not-allowed select-none border-slate-200")}
+                                                 />
                                              </div>
                                              <div className="space-y-1">
                                                  <label className="text-[11px] font-black text-slate-700 uppercase tracking-widest">Adjustment</label>
-                                                 <input type="number" value={financials.adjustment} onChange={handleFinancialChange} name="adjustment" className={cn(inputCls, "!py-3 text-base text-slate-800")} />
+                                                 <input
+                                                     type="number"
+                                                     value={financials.adjustment}
+                                                     readOnly
+                                                     disabled
+                                                     tabIndex={-1}
+                                                     name="adjustment"
+                                                     title="Authorized adjustment (fixed)"
+                                                     className={cn(inputCls, "!py-3 text-base bg-slate-100 text-slate-700 font-bold cursor-not-allowed select-none border-slate-200")}
+                                                 />
                                              </div>
                                              <div className="space-y-1">
                                                  <label className="text-[11px] font-black text-slate-700 uppercase tracking-widest">Delivery</label>
-                                                 <input type="number" value={financials.deliveryCharge} onChange={handleFinancialChange} name="deliveryCharge" className={cn(inputCls, "!py-3 text-base")} />
+                                                 <input
+                                                     type="number"
+                                                     value={financials.deliveryCharge}
+                                                     readOnly
+                                                     disabled
+                                                     tabIndex={-1}
+                                                     name="deliveryCharge"
+                                                     title="Hospital delivery charge (fixed)"
+                                                     className={cn(inputCls, "!py-3 text-base bg-slate-100 text-slate-700 font-bold cursor-not-allowed select-none border-slate-200")}
+                                                 />
                                              </div>
                                          </div>
 

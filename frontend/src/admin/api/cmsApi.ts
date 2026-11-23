@@ -15,6 +15,8 @@ export type ListParams = {
   doctor?: string;
   doctorId?: string;
   department?: string;
+  appointmentDate?: string;
+  [key: string]: any;
 };
 
 function toQuery(params: ListParams = {}) {
@@ -95,6 +97,36 @@ export async function getSettings() {
 
 export async function updateSettings(payload: unknown) {
   const { data } = await apiClient.put<ApiResponse<any>>('/admin/settings', payload);
+  return data.data;
+}
+
+export interface PageStatusItem {
+  pageKey: string;
+  path: string;
+  name: string;
+  status: 'active' | 'blocked';
+  noticeTitle?: string;
+  noticeMessage?: string;
+  updatedAt?: string;
+}
+
+export async function getPageStatuses() {
+  const { data } = await apiClient.get<ApiResponse<{ items: PageStatusItem[]; meta: { total: number; active: number; blocked: number } }>>(
+    '/admin/page-status'
+  );
+  return data.data;
+}
+
+export async function updatePageStatus(
+  pageKey: string,
+  payload: { status?: 'active' | 'blocked'; noticeTitle?: string; noticeMessage?: string }
+) {
+  const { data } = await apiClient.put<ApiResponse<PageStatusItem>>(`/admin/page-status/${pageKey}`, payload);
+  return data.data;
+}
+
+export async function updateAllPageStatuses(pageStatuses: PageStatusItem[]) {
+  const { data } = await apiClient.put<ApiResponse<PageStatusItem[]>>('/admin/page-status', { pageStatuses });
   return data.data;
 }
 
@@ -213,6 +245,117 @@ export async function deleteDoctorScheduleSlot(doctorId: string, slotId: string)
 
 export async function updateAppointmentStatus(id: string, status: string, notes?: string) {
   const { data } = await apiClient.patch<ApiResponse<any>>(`/admin/appointments/${id}/status`, { status, notes });
+  return data.data;
+}
+
+/** Live Updates API */
+export async function getLiveUpdates() {
+  const { data } = await apiClient.get<ApiResponse<{
+    lines: string[];
+    settings: { enabled: boolean; badgeTextEn: string; badgeTextNp: string; speed: 'slow' | 'normal' | 'fast' };
+    announcements: any[];
+  }>>('/admin/live-updates');
+  return data.data;
+}
+
+export async function updateLiveUpdates(payload: { lines?: string[]; settings?: any }) {
+  const { data } = await apiClient.put<ApiResponse<any>>('/admin/live-updates', payload);
+  return data.data;
+}
+
+export async function addLiveUpdateLine(text: string) {
+  const { data } = await apiClient.post<ApiResponse<string[]>>('/admin/live-updates/lines', { text });
+  return data.data;
+}
+
+export async function deleteLiveUpdateLine(index: number) {
+  const { data } = await apiClient.delete<ApiResponse<string[]>>(`/admin/live-updates/lines/${index}`);
+  return data.data;
+}
+
+/** Academic API */
+export interface AcademicProgramItem {
+  _id?: string;
+  title: string;
+  titleNp?: string;
+  duration?: string;
+  seats?: string;
+  tag?: string;
+  desc?: string;
+  descNp?: string;
+  eligibility?: string;
+  gradient?: string;
+  status: 'active' | 'admissions_open' | 'closed';
+  sortOrder?: number;
+  iconName?: string;
+  brochureUrl?: string;
+}
+
+export async function getAcademicData() {
+  const { data } = await apiClient.get<ApiResponse<{
+    programs: AcademicProgramItem[];
+    settings: {
+      heroTitle: string;
+      heroSubtitle: string;
+      yearsOfExcellence: string;
+      graduatesProduced: string;
+      academicProgramsCount: string;
+      researchPapers: string;
+      brochureUrl: string;
+    };
+    inquiriesCount: number;
+  }>>('/admin/academic');
+  return data.data;
+}
+
+export async function updateAcademicSettings(payload: any) {
+  const { data } = await apiClient.put<ApiResponse<any>>('/admin/academic/settings', payload);
+  return data.data;
+}
+
+export async function createAcademicProgram(payload: Partial<AcademicProgramItem>) {
+  const { data } = await apiClient.post<ApiResponse<AcademicProgramItem>>('/admin/academic/programs', payload);
+  return data.data;
+}
+
+export async function updateAcademicProgram(id: string, payload: Partial<AcademicProgramItem>) {
+  const { data } = await apiClient.put<ApiResponse<AcademicProgramItem>>(`/admin/academic/programs/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteAcademicProgram(id: string) {
+  const { data } = await apiClient.delete<ApiResponse<any>>(`/admin/academic/programs/${id}`);
+  return data.data;
+}
+
+export async function getAcademicInquiries() {
+  const { data } = await apiClient.get<ApiResponse<any[]>>('/admin/academic/inquiries');
+  return data.data;
+}
+
+/** Popup Notice API */
+export interface PopupNoticeConfig {
+  enabled: boolean;
+  title: string;
+  titleNp: string;
+  message: string;
+  messageNp: string;
+  imageUrl: string;
+  buttonText: string;
+  buttonLink: string;
+  displayType: 'image_only' | 'text_only' | 'image_and_text';
+  frequency: 'always' | 'once_per_session' | 'once_per_day';
+  showCloseButton: boolean;
+  updatedAt?: string;
+}
+
+export async function getPopupNotice() {
+  const { data } = await apiClient.get<ApiResponse<PopupNoticeConfig>>('/admin/popup-notice');
+  return data.data;
+}
+
+export async function updatePopupNotice(payload: Partial<PopupNoticeConfig>) {
+  const { data } = await apiClient.put<ApiResponse<PopupNoticeConfig>>('/admin/popup-notice', payload);
   return data.data;
 }
 

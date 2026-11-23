@@ -11,7 +11,6 @@ const doctorSchema = new mongoose.Schema(
     category: { type: String, default: '', index: true },
     teamCategory: {
       type: String,
-      enum: ['DOCTOR', 'NURSING STAFF', 'PARAMEDICAL STAFF', 'PHARMACY STAFF', 'RADIO IMAGING STAFF', 'LABORATORY STAFF', 'MANAGEMENT', 'ADMINISTRATION'],
       default: 'DOCTOR',
       index: true,
     },

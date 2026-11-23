@@ -6,6 +6,7 @@ import { Button, Card, Input, Label, LoadingBlock, PageHeader, Select, Textarea 
 import { MediaPicker } from '../components/MediaPicker';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { Plus, Trash2, User } from 'lucide-react';
+import { PageStatusBanner } from '../components/PageStatusBanner';
 
 const DEFAULT_LEADERS = [
   {
@@ -84,6 +85,8 @@ export default function AboutAdminPage() {
         breadcrumbs={[{ label: 'CMS' }, { label: 'About Hospital' }]}
         actions={<Button loading={saving} onClick={onSubmit}>Save About</Button>}
       />
+
+      <PageStatusBanner pageKey="about" />
 
       <form onSubmit={onSubmit} className="grid gap-4 xl:grid-cols-2">
         <Card className="space-y-4 p-5">

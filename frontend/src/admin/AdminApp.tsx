@@ -63,6 +63,10 @@ function AdminScrollToTop() {
 }
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const PageStatusPage = lazy(() => import('./pages/PageStatusPage'));
+const LiveUpdatesPage = lazy(() => import('./pages/LiveUpdatesPage'));
+const AcademicAdminPage = lazy(() => import('./pages/AcademicAdminPage'));
+const PopupNoticePage = lazy(() => import('./pages/PopupNoticePage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const HomepagePage = lazy(() => import('./pages/HomepagePage'));
 const AboutAdminPage = lazy(() => import('./pages/AboutPage'));
@@ -92,6 +96,10 @@ export default function AdminApp() {
           }
         >
           <Route index element={<DashboardPage />} />
+          <Route path="page-status" element={<SectionPermissionGuard permissionKey="settings"><PageStatusPage /></SectionPermissionGuard>} />
+          <Route path="live-updates" element={<SectionPermissionGuard permissionKey="content"><LiveUpdatesPage /></SectionPermissionGuard>} />
+          <Route path="academic" element={<SectionPermissionGuard permissionKey="content"><AcademicAdminPage /></SectionPermissionGuard>} />
+          <Route path="popup-notice" element={<SectionPermissionGuard permissionKey="content"><PopupNoticePage /></SectionPermissionGuard>} />
           <Route path="settings" element={<SectionPermissionGuard permissionKey="settings"><SettingsPage /></SectionPermissionGuard>} />
           <Route path="homepage" element={<SectionPermissionGuard permissionKey="homepage"><HomepagePage /></SectionPermissionGuard>} />
           <Route path="about" element={<SectionPermissionGuard permissionKey="about"><AboutAdminPage /></SectionPermissionGuard>} />

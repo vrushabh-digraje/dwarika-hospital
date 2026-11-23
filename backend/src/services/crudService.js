@@ -29,6 +29,17 @@ export function createCrudService(Model, options = {}) {
     if (query.isFeaturedOnHero !== undefined) filter.isFeaturedOnHero = query.isFeaturedOnHero === 'true';
     if (query.stockStatus) filter.stockStatus = query.stockStatus;
     if (query.group) filter.group = query.group;
+    if (query.doctor) filter.doctor = query.doctor;
+    if (query.appointmentDate) {
+      const d = new Date(query.appointmentDate);
+      if (!isNaN(d.getTime())) {
+        const start = new Date(d);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(d);
+        end.setHours(23, 59, 59, 999);
+        filter.appointmentDate = { $gte: start, $lte: end };
+      }
+    }
 
     if (query.search && searchFields.length) {
       const regex = new RegExp(query.search, 'i');

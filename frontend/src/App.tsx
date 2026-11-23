@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
+import { PageStatusProvider, PageStatusGuard } from './components/PageStatusGuard';
+import WebsiteNoticePopup from './components/WebsiteNoticePopup';
 
 // Code splitting - Lazy loaded routes
 const AboutPage = lazy(() => import('./sections/AboutPage'));
@@ -37,41 +39,46 @@ const PageLoader = () => (
 
 function PublicShell() {
   return (
-    <div className="site-shell min-h-screen selection:bg-primary/20 selection:text-primary flex flex-col">
-      <ScrollToTop />
-      <Navbar />
-      <main className="flex-grow relative">
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/academic" element={<Academic />} />
-            <Route path="/downloads" element={<DownloadPage />} />
-            <Route path="/appointment" element={<DoctorAppointment />} />
-            <Route path="/reports" element={<PatientReportsPage />} />
-            <Route path="/online-form" element={<ComplexOnlineRegistrationForm />} />
-            <Route path="/support-form" element={<OnlineFormPage />} />
-            <Route path="/our-story" element={<HospitalStoryPage />} />
-            <Route path="/news/:id" element={<NewsDetailPage />} />
-            <Route path="/news-events" element={<NewsAndEvents />} />
-            <Route path="/notices" element={<NewsAndEvents />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/blogs" element={<BlogPage />} />
-            <Route path="/blog/:id" element={<BlogDetailPage />} />
-            <Route path="/pharmacy" element={<PharmacyPage />} />
-            <Route path="/student-register" element={<StudentRegisterPage />} />
-            <Route path="/register" element={<PatientRegisterPage />} />
-            <Route path="/department/:slug" element={<DepartmentDetailPage />} />
-            <Route path="/videos" element={<VideosPage />} />
-            <Route path="/strategic-vision" element={<StrategicVisionPage />} />
-            <Route path="/online-registration" element={<ComplexOnlineRegistrationForm />} />
-            <Route path="/gallery" element={<GallerySection />} />
-            <Route path="/contact" element={<ContactUsPage />} />
-          </Routes>
-        </Suspense>
-      </main>
-      <Footer />
-    </div>
+    <PageStatusProvider>
+      <div className="site-shell min-h-screen selection:bg-primary/20 selection:text-primary flex flex-col">
+        <ScrollToTop />
+        <WebsiteNoticePopup />
+        <Navbar />
+        <main className="flex-grow relative">
+          <Suspense fallback={<PageLoader />}>
+            <PageStatusGuard>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/academic" element={<Academic />} />
+                <Route path="/downloads" element={<DownloadPage />} />
+                <Route path="/appointment" element={<DoctorAppointment />} />
+                <Route path="/reports" element={<PatientReportsPage />} />
+                <Route path="/online-form" element={<ComplexOnlineRegistrationForm />} />
+                <Route path="/support-form" element={<OnlineFormPage />} />
+                <Route path="/our-story" element={<HospitalStoryPage />} />
+                <Route path="/news/:id" element={<NewsDetailPage />} />
+                <Route path="/news-events" element={<NewsAndEvents />} />
+                <Route path="/notices" element={<NewsAndEvents />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/blogs" element={<BlogPage />} />
+                <Route path="/blog/:id" element={<BlogDetailPage />} />
+                <Route path="/pharmacy" element={<PharmacyPage />} />
+                <Route path="/student-register" element={<StudentRegisterPage />} />
+                <Route path="/register" element={<PatientRegisterPage />} />
+                <Route path="/department/:slug" element={<DepartmentDetailPage />} />
+                <Route path="/videos" element={<VideosPage />} />
+                <Route path="/strategic-vision" element={<StrategicVisionPage />} />
+                <Route path="/online-registration" element={<ComplexOnlineRegistrationForm />} />
+                <Route path="/gallery" element={<GallerySection />} />
+                <Route path="/contact" element={<ContactUsPage />} />
+              </Routes>
+            </PageStatusGuard>
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    </PageStatusProvider>
   );
 }
 

@@ -28,6 +28,10 @@ import {
   Pill,
   ClipboardCheck,
   UserCheck,
+  ShieldAlert,
+  Radio,
+  GraduationCap,
+  Bell,
 } from 'lucide-react';
 
 export type FieldType =
@@ -122,6 +126,7 @@ export const modules: ModuleConfig[] = [
         name: 'teamCategory',
         label: 'Team Category',
         type: 'select',
+        allowCustom: true,
         options: [
           { label: 'Doctor', value: 'DOCTOR' },
         ],
@@ -186,6 +191,7 @@ export const modules: ModuleConfig[] = [
         name: 'teamCategory',
         label: 'Team Category',
         type: 'select',
+        allowCustom: true,
         required: true,
         options: [
           { label: 'Nursing Staff', value: 'NURSING STAFF' },
@@ -1265,6 +1271,10 @@ export const modules: ModuleConfig[] = [
 
 export const specialNav = [
   { path: '', label: 'Dashboard', icon: LayoutDashboard, group: 'overview' as const },
+  { path: 'page-status', label: 'Page Controls (Active / Block)', icon: ShieldAlert, group: 'content' as const },
+  { path: 'live-updates', label: 'Live Updates', icon: Radio, group: 'content' as const },
+  { path: 'academic', label: 'Academic', icon: GraduationCap, group: 'content' as const },
+  { path: 'popup-notice', label: 'Popup Banner / Notice', icon: Bell, group: 'content' as const },
   { path: 'settings', label: 'Website Settings', icon: Settings, group: 'system' as const },
   { path: 'homepage', label: 'Homepage', icon: Home, group: 'content' as const },
   { path: 'about', label: 'About Hospital', icon: Info, group: 'content' as const },

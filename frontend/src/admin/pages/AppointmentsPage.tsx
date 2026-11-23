@@ -19,6 +19,11 @@ import {
   Eye,
   Check,
   FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
+  CalendarRange,
+  X,
 } from 'lucide-react';
 import { exportToExcel } from '../lib/exportExcel';
 import { toast } from 'sonner';
@@ -47,6 +52,7 @@ import {
 } from '../components/ui';
 import { formatDate, truncate, cn } from '../lib/format';
 import { resolveImageUrl } from '../../lib/utils';
+import { PageStatusBanner } from '../components/PageStatusBanner';
 
 const DAYS_OF_WEEK = [
   'Sunday',
@@ -84,6 +90,14 @@ export default function AppointmentsPage() {
   const [scheduleDoctorFilter, setScheduleDoctorFilter] = useState('');
   const [scheduleDayFilter, setScheduleDayFilter] = useState('');
 
+  // Calendar & Date Navigation state
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date>(() => new Date());
+  const [calendarMonth, setCalendarMonth] = useState<Date>(() => new Date());
+  const [scheduleViewMode, setScheduleViewMode] = useState<'timetable' | 'calendar'>('timetable');
+
+  // Appointment Date filter for Tab 1
+  const [appointmentDateFilter, setAppointmentDateFilter] = useState<string>('');
+
   // Modals & Inspectors
   const [inspectorAppointment, setInspectorAppointment] = useState<any | null>(null);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
@@ -104,7 +118,8 @@ export default function AppointmentsPage() {
         limit: 5000,
         search: search || undefined,
         status: statusFilter || undefined,
-        doctorId: doctorFilter || undefined,
+        doctor: doctorFilter || undefined,
+        appointmentDate: appointmentDateFilter || undefined,
       });
       exportToExcel('appointments', 'Appointments', res.items);
       toast.success('Appointments exported to Excel (.xlsx) successfully!');
@@ -153,6 +168,7 @@ export default function AppointmentsPage() {
         search: search || undefined,
         status: statusFilter || undefined,
         doctor: doctorFilter || undefined,
+        appointmentDate: appointmentDateFilter || undefined,
       });
       setAppointments(res.items);
       setMeta(res.meta);
@@ -161,7 +177,7 @@ export default function AppointmentsPage() {
     } finally {
       setLoadingAppointments(false);
     }
-  }, [page, search, statusFilter, doctorFilter]);
+  }, [page, search, statusFilter, doctorFilter, appointmentDateFilter]);
 
   // Load Doctor Schedules
   const loadSchedules = useCallback(async () => {
@@ -204,6 +220,197 @@ export default function AppointmentsPage() {
       imageUrl: d.imageUrl,
     }));
   }, [doctorsWithSchedules]);
+
+  // Date Helpers for Weekly Timetable & Monthly Calendar
+  const getStartOfWeek = (d: Date) => {
+    const date = new Date(d);
+    const day = date.getDay(); // 0 is Sunday
+    date.setDate(date.getDate() - day);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  const isSameCalendarDay = (d1: Date, d2: Date) => {
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+    );
+  };
+
+  const toDateInputValue = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // 7 days of the selected week (Sunday to Saturday) with calendar dates
+  const currentWeekDays = useMemo(() => {
+    const start = getStartOfWeek(selectedCalendarDate);
+    const today = new Date();
+
+    return DAYS_OF_WEEK.map((dayName, idx) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + idx);
+      const isToday = isSameCalendarDay(date, today);
+      const isSelected = isSameCalendarDay(date, selectedCalendarDate);
+      const monthShort = date.toLocaleDateString('en-US', { month: 'short' });
+      const dateNum = date.getDate();
+      const displayDate = `${monthShort} ${dateNum}`;
+      const fullDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const isoDate = toDateInputValue(date);
+
+      return {
+        dayName,
+        date,
+        dateNum,
+        monthShort,
+        displayDate,
+        fullDate,
+        isoDate,
+        isToday,
+        isSelected,
+      };
+    });
+  }, [selectedCalendarDate]);
+
+  const weekRangeText = useMemo(() => {
+    if (currentWeekDays.length === 0) return '';
+    const first = currentWeekDays[0];
+    const last = currentWeekDays[currentWeekDays.length - 1];
+    return `${first.displayDate}, ${first.date.getFullYear()} – ${last.displayDate}, ${last.date.getFullYear()}`;
+  }, [currentWeekDays]);
+
+  const handlePrevWeek = () => {
+    setSelectedCalendarDate((prev) => {
+      const next = new Date(prev);
+      next.setDate(next.getDate() - 7);
+      return next;
+    });
+  };
+
+  const handleNextWeek = () => {
+    setSelectedCalendarDate((prev) => {
+      const next = new Date(prev);
+      next.setDate(next.getDate() + 7);
+      return next;
+    });
+  };
+
+  const handleThisWeek = () => {
+    const today = new Date();
+    setSelectedCalendarDate(today);
+    setCalendarMonth(today);
+  };
+
+  const handleDateSelectChange = (isoString: string) => {
+    if (!isoString) return;
+    const [y, m, d] = isoString.split('-').map(Number);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      const newDate = new Date(y, m - 1, d);
+      setSelectedCalendarDate(newDate);
+      setCalendarMonth(newDate);
+    }
+  };
+
+  // Month grid for Monthly Calendar View
+  const calendarMonthDays = useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDayIndex = new Date(year, month, 1).getDay(); // 0 is Sunday
+    const daysInCurrentMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    const today = new Date();
+
+    const days: Array<{
+      date: Date;
+      dayNumber: number;
+      dayName: string;
+      isCurrentMonth: boolean;
+      isToday: boolean;
+      isSelected: boolean;
+      slots: Array<{ doctor: any; slot: any }>;
+    }> = [];
+
+    // Previous month padding days
+    for (let i = firstDayIndex - 1; i >= 0; i--) {
+      const dayNum = daysInPrevMonth - i;
+      const date = new Date(year, month - 1, dayNum);
+      const dayName = DAYS_OF_WEEK[date.getDay()];
+      days.push({
+        date,
+        dayNumber: dayNum,
+        dayName,
+        isCurrentMonth: false,
+        isToday: isSameCalendarDay(date, today),
+        isSelected: isSameCalendarDay(date, selectedCalendarDate),
+        slots: [],
+      });
+    }
+
+    // Current month days
+    for (let d = 1; d <= daysInCurrentMonth; d++) {
+      const date = new Date(year, month, d);
+      const dayName = DAYS_OF_WEEK[date.getDay()];
+      const isToday = isSameCalendarDay(date, today);
+      const isSelected = isSameCalendarDay(date, selectedCalendarDate);
+
+      const slotsForDay: Array<{ doctor: any; slot: any }> = [];
+      doctorsWithSchedules.forEach((doc) => {
+        (doc.schedule || []).forEach((slot: any) => {
+          if (slot.day === dayName && slot.isActive !== false) {
+            if (!scheduleDoctorFilter || doc._id === scheduleDoctorFilter) {
+              slotsForDay.push({ doctor: doc, slot });
+            }
+          }
+        });
+      });
+
+      days.push({
+        date,
+        dayNumber: d,
+        dayName,
+        isCurrentMonth: true,
+        isToday,
+        isSelected,
+        slots: slotsForDay,
+      });
+    }
+
+    // Next month padding days to reach multiple of 7
+    const totalCells = days.length <= 35 ? 35 : 42;
+    const remaining = totalCells - days.length;
+    for (let d = 1; d <= remaining; d++) {
+      const date = new Date(year, month + 1, d);
+      const dayName = DAYS_OF_WEEK[date.getDay()];
+      days.push({
+        date,
+        dayNumber: d,
+        dayName,
+        isCurrentMonth: false,
+        isToday: isSameCalendarDay(date, today),
+        isSelected: isSameCalendarDay(date, selectedCalendarDate),
+        slots: [],
+      });
+    }
+
+    return days;
+  }, [calendarMonth, doctorsWithSchedules, scheduleDoctorFilter, selectedCalendarDate]);
+
+  const handlePrevMonth = () => {
+    setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const handleCurrentMonth = () => {
+    const today = new Date();
+    setCalendarMonth(today);
+    setSelectedCalendarDate(today);
+  };
 
   // Quick Status Updater
   const handleQuickStatus = async (appointmentId: string, newStatus: string) => {
@@ -437,6 +644,8 @@ export default function AppointmentsPage() {
         }
       />
 
+      <PageStatusBanner pageKey="appointment" />
+
       {/* Main Tabs Navigation */}
       <div className="flex border-b border-ink-200 bg-white px-4 pt-2 rounded-2xl shadow-xs">
         <button
@@ -622,6 +831,35 @@ export default function AppointmentsPage() {
                   <option value="completed">🔵 Completed</option>
                   <option value="cancelled">🔴 Cancelled</option>
                 </Select>
+              </div>
+
+              {/* Date Filter */}
+              <div className="flex items-center gap-1.5 bg-ink-50 px-3 py-2 rounded-xl border border-ink-200 shrink-0">
+                <Calendar className="h-4 w-4 text-ink-500 shrink-0" />
+                <span className="text-xs font-semibold text-ink-600 hidden sm:inline">Date:</span>
+                <input
+                  type="date"
+                  value={appointmentDateFilter}
+                  onChange={(e) => {
+                    setPage(1);
+                    setAppointmentDateFilter(e.target.value);
+                  }}
+                  className="bg-transparent text-xs font-bold text-ink-900 focus:outline-hidden cursor-pointer"
+                  title="Filter appointments by date"
+                />
+                {appointmentDateFilter && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPage(1);
+                      setAppointmentDateFilter('');
+                    }}
+                    className="p-0.5 text-ink-400 hover:text-rose-600 cursor-pointer"
+                    title="Clear date filter"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
 
               {/* View Layout Switcher */}
@@ -967,7 +1205,7 @@ export default function AppointmentsPage() {
                 </div>
 
                 {/* Filter Day */}
-                <div className="w-full sm:w-48">
+                <div className="w-full sm:w-44">
                   <Select
                     value={scheduleDayFilter}
                     onChange={(e) => setScheduleDayFilter(e.target.value)}
@@ -980,6 +1218,51 @@ export default function AppointmentsPage() {
                     ))}
                   </Select>
                 </div>
+
+                {/* Date Picker (Jump to Date) */}
+                <div className="flex items-center gap-1.5 bg-ink-50 px-3 py-2 rounded-xl border border-ink-200 shrink-0">
+                  <Calendar className="h-4 w-4 text-ink-500 shrink-0" />
+                  <span className="text-xs font-semibold text-ink-600 hidden sm:inline">Jump to Date:</span>
+                  <input
+                    type="date"
+                    value={toDateInputValue(selectedCalendarDate)}
+                    onChange={(e) => handleDateSelectChange(e.target.value)}
+                    className="bg-transparent text-xs font-bold text-ink-900 focus:outline-hidden cursor-pointer"
+                    title="Select date to jump timetable week"
+                  />
+                </div>
+
+                {/* Timetable vs Monthly Calendar Toggle */}
+                {!scheduleDoctorFilter && (
+                  <div className="flex items-center gap-1 bg-ink-100 p-1 rounded-xl shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setScheduleViewMode('timetable')}
+                      className={cn(
+                        'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer',
+                        scheduleViewMode === 'timetable'
+                          ? 'bg-white text-ink-900 shadow-xs'
+                          : 'text-ink-600 hover:text-ink-900'
+                      )}
+                    >
+                      <CalendarRange className="h-3.5 w-3.5" />
+                      <span>Weekly Matrix</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setScheduleViewMode('calendar')}
+                      className={cn(
+                        'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer',
+                        scheduleViewMode === 'calendar'
+                          ? 'bg-white text-ink-900 shadow-xs'
+                          : 'text-ink-600 hover:text-ink-900'
+                      )}
+                    >
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      <span>Monthly Calendar</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               <Button
@@ -991,28 +1274,211 @@ export default function AppointmentsPage() {
             </div>
           </Card>
 
-          {/* Weekly Timetable Matrix (Sunday to Saturday) */}
-          {!scheduleDoctorFilter && (
+          {/* Monthly Calendar View */}
+          {!scheduleDoctorFilter && scheduleViewMode === 'calendar' && (
             <Card className="p-4 overflow-hidden">
-              <div className="flex items-center justify-between border-b border-ink-100 pb-3 mb-4">
+              {/* Month Header and Navigation */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-ink-100 pb-3 mb-4">
                 <div>
-                  <h3 className="font-display text-base font-bold text-ink-900">Weekly OPD Duty Timetable</h3>
-                  <p className="text-xs text-ink-500">Live roster of which doctors are available each day across hospital OPD clinics.</p>
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5 text-brand-700" />
+                    <h3 className="font-display text-base font-bold text-ink-900">
+                      {calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} OPD Calendar
+                    </h3>
+                  </div>
+                  <p className="text-xs text-ink-500 mt-0.5">
+                    Monthly overview of doctor duty shifts and hospital OPD clinic schedules.
+                  </p>
                 </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-xl bg-brand-50 text-brand-800">
-                  7-Day Schedule Matrix
-                </span>
+
+                {/* Month Navigation Controls */}
+                <div className="flex items-center gap-1.5 bg-ink-50 border border-ink-200 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={handlePrevMonth}
+                    className="p-1.5 rounded-lg text-ink-600 hover:text-ink-900 hover:bg-white transition cursor-pointer"
+                    title="Previous Month"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCurrentMonth}
+                    className="px-2.5 py-1 text-xs font-bold text-brand-800 hover:bg-white rounded-lg transition cursor-pointer"
+                  >
+                    Current Month
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextMonth}
+                    className="p-1.5 rounded-lg text-ink-600 hover:text-ink-900 hover:bg-white transition cursor-pointer"
+                    title="Next Month"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Day of Week Headers */}
+              <div className="grid grid-cols-7 gap-2 mb-2 text-center">
+                {DAYS_OF_WEEK.map((day) => (
+                  <div
+                    key={day}
+                    className="py-1.5 text-xs font-extrabold uppercase text-ink-600 bg-ink-100/70 rounded-lg tracking-wider"
+                  >
+                    {day.slice(0, 3)}
+                  </div>
+                ))}
+              </div>
+
+              {/* Monthly Days Grid */}
+              <div className="grid grid-cols-7 gap-2">
+                {calendarMonthDays.map((day, idx) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      'min-h-[115px] p-2 rounded-xl border flex flex-col justify-between transition text-left',
+                      !day.isCurrentMonth
+                        ? 'border-ink-100 bg-ink-50/40 opacity-40'
+                        : day.isToday
+                        ? 'border-emerald-500 bg-emerald-50/30 ring-2 ring-emerald-200'
+                        : 'border-ink-200 bg-white hover:border-brand-300'
+                    )}
+                  >
+                    <div>
+                      {/* Day Number and Badges */}
+                      <div className="flex items-center justify-between pb-1 border-b border-ink-100">
+                        <span
+                          className={cn(
+                            'text-xs font-extrabold px-1.5 py-0.5 rounded-md',
+                            day.isToday
+                              ? 'bg-emerald-600 text-white'
+                              : day.isCurrentMonth
+                              ? 'text-ink-900'
+                              : 'text-ink-400'
+                          )}
+                        >
+                          {day.dayNumber}
+                        </span>
+                        {day.isToday && (
+                          <span className="text-[9px] font-extrabold uppercase text-emerald-700 tracking-tight">
+                            Today
+                          </span>
+                        )}
+                        {day.isCurrentMonth && day.slots.length > 0 && !day.isToday && (
+                          <span className="text-[10px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.2 rounded-full">
+                            {day.slots.length} slots
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Doctor Slots in this Day */}
+                      {day.isCurrentMonth && (
+                        <div className="mt-1.5 space-y-1 overflow-hidden">
+                          {day.slots.slice(0, 2).map(({ doctor, slot }) => (
+                            <div
+                              key={slot._id}
+                              onClick={() => openEditSchedule(doctor, slot)}
+                              className="text-[10px] p-1 bg-ink-50 hover:bg-brand-50 rounded border border-ink-200 hover:border-brand-300 cursor-pointer transition truncate"
+                              title={`${doctor.name} (${doctor.specialty || 'General'}) - ${slot.startTime} to ${slot.endTime}`}
+                            >
+                              <div className="font-bold text-ink-900 truncate">
+                                🩺 {doctor.name}
+                              </div>
+                              <div className="text-ink-500 text-[9px] truncate">
+                                🕒 {slot.startTime} – {slot.endTime}
+                              </div>
+                            </div>
+                          ))}
+                          {day.slots.length > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedCalendarDate(day.date);
+                                setScheduleViewMode('timetable');
+                              }}
+                              className="text-[9px] font-bold text-brand-700 hover:underline cursor-pointer block"
+                            >
+                              +{day.slots.length - 2} more slots
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Quick Add Slot Button */}
+                    {day.isCurrentMonth && (
+                      <button
+                        type="button"
+                        onClick={() => openAddSchedule(undefined, day.dayName)}
+                        className="mt-1 w-full text-[10px] font-semibold text-brand-700 hover:bg-brand-50 rounded py-0.5 border border-dashed border-ink-200 hover:border-brand-400 transition cursor-pointer text-center"
+                      >
+                        + Add Slot
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Weekly Timetable Matrix (Sunday to Saturday with Dates & Week Navigation) */}
+          {!scheduleDoctorFilter && scheduleViewMode === 'timetable' && (
+            <Card className="p-4 overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-ink-100 pb-3 mb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5 text-brand-700" />
+                    <h3 className="font-display text-base font-bold text-ink-900">Weekly OPD Duty Timetable</h3>
+                  </div>
+                  <p className="text-xs text-ink-500 mt-0.5">
+                    Live roster of doctor clinics for <span className="font-semibold text-ink-800">{weekRangeText}</span>
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {/* Week Navigation Controls */}
+                  <div className="flex items-center gap-1 bg-ink-50 border border-ink-200 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={handlePrevWeek}
+                      className="p-1.5 rounded-lg text-ink-600 hover:text-ink-900 hover:bg-white transition cursor-pointer"
+                      title="Previous Week"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleThisWeek}
+                      className="px-2.5 py-1 text-xs font-bold text-brand-800 hover:bg-white rounded-lg transition cursor-pointer"
+                    >
+                      This Week
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextWeek}
+                      className="p-1.5 rounded-lg text-ink-600 hover:text-ink-900 hover:bg-white transition cursor-pointer"
+                      title="Next Week"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-xl bg-brand-50 text-brand-800 hidden md:inline">
+                    7-Day Schedule Matrix
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
-                {DAYS_OF_WEEK.map((day) => {
-                  if (scheduleDayFilter && scheduleDayFilter !== day) return null;
+                {currentWeekDays.map((dayInfo) => {
+                  if (scheduleDayFilter && scheduleDayFilter !== dayInfo.dayName) return null;
 
                   // Find all doctors on duty this day
                   const slotsForDay: { doctor: any; slot: any }[] = [];
                   doctorsWithSchedules.forEach((doc) => {
                     (doc.schedule || []).forEach((slot: any) => {
-                      if (slot.day === day && slot.isActive !== false) {
+                      if (slot.day === dayInfo.dayName && slot.isActive !== false) {
                         slotsForDay.push({ doctor: doc, slot });
                       }
                     });
@@ -1020,17 +1486,39 @@ export default function AppointmentsPage() {
 
                   return (
                     <div
-                      key={day}
-                      className="rounded-2xl border border-ink-200 bg-ink-50/50 p-3 flex flex-col justify-between"
+                      key={dayInfo.dayName}
+                      className={cn(
+                        'rounded-2xl border p-3 flex flex-col justify-between transition',
+                        dayInfo.isToday
+                          ? 'border-emerald-500 bg-emerald-50/25 ring-2 ring-emerald-200 shadow-xs'
+                          : 'border-ink-200 bg-ink-50/50'
+                      )}
                     >
                       <div>
-                        <div className="flex items-center justify-between border-b border-ink-200 pb-2 mb-2.5">
-                          <span className="font-display font-extrabold text-sm text-ink-900 uppercase tracking-tight">
-                            {day}
-                          </span>
-                          <span className="text-[11px] font-bold text-brand-700 bg-white px-2 py-0.5 rounded-full border border-ink-200">
-                            {slotsForDay.length}
-                          </span>
+                        <div className="border-b border-ink-200 pb-2 mb-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-display font-extrabold text-sm text-ink-900 uppercase tracking-tight">
+                              {dayInfo.dayName}
+                            </span>
+                            <span className="text-[11px] font-bold text-brand-700 bg-white px-2 py-0.5 rounded-full border border-ink-200">
+                              {slotsForDay.length}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between mt-1">
+                            <span
+                              className={cn(
+                                'text-xs font-bold',
+                                dayInfo.isToday ? 'text-emerald-700' : 'text-ink-500'
+                              )}
+                            >
+                              {dayInfo.displayDate}
+                            </span>
+                            {dayInfo.isToday && (
+                              <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded-md bg-emerald-600 text-white tracking-wider">
+                                TODAY
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {slotsForDay.length === 0 ? (
@@ -1088,7 +1576,7 @@ export default function AppointmentsPage() {
 
                       <button
                         type="button"
-                        onClick={() => openAddSchedule(undefined, day)}
+                        onClick={() => openAddSchedule(undefined, dayInfo.dayName)}
                         className="mt-3 w-full rounded-xl border border-dashed border-ink-300 py-1.5 text-center text-xs font-semibold text-brand-700 hover:border-brand-500 hover:bg-brand-50 transition cursor-pointer"
                       >
                         + Add Slot

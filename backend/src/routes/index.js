@@ -4,6 +4,8 @@ import { registerModuleRoutes } from '../modules/registry.js';
 import mediaRoutes from './media.routes.js';
 import * as dashboardController from '../controllers/dashboardController.js';
 import * as settingsController from '../controllers/settingsController.js';
+import * as liveUpdatesController from '../controllers/liveUpdatesController.js';
+import * as academicController from '../controllers/academicController.js';
 import Enquiry from '../models/Enquiry.js';
 import Appointment from '../models/Appointment.js';
 import Doctor from '../models/Doctor.js';
@@ -121,10 +123,36 @@ adminRouter.get('/homepage', settingsController.getHomepage);
 adminRouter.put('/homepage', protect, settingsController.updateHomepage);
 adminRouter.get('/about', settingsController.getAbout);
 adminRouter.put('/about', protect, settingsController.upsertAbout);
+adminRouter.get('/page-status', settingsController.getPageStatuses);
+adminRouter.put('/page-status/:pageKey', protect, settingsController.updatePageStatus);
+adminRouter.put('/page-status', protect, settingsController.updateAllPageStatuses);
+
+// Live Updates
+adminRouter.get('/live-updates', liveUpdatesController.getLiveUpdates);
+adminRouter.put('/live-updates', protect, liveUpdatesController.updateLiveUpdates);
+adminRouter.post('/live-updates/lines', protect, liveUpdatesController.addLiveUpdateLine);
+adminRouter.delete('/live-updates/lines/:index', protect, liveUpdatesController.deleteLiveUpdateLine);
+
+// Academic
+adminRouter.get('/academic', academicController.getAcademicData);
+adminRouter.put('/academic/settings', protect, academicController.updateAcademicSettings);
+adminRouter.post('/academic/programs', protect, academicController.createProgram);
+adminRouter.put('/academic/programs/:id', protect, academicController.updateProgram);
+adminRouter.delete('/academic/programs/:id', protect, academicController.deleteProgram);
+adminRouter.get('/academic/inquiries', protect, academicController.getAcademicInquiries);
+
+// Popup Notice
+adminRouter.get('/popup-notice', settingsController.getPopupNotice);
+adminRouter.put('/popup-notice', protect, settingsController.updatePopupNotice);
 
 publicRouter.get('/settings', settingsController.getSettings);
 publicRouter.get('/homepage', settingsController.getHomepage);
 publicRouter.get('/about', settingsController.getAbout);
+publicRouter.get('/page-status', settingsController.getPageStatuses);
+publicRouter.get('/live-updates', liveUpdatesController.getLiveUpdates);
+publicRouter.get('/academic', academicController.getAcademicData);
+publicRouter.post('/academic/apply', academicController.submitAdmissionInquiry);
+publicRouter.get('/popup-notice', settingsController.getPopupNotice);
 
 // Registration Access Mode Settings
 publicRouter.get(

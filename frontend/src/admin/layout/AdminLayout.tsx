@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, PanelLeftClose, PanelLeftOpen, Sparkles, LogOut, ArrowUp } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,6 +13,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { sidebarOpen, sidebarCollapsed } = useSelector((s: RootState) => s.ui);
+  const navRef = useRef<HTMLElement | null>(null);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
@@ -44,11 +45,52 @@ export default function AdminLayout() {
 
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Automatically scroll window and document to top whenever ANY admin section or route is clicked/opened
+  // Preserve and restore sidebar nav scroll position so it stays right where the admin left it
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const handleNavScroll = () => {
+      sessionStorage.setItem('admin_sidebar_nav_scroll', String(nav.scrollTop));
+    };
+    nav.addEventListener('scroll', handleNavScroll, { passive: true });
+
+    const saved = sessionStorage.getItem('admin_sidebar_nav_scroll');
+    if (saved !== null) {
+      nav.scrollTop = Number(saved);
+    }
+
+    return () => {
+      nav.removeEventListener('scroll', handleNavScroll);
+    };
+  }, []);
+
+  // When admin clicks ANY option on side panel or route changes:
+  // 1. Admin Console main page opens from the top (top: 0)
+  // 2. Side panel stays on the active option without resetting or jumping
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+
+    const timer = setTimeout(() => {
+      const nav = navRef.current;
+      if (!nav) return;
+      const activeLink = nav.querySelector<HTMLElement>('a.bg-white, a[aria-current="page"]');
+      if (activeLink) {
+        const navRect = nav.getBoundingClientRect();
+        const linkRect = activeLink.getBoundingClientRect();
+        // If the active item is above the visible area of the nav, bring it into view
+        if (linkRect.top < navRect.top) {
+          nav.scrollTop -= (navRect.top - linkRect.top + 16);
+        } else if (linkRect.bottom > navRect.bottom) {
+          // If the active item is below the visible area of the nav, bring it into view
+          nav.scrollTop += (linkRect.bottom - navRect.bottom + 16);
+        }
+      }
+    }, 50);
+
+    return () => clearTimeout(timer);
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -80,7 +122,8 @@ export default function AdminLayout() {
     ? specialNav
     : specialNav.filter((s) => {
         if (!s.path) return true; // Dashboard is always accessible
-        if (s.path === 'settings') return userPermissions.includes('settings');
+        if (s.path === 'settings' || s.path === 'page-status') return userPermissions.includes('settings') || userPermissions.includes('content');
+        if (s.path === 'live-updates' || s.path === 'academic' || s.path === 'popup-notice') return userPermissions.includes('content') || userPermissions.includes('settings') || userPermissions.includes('announcements');
         if (s.path === 'media') return userPermissions.includes('media');
         if (s.path === 'homepage' || s.path === 'about') return userPermissions.includes('content') || userPermissions.includes('homepage') || userPermissions.includes('about');
         return true;
@@ -99,11 +142,11 @@ export default function AdminLayout() {
   const Sidebar = (
     <aside
       className={cn(
-        'flex h-full flex-col border-r border-white/10 bg-[linear-gradient(180deg,#17372f_0%,#1f5144_45%,#246453_100%)] text-white transition-all',
+        'flex h-screen flex-col border-r border-white/10 bg-[linear-gradient(180deg,#17372f_0%,#1f5144_45%,#246453_100%)] text-white transition-all select-none',
         sidebarCollapsed ? 'w-[84px]' : 'w-[280px]'
       )}
     >
-      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-5">
+      <div className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-5">
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20">
           <Sparkles className="h-5 w-5" />
         </div>
@@ -115,7 +158,10 @@ export default function AdminLayout() {
         )}
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
+      <nav
+        ref={navRef}
+        className="flex-1 space-y-5 overflow-y-auto px-3 py-4 admin-sidebar-nav"
+      >
         {navGroups.map((group) => {
           const items = navItems.filter((item) => item.group === group.key);
           if (!items.length) return null;
@@ -143,9 +189,9 @@ export default function AdminLayout() {
                       }}
                       className={({ isActive }) =>
                         cn(
-                          'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition',
+                          'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition font-medium',
                           isActive
-                            ? 'bg-white text-brand-800 shadow-sm'
+                            ? 'bg-white text-brand-800 shadow-sm font-semibold'
                             : 'text-white/80 hover:bg-white/10 hover:text-white'
                         )
                       }
@@ -162,11 +208,11 @@ export default function AdminLayout() {
         })}
       </nav>
 
-      <div className="border-t border-white/10 p-3">
+      <div className="shrink-0 border-t border-white/10 p-3">
         <button
           type="button"
           onClick={() => dispatch(toggleSidebarCollapsed())}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-xs text-white/80 hover:bg-white/15"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-xs text-white/80 hover:bg-white/15 cursor-pointer"
         >
           {sidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
           {!sidebarCollapsed && 'Collapse'}
@@ -177,17 +223,19 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-shell flex min-h-screen bg-[#f3f5f7] text-ink-900">
-      <div className="hidden lg:block">{Sidebar}</div>
+      <div className="hidden lg:block sticky top-0 h-screen shrink-0 self-start z-30">
+        {Sidebar}
+      </div>
 
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-ink-900/40" onClick={() => dispatch(setSidebarOpen(false))} />
-          <div className="absolute inset-y-0 left-0 z-50 shadow-2xl">{Sidebar}</div>
+          <div className="absolute inset-y-0 left-0 z-50 shadow-2xl h-screen">{Sidebar}</div>
         </div>
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-ink-100 bg-white/85 px-4 py-3 backdrop-blur md:px-6">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-ink-100 bg-white/85 px-4 py-3 backdrop-blur md:px-6">
           <div className="flex items-center gap-3">
             <Button variant="ghost" className="lg:hidden" onClick={() => dispatch(setSidebarOpen(true))}>
               <Menu className="h-5 w-5" />

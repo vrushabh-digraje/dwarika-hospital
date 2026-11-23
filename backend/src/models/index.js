@@ -27,4 +27,5 @@ export { default as LabReport } from './LabReport.js';
 export { default as Medicine } from './Medicine.js';
 export { default as Registration } from './Registration.js';
 export { default as Applicant } from './Applicant.js';
+export { default as AcademicProgram } from './AcademicProgram.js';
 

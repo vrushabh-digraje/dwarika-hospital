@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ExternalLink, Pencil, Plus, RefreshCw, Search, Trash2, Eye, Pill, CheckCircle2, AlertTriangle, AlertCircle,
-  User, MapPin, CreditCard, GraduationCap, FileSpreadsheet, Download, FileDown, Files
+  FileSpreadsheet, FileDown
 } from 'lucide-react';
 import {
   exportToExcel,
@@ -34,6 +34,8 @@ import {
 } from '../components/ui';
 import { resolveImageUrl } from '../../lib/utils';
 import { ResourceForm } from '../components/ResourceForm';
+import { ApplicationFormPrintView } from '../../components/ApplicationFormPrintView';
+import { PageStatusBanner } from '../components/PageStatusBanner';
 import { formatDate, truncate, cn } from '../lib/format';
 import { apiClient } from '../api/client';
 
@@ -241,6 +243,23 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
           </>
         }
       />
+
+      {(() => {
+        const modulePageKeyMap: Record<string, string> = {
+          medicines: 'pharmacy',
+          registrations: 'online-form',
+          applicants: 'online-form',
+          patients: 'reports',
+          labreports: 'reports',
+          downloads: 'downloads',
+          news: 'news-events',
+          announcements: 'news-events',
+          careers: 'academic',
+          departments: 'department',
+        };
+        const pageKey = modulePageKeyMap[module.key];
+        return pageKey ? <PageStatusBanner pageKey={pageKey} /> : null;
+      })()}
 
       {(module.key === 'registrations' || module.key === 'applicants') && (
         <div className="mb-5 p-4 rounded-2xl border bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -574,351 +593,16 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
 
       <Modal open={!!preview} onClose={() => setPreview(null)} title={module.key === 'registrations' ? 'Applicant Registration Details' : 'Preview'} wide>
         {preview && module.key === 'registrations' ? (
-          <div className="space-y-6 text-sm">
-            {/* Applicant Header Strip */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-950 text-white shadow-md">
-              <div className="flex items-center gap-4">
-                {preview.photoUrl ? (
-                  <img
-                    src={resolveImageUrl(preview.photoUrl)}
-                    alt={preview.fullName}
-                    className="w-16 h-16 rounded-2xl object-cover ring-2 ring-white/30 bg-white/10"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-white ring-2 ring-white/20">
-                    <User className="w-8 h-8" />
-                  </div>
-                )}
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-black tracking-tight">{preview.fullName}</h3>
-                    {preview.fullNameNp && (
-                      <span className="text-xs text-blue-200 font-semibold">({preview.fullNameNp})</span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
-                    <span className="font-mono bg-white/20 text-white font-bold px-2 py-0.5 rounded-lg text-[11px]">
-                      {preview.registrationNumber || 'No Reg No'}
-                    </span>
-                    <span className="bg-blue-800/80 px-2 py-0.5 rounded-lg text-[11px] font-semibold text-blue-100">
-                      {preview.entryYear || '2082 B.S.'}
-                    </span>
-                    {preview.postApplied && (
-                      <span className="text-blue-200 font-medium">Applied: <strong className="text-white">{preview.postApplied}</strong></span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Status and Action Buttons */}
-              <div className="flex flex-col sm:items-end gap-2 shrink-0">
-                <span className={cn(
-                  'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider',
-                  preview.status === 'approved' ? 'bg-emerald-500 text-white' :
-                  preview.status === 'verified' ? 'bg-blue-500 text-white' :
-                  preview.status === 'rejected' ? 'bg-rose-500 text-white' :
-                  'bg-amber-400 text-amber-950'
-                )}>
-                  ● {preview.status || 'Pending'}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => onUpdateRegistrationStatus('verified')}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white font-semibold transition"
-                    title="Mark as Verified"
-                  >
-                    Verify
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onUpdateRegistrationStatus('approved')}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition"
-                    title="Approve Application"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onUpdateRegistrationStatus('rejected')}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white font-semibold transition"
-                    title="Reject Application"
-                  >
-                    Reject
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Grid of Applicant Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Card 1: Personal & Family */}
-              <div className="p-4 rounded-2xl border border-ink-100 bg-ink-50/50 space-y-2.5">
-                <div className="flex items-center gap-2 font-bold text-ink-900 border-b border-ink-100 pb-2">
-                  <User className="w-4 h-4 text-brand-600" />
-                  <span>Personal & Family Details</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">Father's Name</span>
-                    <p className="font-semibold text-ink-800">{preview.fatherName || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">Mother's Name</span>
-                    <p className="font-semibold text-ink-800">{preview.motherName || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">DOB (AD / BS)</span>
-                    <p className="font-semibold text-ink-800">{preview.dobAD || '—'} / {preview.dobBS || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">Gender / Blood Group</span>
-                    <p className="font-semibold text-ink-800">{preview.gender || '—'} ({preview.bloodGroup || '—'})</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">Citizenship No.</span>
-                    <p className="font-semibold text-ink-800">{preview.citizenshipNo || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">Issue Date / Place</span>
-                    <p className="font-semibold text-ink-800">{preview.citizenshipIssueDate || '—'} ({preview.citizenshipIssuePlace || '—'})</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">Marital / Religion</span>
-                    <p className="font-semibold text-ink-800">{preview.maritalStatus || '—'} • {preview.religion || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">Grandfather / Spouse</span>
-                    <p className="font-semibold text-ink-800">{preview.grandfatherName || '—'} / {preview.spouseName || '—'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2: Contact & Address */}
-              <div className="p-4 rounded-2xl border border-ink-100 bg-ink-50/50 space-y-2.5">
-                <div className="flex items-center gap-2 font-bold text-ink-900 border-b border-ink-100 pb-2">
-                  <MapPin className="w-4 h-4 text-brand-600" />
-                  <span>Contact & Address</span>
-                </div>
-                <div className="space-y-2 text-xs">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <span className="text-[10px] text-ink-400 font-bold uppercase">Mobile Number</span>
-                      <p className="font-semibold text-brand-700">{preview.mobile || '—'}</p>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-ink-400 font-bold uppercase">Email Address</span>
-                      <p className="font-semibold text-ink-800">{preview.email || '—'}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">Permanent Address</span>
-                    <p className="font-semibold text-ink-800">
-                      {[
-                        preview.permanentAddress?.street,
-                        preview.permanentAddress?.ward ? `Ward ${preview.permanentAddress.ward}` : '',
-                        preview.permanentAddress?.municipality,
-                        preview.permanentAddress?.district,
-                        preview.permanentAddress?.province,
-                        preview.permanentAddress?.country || 'Nepal',
-                      ].filter(Boolean).join(', ') || '—'}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-ink-400 font-bold uppercase">Mailing Address</span>
-                    <p className="font-semibold text-ink-800">
-                      {[
-                        preview.mailingAddress?.street,
-                        preview.mailingAddress?.ward ? `Ward ${preview.mailingAddress.ward}` : '',
-                        preview.mailingAddress?.municipality,
-                        preview.mailingAddress?.district,
-                        preview.mailingAddress?.foreignAddress,
-                      ].filter(Boolean).join(', ') || 'Same as Permanent'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3: Payment & Voucher Verification */}
-              <div className="p-4 rounded-2xl border border-sky-100 bg-sky-50/40 space-y-2.5">
-                <div className="flex items-center gap-2 font-bold text-sky-950 border-b border-sky-100 pb-2">
-                  <CreditCard className="w-4 h-4 text-sky-600" />
-                  <span>Payment & Fee Verification</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-[10px] text-sky-600 font-bold uppercase">Payment Mode</span>
-                    <p className="font-semibold text-ink-900">{preview.payment?.mode || 'eSewa / QR / Bank'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-sky-600 font-bold uppercase">Voucher / Txn No.</span>
-                    <p className="font-bold text-brand-700 font-mono text-sm">{preview.paymentVoucherNo || preview.payment?.voucherNo || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-sky-600 font-bold uppercase">Payment Date</span>
-                    <p className="font-semibold text-ink-900">{preview.payment?.paymentDate || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-sky-600 font-bold uppercase">Submitted Date</span>
-                    <p className="font-semibold text-ink-900">{formatDate(preview.createdAt)}</p>
-                  </div>
-                </div>
-
-                {(preview.paymentVoucherUrl || preview.payment?.voucherUrl) && (
-                  <div className="pt-2">
-                    <span className="text-[10px] text-sky-700 font-bold uppercase block mb-1">Attached Voucher Screenshot</span>
-                    <a
-                      href={resolveImageUrl(preview.paymentVoucherUrl || preview.payment?.voucherUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block group relative overflow-hidden rounded-xl border border-sky-200 bg-white"
-                    >
-                      <img
-                        src={resolveImageUrl(preview.paymentVoucherUrl || preview.payment?.voucherUrl)}
-                        alt="Payment Voucher"
-                        className="max-h-48 w-full object-contain p-2 group-hover:scale-105 transition-transform"
-                      />
-                      <div className="absolute inset-0 bg-blue-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
-                        <ExternalLink className="w-4 h-4" /> Open Full Image
-                      </div>
-                    </a>
-                  </div>
-                )}
-              </div>
-
-              {/* Card 4: Council & Qualifications */}
-              <div className="p-4 rounded-2xl border border-ink-100 bg-ink-50/50 space-y-2.5">
-                <div className="flex items-center gap-2 font-bold text-ink-900 border-b border-ink-100 pb-2">
-                  <GraduationCap className="w-4 h-4 text-brand-600" />
-                  <span>Council & Qualifications</span>
-                </div>
-                <div className="space-y-2 text-xs">
-                  {preview.councilDetails?.councilName && (
-                    <div className="p-2.5 rounded-xl bg-white border border-ink-100">
-                      <span className="text-[10px] text-ink-400 font-bold uppercase">Council Registration</span>
-                      <p className="font-semibold text-ink-900">
-                        {preview.councilDetails.councilName} • Reg: {preview.councilDetails.regNo || '—'}
-                      </p>
-                    </div>
-                  )}
-
-                  {Array.isArray(preview.academicDetails) && preview.academicDetails.length > 0 && (
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-ink-400 font-bold uppercase">Academic Entries ({preview.academicDetails.length})</span>
-                      <div className="divide-y divide-ink-100 border border-ink-100 rounded-xl bg-white overflow-hidden">
-                        {preview.academicDetails.map((ac: any, idx: number) => (
-                          <div key={idx} className="p-2 flex items-center justify-between text-[11px]">
-                            <div>
-                              <strong className="text-ink-900">{ac.level}</strong>
-                              <span className="text-ink-500 ml-1.5">{ac.school || ac.university || '—'}</span>
-                            </div>
-                            <span className="font-mono text-brand-700 font-bold">{ac.markGpa || ac.division || 'Passed'}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between text-[11px] text-ink-500 pt-1">
-                    <span>Trainings: <strong>{preview.trainingEntries?.length || 0}</strong></span>
-                    <span>Experience: <strong>{preview.workEntries?.length || 0}</strong></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 5: Uploaded Documents & Certificates (Download) */}
-            {(() => {
-              const docs = getRegistrationDocuments(preview);
-              return (
-                <div className="p-4 rounded-2xl border border-blue-200 bg-blue-50/40 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200/80 pb-2.5">
-                    <div className="flex items-center gap-2 font-bold text-blue-950">
-                      <Files className="w-4 h-4 text-blue-600" />
-                      <span>Uploaded Documents & Certificates ({docs.length})</span>
-                    </div>
-                    {docs.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => handleDownloadAllDocs(preview)}
-                        disabled={downloadingDocsId === preview._id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
-                      >
-                        <FileDown className="w-3.5 h-3.5" />
-                        <span>Download All Documents</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {docs.length === 0 ? (
-                    <p className="text-xs text-ink-500 italic py-2">No uploaded documents found for this candidate.</p>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {docs.map((doc, idx) => {
-                        const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(doc.url) || doc.url.includes('images.unsplash.com');
-                        const ext = doc.url.split('.').pop()?.split('?')[0] || 'file';
-                        const cleanName = (preview.fullName || 'Applicant').replace(/[^a-zA-Z0-9_-]/g, '_');
-                        const filename = `${preview.registrationNumber || 'REG'}_${cleanName}_${doc.label.replace(/[^a-zA-Z0-9_-]/g, '_')}.${ext}`;
-
-                        return (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white border border-blue-100 shadow-xs hover:border-blue-300 transition"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 overflow-hidden">
-                                {isImage ? (
-                                  <img src={doc.url} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                  <span className="text-[10px] font-bold uppercase text-blue-700 font-mono">
-                                    {ext.slice(0, 3)}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-xs font-bold text-ink-900 truncate" title={doc.label}>
-                                  {doc.label}
-                                </p>
-                                <span className="text-[10px] text-ink-400 capitalize">{doc.category}</span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-1 shrink-0">
-                              <a
-                                href={doc.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-1.5 rounded-lg text-ink-600 hover:bg-ink-100 hover:text-ink-900 transition"
-                                title="View Document in New Tab"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5 text-ink-500" />
-                              </a>
-                              <button
-                                type="button"
-                                onClick={() => downloadDocument(doc.url, filename)}
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition cursor-pointer"
-                                title="Download Document to Computer"
-                              >
-                                <Download className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Save</span>
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {preview.adminRemarks && (
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs">
-                <strong className="text-amber-900">Admin Remarks:</strong>
-                <p className="text-amber-800 mt-0.5">{preview.adminRemarks}</p>
-              </div>
-            )}
-          </div>
+          <ApplicationFormPrintView
+            data={preview}
+            isAdmin={true}
+            onPrint={() => window.print()}
+            onUpdateStatus={onUpdateRegistrationStatus}
+            onDownloadAllDocs={() => handleDownloadAllDocs(preview)}
+            downloadingDocs={downloadingDocsId === preview._id}
+            docsList={getRegistrationDocuments(preview)}
+            onDownloadSingleDoc={downloadDocument}
+          />
         ) : preview ? (
           <div className="space-y-3 text-sm">
             <div className="flex items-center justify-between gap-3">

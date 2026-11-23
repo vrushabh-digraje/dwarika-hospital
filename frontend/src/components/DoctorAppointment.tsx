@@ -1191,9 +1191,10 @@ const DoctorAppointment = () => {
                                                                                 <div
                                                                                     key={idx}
                                                                                     className="flex items-center gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1 text-[10px]"
-                                                                                    title={[d.condition, d.duration && `(${d.duration})`, d.medication && `Meds: ${d.medication}`, d.note && `Note: ${d.note}`].filter(Boolean).join(' • ')}
+                                                                                    title={[d.condition, d.note && `Note: ${d.note}`, d.duration && `(${d.duration})`, d.medication && `Meds: ${d.medication}`].filter(Boolean).join(' • ')}
                                                                                 >
                                                                                     <span className="font-bold text-blue-900">{d.condition}</span>
+                                                                                    {d.note && <span className="text-slate-600 font-medium text-[9px] bg-white px-1.5 py-0.5 rounded border border-blue-200">Note: {d.note}</span>}
                                                                                     {d.duration && <span className="text-slate-500 font-medium text-[9px]">({d.duration})</span>}
                                                                                     <button
                                                                                         type="button"
@@ -1224,6 +1225,22 @@ const DoctorAppointment = () => {
                                                                                 className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900"
                                                                             />
                                                                             <input
+                                                                                type="text"
+                                                                                name="note"
+                                                                                value={formData.currentDisease.note}
+                                                                                onChange={handleDiseaseChange}
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === 'Enter') {
+                                                                                        e.preventDefault();
+                                                                                        addDisease();
+                                                                                    }
+                                                                                }}
+                                                                                placeholder="Additional Notes"
+                                                                                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                            <input
                                                                                 list="disease-durations"
                                                                                 name="duration"
                                                                                 value={formData.currentDisease.duration}
@@ -1237,8 +1254,6 @@ const DoctorAppointment = () => {
                                                                                 placeholder="Duration"
                                                                                 className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900"
                                                                             />
-                                                                        </div>
-                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                                             <input
                                                                                 type="text"
                                                                                 name="medication"
@@ -1251,20 +1266,6 @@ const DoctorAppointment = () => {
                                                                                     }
                                                                                 }}
                                                                                 placeholder="Medication Details"
-                                                                                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900"
-                                                                            />
-                                                                            <input
-                                                                                type="text"
-                                                                                name="note"
-                                                                                value={formData.currentDisease.note}
-                                                                                onChange={handleDiseaseChange}
-                                                                                onKeyDown={(e) => {
-                                                                                    if (e.key === 'Enter') {
-                                                                                        e.preventDefault();
-                                                                                        addDisease();
-                                                                                    }
-                                                                                }}
-                                                                                placeholder="Additional Notes"
                                                                                 className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-blue-900"
                                                                             />
                                                                         </div>

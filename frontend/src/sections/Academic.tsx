@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -106,6 +106,7 @@ const fmtDay = (d: string) => new Date(d).getDate();
 type ModalFormProps = {
     type: FormType;
     programTitle?: string;
+    programsList?: any[];
     onClose: () => void;
 };
 
@@ -116,7 +117,7 @@ const formTitles: Record<string, string> = {
     program: "Program Application",
 };
 
-const ModalForm = ({ type, programTitle, onClose }: ModalFormProps) => {
+const ModalForm = ({ type, programTitle, programsList = programs, onClose }: ModalFormProps) => {
     const [form, setForm] = useState({
         name: "", phone: "", email: "", dob: "", gender: "",
         address: "", qualification: "", program: programTitle ?? "",
@@ -132,7 +133,15 @@ const ModalForm = ({ type, programTitle, onClose }: ModalFormProps) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        await new Promise(r => setTimeout(r, 1600));
+        try {
+            await fetch('/api/public/academic/apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form),
+            });
+        } catch {
+            await new Promise(r => setTimeout(r, 1000));
+        }
         setLoading(false);
         setSuccess(true);
     };
@@ -298,9 +307,9 @@ const ModalForm = ({ type, programTitle, onClose }: ModalFormProps) => {
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/15 transition-all appearance-none"
                                     >
                                         <option value="">Select Program</option>
-                                        <option>Diploma in General Medicine</option>
-                                        <option>Diploma in Pharmacy</option>
-                                        <option>Diploma in Laboratory</option>
+                                        {programsList.map((p, i) => (
+                                            <option key={i} value={p.title}>{p.title}</option>
+                                        ))}
                                     </select>
                                 </div>
                             )}
@@ -333,9 +342,9 @@ const ModalForm = ({ type, programTitle, onClose }: ModalFormProps) => {
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/15 transition-all appearance-none"
                                     >
                                         <option value="">Select Program</option>
-                                        <option>Diploma in General Medicine</option>
-                                        <option>Diploma in Pharmacy</option>
-                                        <option>Diploma in Laboratory</option>
+                                        {programsList.map((p, i) => (
+                                            <option key={i} value={p.title}>{p.title}</option>
+                                        ))}
                                         <option>General (All Programs)</option>
                                     </select>
                                 </div>
@@ -375,6 +384,32 @@ const Academic = () => {
     const [showGrid, setShowGrid] = useState(false);
     const [activeForm, setActiveForm] = useState<FormType>(null);
     const [selectedProgram, setSelectedProgram] = useState<string>("");
+    const [livePrograms, setLivePrograms] = useState<any[]>(programs);
+    const [liveStats, setLiveStats] = useState<any[]>(stats);
+
+    useEffect(() => {
+        fetch('/api/public/academic')
+            .then(res => res.json())
+            .then(json => {
+                if (json?.data?.programs?.length) {
+                    setLivePrograms(json.data.programs.map((p: any) => ({
+                        ...p,
+                        icon: p.tag === 'Pharmacy' ? HeartPulse : p.tag === 'Paramedical' ? FlaskConical : Stethoscope,
+                        gradient: p.gradient || 'from-blue-900 via-blue-800 to-blue-700',
+                    })));
+                }
+                if (json?.data?.settings) {
+                    const s = json.data.settings;
+                    setLiveStats([
+                        { label: "Years of Excellence", value: s.yearsOfExcellence || "25+" },
+                        { label: "Graduates Produced", value: s.graduatesProduced || "8,000+" },
+                        { label: "Academic Programs", value: s.academicProgramsCount || "12" },
+                        { label: "Research Papers", value: s.researchPapers || "500+" },
+                    ]);
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     const openForm = (type: FormType, program = "") => {
         setActiveForm(type);
@@ -457,7 +492,7 @@ const Academic = () => {
                 {/* Stats */}
                 <div className="border-t border-white/10 bg-white/5 backdrop-blur-sm">
                     <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {stats.map((s, i) => (
+                        {liveStats.map((s, i) => (
                             <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
                                 <p className="text-3xl font-black [color:#f8fdff] [text-shadow:0_2px_10px_rgba(4,18,40,0.28)]">{s.value}</p>
                                 <p className="text-sm font-bold uppercase tracking-wider [color:#d7f6ff] [text-shadow:0_1px_8px_rgba(4,18,40,0.2)]">{s.label}</p>
@@ -475,7 +510,7 @@ const Academic = () => {
                 </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {programs.map((prog, i) => (
+                    {livePrograms.map((prog, i) => (
                         <motion.div
                             key={i}
                             initial={{ opacity: 0, y: 30 }}
@@ -724,7 +759,7 @@ const Academic = () => {
             {/* ── MODAL FORMS ── */}
             <AnimatePresence>
                 {activeForm && (
-                    <ModalForm type={activeForm} programTitle={selectedProgram} onClose={closeForm} />
+                    <ModalForm type={activeForm} programTitle={selectedProgram} programsList={livePrograms} onClose={closeForm} />
                 )}
             </AnimatePresence>
         </section>

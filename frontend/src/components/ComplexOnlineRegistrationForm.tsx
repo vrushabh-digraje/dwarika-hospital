@@ -10,6 +10,7 @@ import {
     Printer, Loader2, Home, CheckCircle, Copy, AlertCircle, Lock, LogOut
 } from 'lucide-react';
 import DualDatePicker from './DualDatePicker';
+import { ApplicationFormPrintView } from './ApplicationFormPrintView';
 import {
     PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES,
     WARDS, BLOOD_GROUPS, RELIGIONS, USER_TYPES, NATIONALITIES, CASTE_GROUPS, CASTES_BY_GROUP
@@ -2310,375 +2311,15 @@ const ComplexOnlineRegistrationForm = () => {
             }
             case 8: // Preview
                 return (
-                    <div className="space-y-8">
-                        {/* Header */}
-                        <div className="bg-blue-900 p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
-                            <h3 className="text-lg font-black uppercase tracking-tight flex items-center gap-3">
-                                <FileText className="w-6 h-6 text-blue-300" /> Application Preview
-                            </h3>
-                            <p className="text-blue-200 text-xs font-medium mt-1 uppercase tracking-widest">Please review all your information before proceeding to payment.</p>
-                        </div>
-
-                        {/* Profile — photo + name fields */}
-                        <div className="flex flex-col md:flex-row gap-8 items-start">
-                            <div className="w-full md:w-1/3 flex flex-col items-center gap-4">
-                                <div className="w-48 h-56 bg-gray-50 border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center overflow-hidden">
-                                    {formData.photo ? (
-                                        <img src={URL.createObjectURL(formData.photo as unknown as Blob)} alt="Preview" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="text-center p-4">
-                                            <User className="w-10 h-10 text-gray-500 mx-auto mb-2" />
-                                            <p className="text-[11px] font-black uppercase text-gray-600 tracking-wider">No Photo</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="w-full md:w-2/3 space-y-6">
-                                <div className="flex flex-col md:flex-row gap-4">
-                                    <div className="space-y-2 w-full md:w-[76px] shrink-0">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Title</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-2 py-3 text-sm font-bold text-center">{formData.title || '—'}</div>
-                                    </div>
-                                    <div className="space-y-2 flex-1">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">First Name</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{formData.firstName || '—'}</div>
-                                    </div>
-                                    <div className="space-y-2 flex-1">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Middle Name</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{formData.middleName || '—'}</div>
-                                    </div>
-                                    <div className="space-y-2 flex-1">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Last Name</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{formData.lastName || '—'}</div>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Designation/Post</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.postApplied || '—'}</div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Council Regd. No.</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{(formData as any).councilRegNo || '—'}</div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">NID No.</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">
-                                            {formData.nIdNo || '—'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* General Profile Details */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-200">
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Gender</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.gender || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Blood Group</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.bloodGroup || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Religion</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.religion || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Nationality</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.nationality || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Mobile No.</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mobile || '—'}</div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Email ID</label>
-                                <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.email || '—'}</div>
-                            </div>
-                        </div>
-
-                        {/* Personal Details Summary */}
-                        <div className="space-y-6 pt-6 border-t border-gray-200">
-                            <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Personal & Family Details</label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase">Father's Name</span>
-                                            <div className="text-sm font-bold text-gray-800 uppercase">{formData.fatherName || '—'}</div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] font-black text-blue-900/50 uppercase">बाबुको नाम</span>
-                                            <div className="text-sm font-bold text-gray-800 font-nepali">{formData.fatherNameNp || '—'}</div>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase">Mother's Name</span>
-                                            <div className="text-sm font-bold text-gray-800 uppercase">{formData.motherName || '—'}</div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] font-black text-blue-900/50 uppercase">आमाको नाम</span>
-                                            <div className="text-sm font-bold text-gray-800 font-nepali">{formData.motherNameNp || '—'}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase">Grandfather's Name</span>
-                                            <div className="text-sm font-bold text-gray-800 uppercase">{formData.grandfatherName || '—'}</div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] font-black text-blue-900/50 uppercase">हजुरबुवाको नाम</span>
-                                            <div className="text-sm font-bold text-gray-800 font-nepali">{formData.grandfatherNameNp || '—'}</div>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase">Marital Status</span>
-                                            <div className="text-sm font-bold text-gray-800 uppercase">{formData.maritalStatus || '—'}</div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase">Date of Birth (A.D)</span>
-                                            <div className="text-sm font-bold text-gray-800">{formData.dobAD || '—'} ({formData.dobBS || '—'} B.S.)</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                                <div className="space-y-1">
-                                    <span className="text-[10px] font-black text-gray-500 uppercase">Citizenship No.</span>
-                                    <div className="text-sm font-bold text-gray-800">{formData.citizenshipNo || '—'}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <span className="text-[10px] font-black text-gray-500 uppercase">Issue Date</span>
-                                    <div className="text-sm font-bold text-gray-800">{formData.citizenshipIssueDate || '—'}</div>
-                                </div>
-                                <div className="space-y-1">
-                                    <span className="text-[10px] font-black text-gray-500 uppercase">Issue Place</span>
-                                    <div className="text-sm font-bold text-gray-800 uppercase">{formData.citizenshipIssuePlace || '—'}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Addresses */}
-                        <div className="space-y-6 pt-6 border-t border-gray-200">
-                            <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Permanent Address</label>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Country</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.permanentCountry || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Province</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.permanentProvince || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">District</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.permanentDistrict || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Municipality/GP</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.permanentMunicipality || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Ward</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.permanentWard || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Village / Tole</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.permanentStreet || '—'}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-6">
-                            <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Mailing Address</label>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Country</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mailingCountry || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Province</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mailingProvince || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">District</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mailingDistrict || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Municipality/GP</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mailingMunicipality || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Ward</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mailingWard || '—'}</div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Village / Tole</label>
-                                    <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{formData.mailingStreet || '—'}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Academic Qualifications Table */}
-                        {formData.academicDetails.length > 0 && (
-                            <div className="pt-6 border-t border-gray-200">
-                                <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Academic Qualifications</label>
-                                <div className="overflow-x-auto rounded-xl border border-gray-200 mt-4">
-                                    <table className="w-full text-left">
-                                        <thead>
-                                            <tr className="bg-gray-100 border-b border-gray-300">
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">S.No.</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Level</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Degree</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Passed Year</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">School/College</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">University/Board</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">GPA/Marks</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Division</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {formData.academicDetails.map((acd, idx) => (
-                                                <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
-                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{acd.level || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.degree || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.passedYear || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.school || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.university || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.markGpa || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{acd.division || '—'}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Council Details */}
-                        {((formData as any).councilRegNo || (formData as any).councilName) && (
-                            <div className="pt-6 border-t border-gray-200">
-                                <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Council Registration</label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Council Regd. No.</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{(formData as any).councilRegNo || '—'}</div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Type of Registration</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{(formData as any).councilRegType || '—'}</div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Educational Qualification</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{(formData as any).councilEduQualification || '—'}</div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Council Name</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold uppercase">{(formData as any).councilName || '—'}</div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Uploaded Certificate</label>
-                                        <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold">{(formData as any).councilCert ? (formData as any).councilCert.name : '—'}</div>
-                                    </div>
-                                    {((formData as any).councilExtraUploads || []).length > 0 && (
-                                        <div className="space-y-2">
-                                            <label className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Additional Documents</label>
-                                            <div className="w-full bg-gray-100/80 border border-gray-300 rounded-xl px-4 py-3 text-sm font-bold space-y-1">
-                                                {((formData as any).councilExtraUploads || []).map((file: File | null, fIdx: number) => (
-                                                    <div key={fIdx}>{file ? file.name : `Doc #${fIdx + 1} (Not Uploaded)`}</div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Training Table */}
-                        {formData.trainingEntries.length > 0 && (
-                            <div className="pt-6 border-t border-gray-200">
-                                <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Training</label>
-                                <div className="overflow-x-auto rounded-xl border border-gray-200 mt-4">
-                                    <table className="w-full text-left">
-                                        <thead>
-                                            <tr className="bg-gray-100 border-b border-gray-300">
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">S.No.</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Training Name</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Recognized By</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Registration No.</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Start Date (A.D)</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">End Date (A.D)</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Total Duration</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {formData.trainingEntries.map((entry, idx) => (
-                                                <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
-                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{entry.name || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.recognizedBy || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.regNo || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.startDateAD || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.endDateAD || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">
-                                                        {[entry.durationYears && `${entry.durationYears}Y`, entry.durationMonths && `${entry.durationMonths}M`, entry.durationDays && `${entry.durationDays}D`].filter(Boolean).join(' ') || '—'}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Work Experience Table */}
-                        {formData.workEntries.length > 0 && (
-                            <div className="pt-6 border-t border-gray-200">
-                                <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Work Experience</label>
-                                <div className="overflow-x-auto rounded-xl border border-gray-200 mt-4">
-                                    <table className="w-full text-left">
-                                        <thead>
-                                            <tr className="bg-gray-100 border-b border-gray-300">
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">S.No.</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Organization</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Location</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Post / Designation</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Start Date (A.D)</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">End Date (A.D)</th>
-                                                <th className="px-4 py-3 text-[11px] font-black text-gray-600 uppercase tracking-widest">Total Duration</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {formData.workEntries.map((entry, idx) => (
-                                                <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
-                                                    <td className="px-4 py-3 text-sm font-bold text-gray-700">{entry.organization || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{[entry.municipality, entry.district, entry.country].filter(Boolean).join(', ') || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.post || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.startDateAD || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">{entry.endDateAD || '—'}</td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">
-                                                        {[entry.durationYears && `${entry.durationYears}Y`, entry.durationMonths && `${entry.durationMonths}M`, entry.durationDays && `${entry.durationDays}D`].filter(Boolean).join(' ') || '—'}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Confirmation */}
-                        <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl">
-                            <p className="text-[11px] text-amber-800 font-bold uppercase tracking-wider text-center">
-                                ⚠️ Please verify all information above. Click <strong>Save & Continue</strong> to proceed to payment.
+                    <div className="space-y-6">
+                        <ApplicationFormPrintView 
+                            data={formData} 
+                            isCandidatePreview={true} 
+                            onPrint={() => window.print()} 
+                        />
+                        <div className="no-print bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between gap-4">
+                            <p className="text-xs text-amber-900 font-bold">
+                                ⚠️ Please verify all your information above. Click <strong>"Print / Save as PDF"</strong> to download a copy, or click <strong>Save & Continue</strong> to proceed to fee payment.
                             </p>
                         </div>
                     </div>
@@ -2847,7 +2488,7 @@ const ComplexOnlineRegistrationForm = () => {
                                 onClick={() => window.print()}
                                 className="w-full sm:w-auto px-6 py-3.5 bg-blue-900 hover:bg-blue-800 text-white rounded-2xl font-black uppercase text-xs tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 transition active:scale-95 cursor-pointer"
                             >
-                                <Printer className="w-4 h-4" /> Print / Save Slip
+                                <Printer className="w-4 h-4" /> Print / Save Application Form (PDF)
                             </button>
                             <div className="flex items-center gap-3 w-full sm:w-auto">
                                 <button
@@ -2869,6 +2510,15 @@ const ComplexOnlineRegistrationForm = () => {
                                     <Home className="w-4 h-4" /> Home
                                 </button>
                             </div>
+                        </div>
+
+                        {/* Full Printable Official Application Form */}
+                        <div className="pt-6 border-t border-slate-200">
+                            <ApplicationFormPrintView 
+                                data={{ ...formData, ...(submittedData || {}) }} 
+                                isCandidatePreview={false} 
+                                onPrint={() => window.print()} 
+                            />
                         </div>
                     </div>
                 </div>
