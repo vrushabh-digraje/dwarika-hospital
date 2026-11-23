@@ -265,22 +265,25 @@ export default function LiveUpdatesPage() {
             <button
               type="button"
               onClick={() => setSettings((s) => ({ ...s, enabled: !s.enabled }))}
+              title={settings.enabled ? 'Click to disable ticker on website' : 'Click to enable ticker on website'}
               className={cn(
-                'relative inline-flex h-8 w-28 items-center rounded-xl px-2 font-bold text-xs transition shadow-sm select-none cursor-pointer',
+                'group relative inline-flex h-9 min-w-[125px] items-center rounded-full p-1 transition-all duration-200 shadow-sm select-none cursor-pointer border',
                 settings.enabled
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white justify-end pr-7'
-                  : 'bg-red-600 hover:bg-red-700 text-white justify-start pl-7'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-700 text-white flex-row-reverse'
+                  : 'bg-red-600 hover:bg-red-700 border-red-700 text-white flex-row'
               )}
             >
               <span
                 className={cn(
-                  'absolute top-0.5 bottom-0.5 w-6 rounded-lg bg-white flex items-center justify-center text-xs shadow transition-all duration-200',
-                  settings.enabled ? 'right-0.5 text-emerald-700' : 'left-0.5 text-red-700'
+                  'w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center shrink-0 transition-transform duration-200',
+                  settings.enabled ? 'text-emerald-700' : 'text-red-600'
                 )}
               >
-                {settings.enabled ? <Check className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
+                {settings.enabled ? <Check className="h-4 w-4 stroke-[2.5]" /> : <Ban className="h-4 w-4 stroke-[2.5]" />}
               </span>
-              <span>{settings.enabled ? 'ACTIVE' : 'OFF'}</span>
+              <span className="flex-1 text-center px-2 text-white font-black text-xs uppercase tracking-wider">
+                {settings.enabled ? 'ACTIVE' : 'OFF'}
+              </span>
             </button>
           </div>
         </div>

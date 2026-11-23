@@ -183,22 +183,25 @@ export default function PopupNoticePage() {
         <button
           type="button"
           onClick={handleToggle}
+          title={form.enabled ? 'Click to disable popup notice' : 'Click to activate popup notice'}
           className={cn(
-            'relative inline-flex h-9 w-32 items-center rounded-xl px-2.5 font-bold text-xs transition shadow-sm select-none shrink-0 cursor-pointer',
+            'group relative inline-flex h-9 min-w-[125px] items-center rounded-full p-1 transition-all duration-200 shadow-sm select-none shrink-0 cursor-pointer border',
             form.enabled
-              ? 'bg-emerald-600 hover:bg-emerald-700 text-white justify-end pr-8'
-              : 'bg-red-600 hover:bg-red-700 text-white justify-start pl-8'
+              ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-700 text-white flex-row-reverse'
+              : 'bg-red-600 hover:bg-red-700 border-red-700 text-white flex-row'
           )}
         >
           <span
             className={cn(
-              'absolute top-1 bottom-1 w-7 rounded-lg bg-white flex items-center justify-center text-xs shadow transition-all duration-200',
-              form.enabled ? 'right-1 text-emerald-700' : 'left-1 text-red-700'
+              'w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center shrink-0 transition-transform duration-200',
+              form.enabled ? 'text-emerald-700' : 'text-red-600'
             )}
           >
-            {form.enabled ? <Check className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
+            {form.enabled ? <Check className="h-4 w-4 stroke-[2.5]" /> : <Ban className="h-4 w-4 stroke-[2.5]" />}
           </span>
-          <span>{form.enabled ? 'ACTIVE' : 'OFF'}</span>
+          <span className="flex-1 text-center px-2 text-white font-black text-xs uppercase tracking-wider">
+            {form.enabled ? 'ACTIVE' : 'OFF'}
+          </span>
         </button>
       </Card>
 

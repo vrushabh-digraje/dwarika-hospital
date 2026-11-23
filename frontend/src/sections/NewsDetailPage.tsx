@@ -50,8 +50,8 @@ const NewsDetailPage = () => {
                     <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <div className="absolute bottom-8 left-8 right-8 text-white">
-                        <div className={`inline-block px-3 py-1 text-xs font-bold rounded-full shadow-md mb-4 ${typeColor}`}>
-                            {article.type}
+                        <div className={`inline-block px-3.5 py-1 text-xs font-black text-white uppercase tracking-wider rounded-full shadow-md mb-4 ${typeColor}`}>
+                            {article.type || 'Event'}
                         </div>
                         <h1 className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight mb-4">
                             {article.title}

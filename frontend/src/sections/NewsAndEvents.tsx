@@ -253,8 +253,8 @@ const NewsAndEvents = () => {
                                         alt={article.title}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
-                                    <div className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold text-white rounded-full shadow-md ${article.isSpecial ? 'bg-orange-500' : (article.type === 'News' ? 'bg-blue-600' : 'bg-red-600')}`}>
-                                        {article.type}
+                                    <div className={`absolute top-4 right-4 px-3.5 py-1 text-xs font-extrabold text-white rounded-full shadow-md select-none tracking-wide ${article.isSpecial ? 'bg-orange-500' : (article.type === 'News' ? 'bg-blue-600' : 'bg-red-600')}`}>
+                                        {article.type || 'Event'}
                                     </div>
                                 </div>
                                 <div className="p-5 flex flex-col flex-grow">

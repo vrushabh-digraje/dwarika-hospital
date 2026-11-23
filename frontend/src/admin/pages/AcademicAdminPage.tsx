@@ -327,7 +327,7 @@ export default function AcademicAdminPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => openEditModal(prog)}
-                      className="text-xs gap-1 h-8"
+                      className="text-xs gap-1.5 h-8 font-semibold"
                     >
                       <Edit3 className="h-3.5 w-3.5" /> Edit
                     </Button>
@@ -336,9 +336,10 @@ export default function AcademicAdminPage() {
                       variant="danger"
                       size="sm"
                       onClick={() => handleDeleteProgram(prog._id)}
-                      className="text-xs gap-1 h-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      className="text-xs gap-1.5 h-8 bg-red-600 hover:bg-red-700 text-white font-bold shadow-sm"
                     >
-                      <Trash2 className="h-3.5 w-3.5" /> Delete
+                      <Trash2 className="h-3.5 w-3.5 text-white stroke-[2.5]" />
+                      <span className="text-white font-bold">Delete</span>
                     </Button>
                   </div>
                 </Card>

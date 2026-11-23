@@ -278,7 +278,7 @@ export function ConfirmDialog({
       <p className="text-sm text-ink-600">{message}</p>
       <div className="mt-6 flex justify-end gap-2">
         <Button variant="outline" onClick={onClose}>Cancel</Button>
-        <Button variant="danger" loading={loading} onClick={onConfirm}>{confirmLabel}</Button>
+        <Button variant="danger" loading={loading} onClick={onConfirm} className="text-white font-bold shadow-sm">{confirmLabel}</Button>
       </div>
     </Modal>
   );

@@ -258,8 +258,9 @@ export default function MediaLibraryPage() {
                         <Replace className="h-3.5 w-3.5" /> Replace
                         <input type="file" className="hidden" onChange={(e) => onReplace(e.target.files?.[0] || null)} />
                       </label>
-                      <Button size="sm" variant="danger" onClick={() => setDeleting(selected)}>
-                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      <Button size="sm" variant="danger" onClick={() => setDeleting(selected)} className="text-white font-bold gap-1.5 shadow-sm">
+                        <Trash2 className="h-3.5 w-3.5 text-white stroke-[2.5]" />
+                        <span className="text-white font-bold">Delete</span>
                       </Button>
                     </div>
                     <Button

@@ -158,6 +158,14 @@ export const DEFAULT_PAGE_STATUSES = [
     noticeTitle: 'Contact Us Page Notice',
     noticeMessage: 'Please reach Dwarika Hospital directly at 031-590123 or Emergency 103.',
   },
+  {
+    pageKey: 'academic',
+    path: '/academic',
+    name: 'Academic & Medical Academy',
+    status: 'active',
+    noticeTitle: 'Academic & Medical Academy Notice',
+    noticeMessage: 'The academic and admissions portal is currently undergoing scheduled updates.',
+  },
 ];
 
 function mergeDefaultPageStatuses(existingList = []) {

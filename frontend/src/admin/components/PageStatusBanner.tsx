@@ -21,6 +21,16 @@ export function PageStatusBanner({ pageKey }: { pageKey: string }) {
           setPage(found);
           setEditTitle(found.noticeTitle || '');
           setEditMessage(found.noticeMessage || '');
+        } else {
+          const fallback: PageStatusItem = {
+            pageKey,
+            path: `/${pageKey}`,
+            name: pageKey.charAt(0).toUpperCase() + pageKey.slice(1),
+            status: 'active',
+            noticeTitle: 'Notice',
+            noticeMessage: 'This section is currently undergoing maintenance.',
+          };
+          setPage(fallback);
         }
       })
       .catch(() => {})
@@ -133,22 +143,25 @@ export function PageStatusBanner({ pageKey }: { pageKey: string }) {
           <button
             type="button"
             onClick={handleToggle}
+            title={isBlocked ? 'Click to Activate this page' : 'Click to Block this page'}
             className={cn(
-              'relative inline-flex h-8 w-28 items-center rounded-xl px-2 font-bold text-xs transition shadow-sm select-none cursor-pointer',
+              'group relative inline-flex h-9 min-w-[125px] items-center rounded-full p-1 transition-all duration-200 shadow-sm select-none cursor-pointer border',
               isBlocked
-                ? 'bg-red-600 hover:bg-red-700 text-white justify-start pl-7'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white justify-end pr-7'
+                ? 'bg-red-600 hover:bg-red-700 border-red-700 text-white flex-row'
+                : 'bg-emerald-600 hover:bg-emerald-700 border-emerald-700 text-white flex-row-reverse'
             )}
           >
             <span
               className={cn(
-                'absolute top-0.5 bottom-0.5 w-6 rounded-lg bg-white flex items-center justify-center text-xs shadow transition-all duration-200',
-                isBlocked ? 'left-0.5 text-red-700' : 'right-0.5 text-emerald-700'
+                'w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center shrink-0 transition-transform duration-200',
+                isBlocked ? 'text-red-600' : 'text-emerald-700'
               )}
             >
-              {isBlocked ? <Ban className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
+              {isBlocked ? <Ban className="h-4 w-4 stroke-[2.5]" /> : <Check className="h-4 w-4 stroke-[2.5]" />}
             </span>
-            <span>{isBlocked ? 'BLOCKED' : 'ACTIVE'}</span>
+            <span className="flex-1 text-center px-2 text-white font-black text-xs uppercase tracking-wider">
+              {isBlocked ? 'BLOCKED' : 'ACTIVE'}
+            </span>
           </button>
         </div>
       </div>
