@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { 
   Printer, Download, User, 
   ExternalLink, FileDown, Files 
@@ -22,13 +22,192 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
   data = {},
   isCandidatePreview = false,
   isAdmin = false,
-  onPrint = () => window.print(),
+  onPrint,
   onUpdateStatus,
   onDownloadAllDocs,
   downloadingDocs = false,
   docsList = [],
   onDownloadSingleDoc,
 }) => {
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Dedicated high-fidelity print handler: clones container into isolated iframe
+  // to avoid parent modal clipping (overflow-hidden / fixed viewport) and guarantee background graphics
+  const handlePrint = () => {
+    const elem = formRef.current || document.getElementById('official-printable-application-form');
+    if (!elem) {
+      if (onPrint) onPrint();
+      else window.print();
+      return;
+    }
+
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      iframe.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(iframe);
+
+      const frameDoc = iframe.contentWindow?.document || iframe.contentDocument;
+      if (!frameDoc) {
+        if (onPrint) onPrint();
+        else window.print();
+        return;
+      }
+
+      // Collect all stylesheet links and style tags from current page
+      const styleSheets = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+        .map((node) => node.outerHTML)
+        .join('\n');
+
+      const printHtml = `
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <title>Application_Form_${data.registrationNumber || 'Candidate'}</title>
+            ${styleSheets}
+            <style>
+              @page {
+                size: A4 portrait;
+                margin: 8mm 10mm;
+              }
+              *, *::before, *::after {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              html, body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                height: auto !important;
+                font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+              }
+              .printable-application-form {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 0 !important;
+                padding: 16px !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+              }
+              .no-print {
+                display: none !important;
+              }
+              table, tr, td, th {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+              }
+              .border, [class*="rounded-xl"], [class*="rounded-2xl"] {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+              }
+            </style>
+          </head>
+          <body class="bg-white p-2">
+            ${elem.outerHTML}
+          </body>
+        </html>
+      `;
+
+      frameDoc.open();
+      frameDoc.write(printHtml);
+      frameDoc.close();
+
+      const triggerPrint = () => {
+        setTimeout(() => {
+          try {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+          } catch (err) {
+            console.error('Iframe print failed, falling back to window.print()', err);
+            window.print();
+          } finally {
+            setTimeout(() => {
+              if (document.body.contains(iframe)) {
+                document.body.removeChild(iframe);
+              }
+            }, 3000);
+          }
+        }, 350);
+      };
+
+      const images = frameDoc.images;
+      if (!images || images.length === 0) {
+        triggerPrint();
+      } else {
+        let loaded = 0;
+        const total = images.length;
+        const onImgDone = () => {
+          loaded++;
+          if (loaded >= total) triggerPrint();
+        };
+        for (let i = 0; i < total; i++) {
+          if (images[i].complete) {
+            loaded++;
+          } else {
+            images[i].onload = onImgDone;
+            images[i].onerror = onImgDone;
+          }
+        }
+        if (loaded >= total) {
+          triggerPrint();
+        } else {
+          setTimeout(triggerPrint, 1200);
+        }
+      }
+    } catch (err) {
+      console.error('Print iframe error:', err);
+      if (onPrint) onPrint();
+      else window.print();
+    }
+  };
+
+  const handleOpenFullPage = () => {
+    const elem = formRef.current || document.getElementById('official-printable-application-form');
+    if (!elem) return;
+    const styleSheets = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((node) => node.outerHTML)
+      .join('\n');
+    const newWindow = window.open('', '_blank');
+    if (!newWindow) return;
+    const curRegNumber = data.registrationNumber || (isCandidatePreview ? 'PENDING' : 'REG');
+    newWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <title>Application Form — ${curRegNumber}</title>
+          ${styleSheets}
+          <style>
+            body { background: #f1f5f9; padding: 24px 16px; font-family: ui-sans-serif, system-ui, sans-serif; }
+            .printable-application-form { max-width: 900px; margin: 0 auto; background: #ffffff; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-radius: 16px; padding: 32px; }
+            @media print {
+              body { background: #ffffff !important; padding: 0 !important; }
+              .printable-application-form { max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; padding: 12px !important; }
+              .no-print-bar { display: none !important; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="no-print-bar" style="max-width: 900px; margin: 0 auto 16px auto; display: flex; justify-content: space-between; align-items: center; background: #0f172a; color: #fff; padding: 12px 18px; border-radius: 12px;">
+            <span style="font-weight: 700; font-size: 13px;">Official Application Form — ${curRegNumber}</span>
+            <button onclick="window.print()" style="padding: 8px 16px; background: #2563eb; color: #fff; border: 0; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;">🖨️ Print / Save as PDF</button>
+          </div>
+          ${elem.outerHTML}
+        </body>
+      </html>
+    `);
+    newWindow.document.close();
+  };
   // Helper to extract candidate photo
   const getPhotoSrc = () => {
     if (data.photo && typeof data.photo === 'object' && (data.photo instanceof Blob || data.photo instanceof File)) {
@@ -138,12 +317,23 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
           {/* Main Print / Save PDF Button */}
           <button
             type="button"
-            onClick={onPrint}
+            onClick={handlePrint}
             className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black uppercase tracking-wider transition shadow-md cursor-pointer"
             title="Print or Save Application Form as PDF"
           >
             <Printer className="w-4 h-4" />
             <span>Print / Save as PDF</span>
+          </button>
+
+          {/* Open Full Tab Button */}
+          <button
+            type="button"
+            onClick={handleOpenFullPage}
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white text-xs font-bold transition border border-slate-700 cursor-pointer"
+            title="Open Application Form in Full Tab"
+          >
+            <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+            <span className="hidden sm:inline">Open in New Tab</span>
           </button>
 
           {/* Admin Status Actions */}
@@ -193,7 +383,11 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
       </div>
 
       {/* ── Printable Application Form Container ── */}
-      <div className="printable-application-form bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 text-slate-900">
+      <div 
+        ref={formRef}
+        id="official-printable-application-form"
+        className="printable-application-form bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 text-slate-900"
+      >
         
         {/* Header Strip with Hospital Branding */}
         <div className="border-b-2 border-slate-900 pb-4">

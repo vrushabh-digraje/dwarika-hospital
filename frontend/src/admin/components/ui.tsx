@@ -217,12 +217,14 @@ export function Modal({
   title,
   children,
   wide,
+  extraWide,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   wide?: boolean;
+  extraWide?: boolean;
 }) {
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -243,7 +245,10 @@ export function Modal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-ink-900/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-6">
-      <div className={cn('max-h-[92vh] w-full overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl', wide ? 'max-w-4xl' : 'max-w-2xl')}>
+      <div className={cn(
+        'max-h-[92vh] w-full overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl',
+        extraWide ? 'max-w-5xl lg:max-w-6xl' : wide ? 'max-w-4xl' : 'max-w-2xl'
+      )}>
         <div className="flex items-center justify-between border-b border-ink-100 px-5 py-4">
           <h3 className="font-display text-lg font-semibold text-ink-900">{title}</h3>
           <button onClick={onClose} className="rounded-xl p-2 text-ink-500 hover:bg-ink-50">

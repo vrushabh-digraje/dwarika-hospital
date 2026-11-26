@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ExternalLink, Pencil, Plus, RefreshCw, Search, Trash2, Eye, Pill, CheckCircle2, AlertTriangle, AlertCircle,
-  FileSpreadsheet, FileDown
+  FileSpreadsheet, FileDown, FileText
 } from 'lucide-react';
 import {
   exportToExcel,
@@ -534,9 +534,22 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
                     })}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => setPreview(item)} title="Preview Details">
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        {module.key === 'registrations' ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setPreview(item)}
+                            title="View Official Application Form"
+                            className="border-blue-200 text-blue-700 hover:bg-blue-50 font-bold text-xs flex items-center gap-1.5"
+                          >
+                            <FileText className="h-3.5 w-3.5" />
+                            <span>View Form</span>
+                          </Button>
+                        ) : (
+                          <Button size="sm" variant="ghost" onClick={() => setPreview(item)} title="Preview Details">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
                         {module.key === 'registrations' && (
                           <Button
                             size="sm"
@@ -591,7 +604,17 @@ export default function ResourcePage({ module }: { module: ModuleConfig }) {
         />
       </Modal>
 
-      <Modal open={!!preview} onClose={() => setPreview(null)} title={module.key === 'registrations' ? 'Applicant Registration Details' : 'Preview'} wide>
+      <Modal
+        open={!!preview}
+        onClose={() => setPreview(null)}
+        title={
+          module.key === 'registrations' && preview
+            ? `Official Application Form — ${preview.registrationNumber || 'Pending'} (${preview.fullName || 'Candidate'})`
+            : 'Preview'
+        }
+        wide={module.key !== 'registrations'}
+        extraWide={module.key === 'registrations'}
+      >
         {preview && module.key === 'registrations' ? (
           <ApplicationFormPrintView
             data={preview}

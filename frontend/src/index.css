@@ -356,9 +356,33 @@ a { text-decoration: none; }
 
 /* ── Application Form Print Stylesheet ── */
 @media print {
+  /* Force all background colors, shaded boxes, badges, and borders to print exactly as on screen */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Reset any modal / fixed containers during print so they don't clip */
+  .fixed, [class*="fixed"] {
+    position: static !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
   /* Hide non-printable elements across the whole app */
   body * {
-    visibility: hidden !important;
+    visibility: hidden;
   }
 
   /* Only printable application form container and its contents are visible */
@@ -368,13 +392,12 @@ a { text-decoration: none; }
   }
 
   .printable-application-form {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: static !important;
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 !important;
-    padding: 12px 14px !important;
+    margin: 0 auto !important;
+    padding: 8px 12px !important;
     background: #ffffff !important;
     color: #0f172a !important;
     box-shadow: none !important;
@@ -385,10 +408,21 @@ a { text-decoration: none; }
     display: none !important;
   }
 
+  /* Prevent page-breaks in the middle of sections */
+  .printable-application-form > div {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
   /* Crisp table rendering in print */
   .printable-application-form table {
     border-collapse: collapse !important;
     width: 100% !important;
+  }
+
+  .printable-application-form tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .printable-application-form th,
@@ -400,8 +434,6 @@ a { text-decoration: none; }
 
   .printable-application-form th {
     background-color: #f1f5f9 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
 
   @page {
