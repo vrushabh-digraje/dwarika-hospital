@@ -19,6 +19,7 @@ export function ICD11SearchSelect({
 }: ICD11SearchSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,10 +41,17 @@ export function ICD11SearchSelect({
     }
   }, [isOpen]);
 
-  // Filter diseases by code or name
+  // Reset highlightedIndex when search term changes
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [searchTerm]);
+
+  const hasTyped = searchTerm.trim().length > 0;
+
+  // Filter diseases by code or name ONLY when user has started typing!
   const filtered = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    if (!q) return ICD11_DISEASES.slice(0, 80);
+    if (!q) return []; // Only show suggestions when user starts typing
 
     const matches: ICD11Disease[] = [];
     for (const d of ICD11_DISEASES) {
@@ -60,7 +68,7 @@ export function ICD11SearchSelect({
 
   const totalMatchesCount = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    if (!q) return ICD11_DISEASES.length;
+    if (!q) return 0;
     return ICD11_DISEASES.filter(
       (d) => d.code.toLowerCase().includes(q) || d.name.toLowerCase().includes(q)
     ).length;
@@ -70,8 +78,38 @@ export function ICD11SearchSelect({
     onChange(disease.display);
     setIsOpen(false);
     setSearchTerm('');
-    if (onEnterAdd) {
-      // Don't auto add on click; user can review or click + Add
+  };
+
+  const handleCustomSelect = () => {
+    if (searchTerm.trim()) {
+      onChange(searchTerm.trim());
+      setIsOpen(false);
+      setSearchTerm('');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (filtered.length > 0) {
+        setHighlightedIndex((prev) => (prev + 1) % filtered.length);
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (filtered.length > 0) {
+        setHighlightedIndex((prev) => (prev - 1 + filtered.length) % filtered.length);
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filtered.length > 0 && highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+        handleSelect(filtered[highlightedIndex]);
+        if (onEnterAdd) onEnterAdd();
+      } else if (searchTerm.trim()) {
+        handleCustomSelect();
+        if (onEnterAdd) onEnterAdd();
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
     }
   };
 
@@ -119,20 +157,7 @@ export function ICD11SearchSelect({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (filtered.length > 0) {
-                      handleSelect(filtered[0]);
-                    } else if (searchTerm.trim()) {
-                      onChange(searchTerm.trim());
-                      setIsOpen(false);
-                      setSearchTerm('');
-                    }
-                  } else if (e.key === 'Escape') {
-                    setIsOpen(false);
-                  }
-                }}
+                onKeyDown={handleKeyDown}
                 placeholder="Search disease name or ICD-11 code (e.g. Typhoid, 1A01)..."
                 className="w-full rounded-lg border border-slate-200 bg-white pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-900 focus:ring-1 focus:ring-blue-900"
               />
@@ -140,58 +165,88 @@ export function ICD11SearchSelect({
                 <button
                   type="button"
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"
+                  title="Clear"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
-            <div className="flex items-center justify-between text-[10px] text-slate-500 px-1 font-medium">
-              <span>
-                {searchTerm ? (
-                  <>Found <strong>{totalMatchesCount}</strong> matching diseases</>
-                ) : (
-                  <>Showing first 80 of <strong>{ICD11_DISEASES.length.toLocaleString()}</strong> diseases</>
+            {hasTyped && (
+              <div className="flex items-center justify-between text-[10px] text-slate-500 px-1 font-medium">
+                <span>
+                  Found <strong>{totalMatchesCount}</strong> matching disease{totalMatchesCount === 1 ? '' : 's'}
+                </span>
+                {!filtered.some((d) => d.display.toLowerCase() === searchTerm.trim().toLowerCase()) && (
+                  <button
+                    type="button"
+                    onClick={handleCustomSelect}
+                    className="text-blue-700 hover:underline font-bold cursor-pointer"
+                  >
+                    Use custom &quot;{searchTerm.trim().slice(0, 15)}...&quot;
+                  </button>
                 )}
-              </span>
-              {searchTerm.trim() && !filtered.some((d) => d.display.toLowerCase() === searchTerm.trim().toLowerCase()) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange(searchTerm.trim());
-                    setIsOpen(false);
-                    setSearchTerm('');
-                  }}
-                  className="text-blue-700 hover:underline font-bold cursor-pointer"
-                >
-                  Use custom &quot;{searchTerm.trim().slice(0, 15)}...&quot;
-                </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Diseases List */}
+          {/* Diseases Suggestions List */}
           <div className="overflow-y-auto flex-1 divide-y divide-slate-100 max-h-60">
-            {filtered.length === 0 ? (
+            {!hasTyped ? (
+              <div className="p-5 text-center text-slate-400 space-y-2">
+                <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-900 flex items-center justify-center mx-auto border border-blue-100">
+                  <Search className="w-4 h-4" />
+                </div>
+                <p className="text-xs font-bold text-slate-700">Start typing to see suggestions</p>
+                <p className="text-[11px] text-slate-400 leading-normal max-w-[280px] mx-auto">
+                  Type a disease name or ICD-11 code (e.g.{' '}
+                  <span
+                    className="font-bold text-blue-700 cursor-pointer hover:underline"
+                    onClick={() => setSearchTerm('Typhoid')}
+                  >
+                    Typhoid
+                  </span>
+                  ,{' '}
+                  <span
+                    className="font-bold text-blue-700 cursor-pointer hover:underline"
+                    onClick={() => setSearchTerm('Malaria')}
+                  >
+                    Malaria
+                  </span>
+                  ,{' '}
+                  <span
+                    className="font-bold text-blue-700 cursor-pointer hover:underline"
+                    onClick={() => setSearchTerm('Diabetes')}
+                  >
+                    Diabetes
+                  </span>
+                  ,{' '}
+                  <span
+                    className="font-bold text-blue-700 cursor-pointer hover:underline"
+                    onClick={() => setSearchTerm('1A01')}
+                  >
+                    1A01
+                  </span>
+                  )...
+                </p>
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="p-6 text-center text-slate-500 space-y-1.5">
                 <p className="text-xs font-semibold">No disease matching &quot;{searchTerm}&quot;</p>
                 <p className="text-[10px] text-slate-400">You can still use this as a custom diagnosis:</p>
                 <button
                   type="button"
-                  onClick={() => {
-                    onChange(searchTerm.trim());
-                    setIsOpen(false);
-                    setSearchTerm('');
-                  }}
+                  onClick={handleCustomSelect}
                   className="mt-1 px-3 py-1 bg-blue-50 text-blue-900 hover:bg-blue-100 rounded-lg text-xs font-bold transition border border-blue-200 cursor-pointer"
                 >
                   Use &quot;{searchTerm.trim()}&quot;
                 </button>
               </div>
             ) : (
-              filtered.map((d) => {
+              filtered.map((d, index) => {
                 const isSelected = value === d.display;
+                const isHighlighted = highlightedIndex === index;
                 return (
                   <button
                     key={d.code + d.name}
@@ -200,6 +255,8 @@ export function ICD11SearchSelect({
                     className={`w-full text-left px-3 py-2 flex items-center justify-between gap-2.5 transition-colors cursor-pointer ${
                       isSelected
                         ? 'bg-blue-50/80 text-blue-900 font-semibold'
+                        : isHighlighted
+                        ? 'bg-slate-100 text-slate-900'
                         : 'hover:bg-slate-50 text-slate-800'
                     }`}
                   >

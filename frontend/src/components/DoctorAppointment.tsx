@@ -1140,7 +1140,7 @@ const DoctorAppointment = () => {
                                                                     initial={{ opacity: 0, height: 0 }}
                                                                     animate={{ opacity: 1, height: 'auto' }}
                                                                     exit={{ opacity: 0, height: 0 }}
-                                                                    className="overflow-hidden mb-2 space-y-2"
+                                                                    className="mb-2 space-y-2 overflow-visible"
                                                                 >
                                                                     {formData.diseases.length > 0 && (
                                                                         <div className="flex flex-wrap gap-1.5">
@@ -1165,8 +1165,8 @@ const DoctorAppointment = () => {
                                                                             ))}
                                                                         </div>
                                                                     )}
-                                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2 overflow-visible">
+                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-visible">
                                                                             <ICD11SearchSelect
                                                                                 value={formData.currentDisease.condition}
                                                                                 onChange={(val) => setFormData(prev => ({
