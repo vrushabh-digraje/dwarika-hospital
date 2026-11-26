@@ -440,6 +440,28 @@ a { text-decoration: none; }
     size: A4 portrait;
     margin: 8mm 6mm 8mm 6mm;
   }
+
+  /* Explicit official application form print rules */
+  .photo-frame {
+    width: 130px !important;
+    height: 160px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    min-height: 160px !important;
+    max-height: 160px !important;
+    border: 2px dashed #94a3b8 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+  .photo-frame img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 130px !important;
+    max-height: 160px !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
 }
+
 
 

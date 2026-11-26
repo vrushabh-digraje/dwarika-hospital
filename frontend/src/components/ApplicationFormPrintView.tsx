@@ -6,6 +6,341 @@ import {
 import { resolveImageUrl } from '../lib/utils';
 import { formatDate } from '../admin/lib/format';
 
+export const FORM_PRINT_CSS = `
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+  *, *::before, *::after {
+    box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+  .printable-application-form {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    color: #0f172a !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  /* Header */
+  .form-header-wrap {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-bottom: 2px solid #0f172a !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 10px !important;
+  }
+  .form-header-left {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  .form-logo-box {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    border-radius: 10px !important;
+    background: #1e3a8a !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 22px !important;
+  }
+  .hospital-name-en {
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    color: #1e3a8a !important;
+    text-transform: uppercase !important;
+    letter-spacing: -0.01em !important;
+    margin: 0 !important;
+    line-height: 1.1 !important;
+  }
+  .hospital-name-np {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #334155 !important;
+    margin: 2px 0 0 0 !important;
+    line-height: 1.2 !important;
+  }
+  .hospital-sub-contact {
+    font-size: 9.5px !important;
+    color: #64748b !important;
+    margin: 2px 0 0 0 !important;
+  }
+  .form-header-right {
+    text-align: right !important;
+  }
+  .official-badge-pill {
+    background: #1e3a8a !important;
+    color: #ffffff !important;
+    font-size: 9px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    padding: 3px 10px !important;
+    border-radius: 9999px !important;
+    display: inline-block !important;
+    letter-spacing: 0.05em !important;
+    margin-bottom: 4px !important;
+  }
+  .reg-badge-text {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+  }
+  .reg-num-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-weight: 900 !important;
+    color: #1e3a8a !important;
+  }
+  .session-text {
+    font-size: 9.5px !important;
+    color: #64748b !important;
+  }
+  /* Top Profile + Photo layout */
+  .profile-photo-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+    margin-bottom: 8px !important;
+  }
+  .profile-left-col {
+    flex: 1 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .photo-right-col {
+    width: 130px !important;
+    min-width: 130px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .photo-frame {
+    width: 130px !important;
+    height: 160px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    min-height: 160px !important;
+    max-height: 160px !important;
+    border: 2px dashed #94a3b8 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background: #f1f5f9 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 2px !important;
+    box-sizing: border-box !important;
+  }
+  .photo-frame img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 130px !important;
+    max-height: 160px !important;
+    object-fit: cover !important;
+    display: block !important;
+    border-radius: 6px !important;
+  }
+  .photo-label {
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    color: #64748b !important;
+    margin-top: 4px !important;
+    letter-spacing: 0.05em !important;
+  }
+  /* Form Cards */
+  .form-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 8px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .card-sec-title {
+    font-size: 9.5px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: #1e3a8a !important;
+    margin-bottom: 6px !important;
+    padding-bottom: 3px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+  /* Field formatting */
+  .field-label {
+    font-size: 8.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    color: #64748b !important;
+    display: block !important;
+    margin-bottom: 1px !important;
+    letter-spacing: 0.02em !important;
+  }
+  .field-value {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    word-break: break-word !important;
+  }
+  /* Grids */
+  .grid-col-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 5px 14px !important;
+  }
+  .grid-col-3 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 5px 14px !important;
+  }
+  .grid-col-4 {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 5px 10px !important;
+  }
+  /* Address 3-col */
+  .address-col-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  .address-box {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 6px 8px !important;
+    font-size: 10px !important;
+  }
+  .address-box-title {
+    font-size: 8.5px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    color: #0f172a !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding-bottom: 2px !important;
+    margin-bottom: 4px !important;
+    letter-spacing: 0.03em !important;
+  }
+  .address-line {
+    margin: 2px 0 !important;
+    font-size: 10px !important;
+  }
+  /* Official Tables */
+  .table-wrap {
+    margin-bottom: 8px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  table.official-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 4px !important;
+    background: #ffffff !important;
+  }
+  table.official-table th {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid #94a3b8 !important;
+    padding: 4px 6px !important;
+    font-size: 9px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    text-align: left !important;
+  }
+  table.official-table td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 4px 6px !important;
+    font-size: 10px !important;
+    color: #0f172a !important;
+  }
+  /* Payment */
+  .payment-card {
+    background: #f0f9ff !important;
+    border: 1px solid #bae6fd !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 8px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  /* Declaration */
+  .declaration-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    font-size: 9.5px !important;
+    font-style: italic !important;
+    color: #475569 !important;
+    line-height: 1.4 !important;
+    margin-bottom: 12px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  /* Signatures */
+  .signatures-row {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    padding-top: 10px !important;
+    margin-top: 14px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .sig-block {
+    width: 220px !important;
+  }
+  .sig-line {
+    border-bottom: 1px solid #475569 !important;
+    width: 100% !important;
+    margin-bottom: 4px !important;
+  }
+  .sig-role {
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+  }
+  .sig-meta {
+    font-size: 9px !important;
+    color: #64748b !important;
+    margin: 1px 0 0 0 !important;
+  }
+`;
+
 export interface ApplicationFormPrintViewProps {
   data: any;
   isCandidatePreview?: boolean;
@@ -32,7 +367,7 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
   const formRef = useRef<HTMLDivElement>(null);
 
   // Dedicated high-fidelity print handler: clones container into isolated iframe
-  // to avoid parent modal clipping (overflow-hidden / fixed viewport) and guarantee background graphics
+  // with self-contained FORM_PRINT_CSS so it is guaranteed to look like an official form
   const handlePrint = () => {
     const elem = formRef.current || document.getElementById('official-printable-application-form');
     if (!elem) {
@@ -59,60 +394,35 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
         return;
       }
 
-      // Collect all stylesheet links and style tags from current page
-      const styleSheets = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-        .map((node) => node.outerHTML)
-        .join('\n');
+      // Read any active CSS from document.styleSheets in addition to our built-in styles
+      let extraStyles = '';
+      try {
+        for (let i = 0; i < document.styleSheets.length; i++) {
+          const sheet = document.styleSheets[i];
+          const rules = sheet.cssRules || (sheet as any).rules;
+          if (rules) {
+            for (let j = 0; j < rules.length; j++) {
+              extraStyles += rules[j].cssText + '\n';
+            }
+          }
+        }
+      } catch (e) {
+        // Cross-origin stylesheet security, ignore
+      }
 
       const printHtml = `
         <!DOCTYPE html>
         <html lang="en">
           <head>
             <meta charset="utf-8" />
+            <base href="${window.location.origin}/" />
             <title>Application_Form_${data.registrationNumber || 'Candidate'}</title>
-            ${styleSheets}
             <style>
-              @page {
-                size: A4 portrait;
-                margin: 8mm 10mm;
-              }
-              *, *::before, *::after {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-              html, body {
-                background: #ffffff !important;
-                color: #0f172a !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-                height: auto !important;
-                font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-              }
-              .printable-application-form {
-                box-shadow: none !important;
-                border: 1px solid #cbd5e1 !important;
-                border-radius: 0 !important;
-                padding: 16px !important;
-                margin: 0 auto !important;
-                width: 100% !important;
-                max-width: 100% !important;
-              }
-              .no-print {
-                display: none !important;
-              }
-              table, tr, td, th {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-              }
-              .border, [class*="rounded-xl"], [class*="rounded-2xl"] {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-              }
+              ${FORM_PRINT_CSS}
+              ${extraStyles}
             </style>
           </head>
-          <body class="bg-white p-2">
+          <body>
             ${elem.outerHTML}
           </body>
         </html>
@@ -128,7 +438,7 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
             iframe.contentWindow?.focus();
             iframe.contentWindow?.print();
           } catch (err) {
-            console.error('Iframe print failed, falling back to window.print()', err);
+            console.error('Iframe print failed', err);
             window.print();
           } finally {
             setTimeout(() => {
@@ -137,7 +447,7 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
               }
             }, 3000);
           }
-        }, 350);
+        }, 300);
       };
 
       const images = frameDoc.images;
@@ -161,11 +471,11 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
         if (loaded >= total) {
           triggerPrint();
         } else {
-          setTimeout(triggerPrint, 1200);
+          setTimeout(triggerPrint, 1000);
         }
       }
     } catch (err) {
-      console.error('Print iframe error:', err);
+      console.error('Print error:', err);
       if (onPrint) onPrint();
       else window.print();
     }
@@ -174,33 +484,31 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
   const handleOpenFullPage = () => {
     const elem = formRef.current || document.getElementById('official-printable-application-form');
     if (!elem) return;
-    const styleSheets = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-      .map((node) => node.outerHTML)
-      .join('\n');
+    const curRegNumber = data.registrationNumber || (isCandidatePreview ? 'PENDING' : 'REG');
     const newWindow = window.open('', '_blank');
     if (!newWindow) return;
-    const curRegNumber = data.registrationNumber || (isCandidatePreview ? 'PENDING' : 'REG');
     newWindow.document.write(`
       <!DOCTYPE html>
       <html lang="en">
         <head>
           <meta charset="utf-8" />
+          <base href="${window.location.origin}/" />
           <title>Application Form — ${curRegNumber}</title>
-          ${styleSheets}
           <style>
-            body { background: #f1f5f9; padding: 24px 16px; font-family: ui-sans-serif, system-ui, sans-serif; }
-            .printable-application-form { max-width: 900px; margin: 0 auto; background: #ffffff; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-radius: 16px; padding: 32px; }
+            ${FORM_PRINT_CSS}
+            body { background: #f1f5f9 !important; padding: 24px 16px !important; }
+            .printable-application-form { max-width: 860px !important; margin: 0 auto !important; background: #ffffff !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important; border-radius: 16px !important; padding: 28px !important; border: 1px solid #cbd5e1 !important; }
             @media print {
               body { background: #ffffff !important; padding: 0 !important; }
-              .printable-application-form { max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; padding: 12px !important; }
+              .printable-application-form { max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; border: none !important; }
               .no-print-bar { display: none !important; }
             }
           </style>
         </head>
         <body>
-          <div class="no-print-bar" style="max-width: 900px; margin: 0 auto 16px auto; display: flex; justify-content: space-between; align-items: center; background: #0f172a; color: #fff; padding: 12px 18px; border-radius: 12px;">
+          <div class="no-print-bar" style="max-width: 860px; margin: 0 auto 16px auto; display: flex; justify-content: space-between; align-items: center; background: #0f172a; color: #fff; padding: 12px 18px; border-radius: 12px;">
             <span style="font-weight: 700; font-size: 13px;">Official Application Form — ${curRegNumber}</span>
-            <button onclick="window.print()" style="padding: 8px 16px; background: #2563eb; color: #fff; border: 0; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;">🖨️ Print / Save as PDF</button>
+            <button onclick="window.print()" style="padding: 8px 18px; background: #2563eb; color: #fff; border: 0; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;">🖨️ Print / Save as PDF</button>
           </div>
           ${elem.outerHTML}
         </body>
@@ -390,33 +698,33 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
       >
         
         {/* Header Strip with Hospital Branding */}
-        <div className="border-b-2 border-slate-900 pb-4">
+        <div className="form-header-wrap border-b-2 border-slate-900 pb-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-            <div className="flex items-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-blue-900 text-white flex items-center justify-center font-bold text-2xl shrink-0 shadow-sm">
+            <div className="form-header-left flex items-center gap-3">
+              <div className="form-logo-box w-14 h-14 rounded-2xl bg-blue-900 text-white flex items-center justify-center font-bold text-2xl shrink-0 shadow-sm">
                 🏥
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-blue-950 uppercase">
+                <h1 className="hospital-name-en text-xl sm:text-2xl font-black tracking-tight text-blue-950 uppercase">
                   Dwarika Hospital Pvt. Ltd.
                 </h1>
-                <p className="text-sm font-bold text-slate-700 font-nepali">
+                <p className="hospital-name-np text-sm font-bold text-slate-700 font-nepali">
                   श्री द्वारिका हस्पिटल प्रा. लि.
                 </p>
-                <p className="text-[11px] text-slate-500 font-medium">
+                <p className="hospital-sub-contact text-[11px] text-slate-500 font-medium">
                   Birgunj-04, Parsa, Nepal | Contact: +977-51-522222 | Email: info@dwarikahospital.com
                 </p>
               </div>
             </div>
 
-            <div className="sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
-              <span className="inline-block bg-blue-900 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-wider mb-1">
+            <div className="form-header-right sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
+              <span className="official-badge-pill inline-block bg-blue-900 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-wider mb-1">
                 Official Application Form
               </span>
-              <div className="text-xs font-bold text-slate-800">
-                Reg No: <span className="font-mono text-blue-900 font-black">{regNumber}</span>
+              <div className="reg-badge-text text-xs font-bold text-slate-800">
+                Reg No: <span className="reg-num-mono font-mono text-blue-900 font-black">{regNumber}</span>
               </div>
-              <div className="text-[11px] text-slate-500 font-medium">
+              <div className="session-text text-[11px] text-slate-500 font-medium">
                 Entry Session: {data.entryYear || '2082 B.S.'}
               </div>
             </div>
@@ -424,72 +732,80 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
         </div>
 
         {/* Section 1: Candidate Basic Profile with Photo */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
+        <div className="profile-photo-row flex flex-col md:flex-row gap-6 items-start">
           {/* Details (3 cols) */}
-          <div className="md:col-span-3 space-y-4">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <div className="text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">1. Candidate Identity</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-xs">
+          <div className="profile-left-col flex-1 space-y-4 min-w-0">
+            <div className="form-card bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">1. Candidate Identity</div>
+              <div className="grid-col-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Candidate Full Name (English)</span>
-                  <strong className="text-slate-900 text-sm uppercase">{fullNameEn}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Candidate Full Name (English)</span>
+                  <strong className="field-value text-slate-900 text-sm uppercase">{fullNameEn}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">उम्मेदवारको नाम (नेपाली)</span>
-                  <strong className="text-slate-900 text-sm font-nepali">{fullNameNp}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">उम्मेदवारको नाम (नेपाली)</span>
+                  <strong className="field-value text-slate-900 text-sm font-nepali">{fullNameNp}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Post / Designation Applied</span>
-                  <strong className="text-blue-900 text-sm font-black">{data.postApplied || '—'}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Post / Designation Applied</span>
+                  <strong className="field-value text-blue-900 text-sm font-black">{data.postApplied || '—'}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Candidate User Category</span>
-                  <strong className="text-slate-800">{data.userType || 'STUDENT'} {data.userTypeOther ? `(${data.userTypeOther})` : ''}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Candidate User Category</span>
+                  <strong className="field-value text-slate-800">{data.userType || 'STUDENT'} {data.userTypeOther ? `(${data.userTypeOther})` : ''}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Date of Birth (AD / BS)</span>
-                  <strong className="text-slate-800">{data.dobAD || '—'} A.D. {data.dobBS ? `(${data.dobBS} B.S.)` : ''}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Date of Birth (AD / BS)</span>
+                  <strong className="field-value text-slate-800">{data.dobAD || '—'} A.D. {data.dobBS ? `(${data.dobBS} B.S.)` : ''}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Gender & Blood Group</span>
-                  <strong className="text-slate-800">{data.gender || '—'} • {data.bloodGroup || '—'}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Gender & Blood Group</span>
+                  <strong className="field-value text-slate-800">{data.gender || '—'} • {data.bloodGroup || '—'}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Marital Status & Religion</span>
-                  <strong className="text-slate-800">{data.maritalStatus || 'Unmarried'} • {data.religion || '—'}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Marital Status & Religion</span>
+                  <strong className="field-value text-slate-800">{data.maritalStatus || 'Unmarried'} • {data.religion || '—'}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Nationality & Caste / Ethnicity</span>
-                  <strong className="text-slate-800">{data.nationality || 'Nepali'} • {data.caste || data.casteGroup || '—'}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Nationality & Caste / Ethnicity</span>
+                  <strong className="field-value text-slate-800">{data.nationality || 'Nepali'} • {data.caste || data.casteGroup || '—'}</strong>
                 </div>
               </div>
             </div>
 
             {/* Contact Details */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <div className="text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">2. Contact Details</div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
+            <div className="form-card bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">2. Contact Details</div>
+              <div className="grid-col-3 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Mobile Number</span>
-                  <strong className="text-blue-900 font-mono text-sm">{data.mobile || '—'}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Mobile Number</span>
+                  <strong className="field-value text-blue-900 font-mono text-sm">{data.mobile || '—'}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Email Address</span>
-                  <strong className="text-slate-800 break-all">{data.email || '—'}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Email Address</span>
+                  <strong className="field-value text-slate-800 break-all">{data.email || '—'}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Phone / Alternate</span>
-                  <strong className="text-slate-800">{data.phone || '—'}</strong>
+                  <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Phone / Alternate</span>
+                  <strong className="field-value text-slate-800">{data.phone || '—'}</strong>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Photo Box (1 col) */}
-          <div className="md:col-span-1 flex flex-col items-center">
-            <div className="w-36 h-44 sm:w-40 sm:h-48 border-2 border-dashed border-slate-300 rounded-xl overflow-hidden bg-slate-100 flex flex-col items-center justify-center p-1 text-center shadow-xs">
+          <div className="photo-right-col shrink-0 flex flex-col items-center" style={{ width: '130px' }}>
+            <div 
+              className="photo-frame w-36 h-44 sm:w-40 sm:h-48 border-2 border-dashed border-slate-300 rounded-xl overflow-hidden bg-slate-100 flex flex-col items-center justify-center p-1 text-center shadow-xs"
+              style={{ width: '130px', height: '160px', minWidth: '130px', maxWidth: '130px', minHeight: '160px', maxHeight: '160px', boxSizing: 'border-box' }}
+            >
               {photoSrc ? (
-                <img src={photoSrc} alt="Candidate Photo" className="w-full h-full object-cover rounded-lg" />
+                <img 
+                  src={photoSrc} 
+                  alt="Candidate Photo" 
+                  className="w-full h-full object-cover rounded-lg"
+                  style={{ width: '100%', height: '100%', maxWidth: '130px', maxHeight: '160px', objectFit: 'cover', display: 'block' }}
+                />
               ) : (
                 <div className="p-2 space-y-1">
                   <User className="w-10 h-10 text-slate-400 mx-auto" />
@@ -497,127 +813,127 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
                 </div>
               )}
             </div>
-            <span className="text-[10px] font-bold uppercase text-slate-400 mt-1.5 tracking-wider">Candidate Photo</span>
+            <span className="photo-label text-[10px] font-bold uppercase text-slate-400 mt-1.5 tracking-wider">Candidate Photo</span>
           </div>
         </div>
 
         {/* Section 2: Identification Documents */}
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div className="text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">3. Identification Documents</div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div className="form-card bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">3. Identification Documents</div>
+          <div className="grid-col-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Citizenship No.</span>
-              <strong className="text-slate-900 font-mono">{data.citizenshipNo || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Citizenship No.</span>
+              <strong className="field-value text-slate-900 font-mono">{data.citizenshipNo || '—'}</strong>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Citizenship Issue Date</span>
-              <strong className="text-slate-800">{data.citizenshipIssueDate || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Citizenship Issue Date</span>
+              <strong className="field-value text-slate-800">{data.citizenshipIssueDate || '—'}</strong>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Issue District / Place</span>
-              <strong className="text-slate-800 uppercase">{data.citizenshipIssuePlace || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Issue District / Place</span>
+              <strong className="field-value text-slate-800 uppercase">{data.citizenshipIssuePlace || '—'}</strong>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">PAN Number</span>
-              <strong className="text-slate-900 font-mono">{data.panNo || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">PAN Number</span>
+              <strong className="field-value text-slate-900 font-mono">{data.panNo || '—'}</strong>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">National ID (NID) No.</span>
-              <strong className="text-slate-900 font-mono">{data.nIdNo || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">National ID (NID) No.</span>
+              <strong className="field-value text-slate-900 font-mono">{data.nIdNo || '—'}</strong>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Passport Number</span>
-              <strong className="text-slate-900 font-mono">{data.passportNo || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Passport Number</span>
+              <strong className="field-value text-slate-900 font-mono">{data.passportNo || '—'}</strong>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Passport Issue Details</span>
-              <strong className="text-slate-800">{data.passportIssuePlace ? `${data.passportIssuePlace} (${data.passportIssueDate || '—'})` : '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Passport Issue Details</span>
+              <strong className="field-value text-slate-800">{data.passportIssuePlace ? `${data.passportIssuePlace} (${data.passportIssueDate || '—'})` : '—'}</strong>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Local ID / Other</span>
-              <strong className="text-slate-800 font-mono">{data.localIdNo || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Local ID / Other</span>
+              <strong className="field-value text-slate-800 font-mono">{data.localIdNo || '—'}</strong>
             </div>
           </div>
         </div>
 
         {/* Section 3: Family Details */}
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div className="text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">4. Family Background</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3 text-xs">
+        <div className="form-card bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">4. Family Background</div>
+          <div className="grid-col-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3 text-xs">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Father's Name (English / नेपाली)</span>
-              <strong className="text-slate-900 uppercase block">{data.fatherName || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Father's Name (English / नेपाली)</span>
+              <strong className="field-value text-slate-900 uppercase block">{data.fatherName || '—'}</strong>
               {data.fatherNameNp && <span className="text-slate-600 font-nepali block">{data.fatherNameNp}</span>}
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Mother's Name (English / नेपाली)</span>
-              <strong className="text-slate-900 uppercase block">{data.motherName || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Mother's Name (English / नेपाली)</span>
+              <strong className="field-value text-slate-900 uppercase block">{data.motherName || '—'}</strong>
               {data.motherNameNp && <span className="text-slate-600 font-nepali block">{data.motherNameNp}</span>}
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Grandfather's Name (English / नेपाली)</span>
-              <strong className="text-slate-900 uppercase block">{data.grandfatherName || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Grandfather's Name (English / नेपाली)</span>
+              <strong className="field-value text-slate-900 uppercase block">{data.grandfatherName || '—'}</strong>
               {data.grandfatherNameNp && <span className="text-slate-600 font-nepali block">{data.grandfatherNameNp}</span>}
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Grandmother's Name</span>
-              <strong className="text-slate-900 uppercase block">{data.grandmotherName || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Grandmother's Name</span>
+              <strong className="field-value text-slate-900 uppercase block">{data.grandmotherName || '—'}</strong>
               {data.grandmotherNameNp && <span className="text-slate-600 font-nepali block">{data.grandmotherNameNp}</span>}
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Spouse's Name</span>
-              <strong className="text-slate-900 uppercase block">{data.spouseName || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Spouse's Name</span>
+              <strong className="field-value text-slate-900 uppercase block">{data.spouseName || '—'}</strong>
               {data.spouseNameNp && <span className="text-slate-600 font-nepali block">{data.spouseNameNp}</span>}
             </div>
           </div>
         </div>
 
         {/* Section 4: Address Details */}
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-          <div className="text-[10px] font-black uppercase tracking-widest text-blue-900">5. Address Information</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div className="form-card bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+          <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-blue-900">5. Address Information</div>
+          <div className="address-col-grid grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             {/* Permanent (Current) */}
-            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
-              <span className="text-[10px] font-black uppercase tracking-wider text-blue-950 block border-b border-slate-100 pb-1">
+            <div className="address-box p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
+              <span className="address-box-title text-[10px] font-black uppercase tracking-wider text-blue-950 block border-b border-slate-100 pb-1">
                 Permanent Address (Current)
               </span>
               <div className="space-y-1">
-                <p><span className="text-slate-500 font-semibold">Country:</span> <strong>{permCountry}</strong></p>
-                <p><span className="text-slate-500 font-semibold">Province:</span> <strong>{permProvince}</strong></p>
-                <p><span className="text-slate-500 font-semibold">District:</span> <strong>{permDistrict}</strong></p>
-                <p><span className="text-slate-500 font-semibold">Municipality/GP:</span> <strong>{permMunicipality}</strong></p>
-                <p><span className="text-slate-500 font-semibold">Ward No:</span> <strong>{permWard}</strong></p>
-                <p className="pt-0.5 border-t border-slate-100"><span className="text-blue-900 font-bold uppercase text-[10px]">Village / Tole:</span> <strong className="text-slate-900 block">{permStreet}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Country:</span> <strong>{permCountry}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Province:</span> <strong>{permProvince}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">District:</span> <strong>{permDistrict}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Municipality/GP:</span> <strong>{permMunicipality}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Ward No:</span> <strong>{permWard}</strong></p>
+                <p className="address-line pt-0.5 border-t border-slate-100"><span className="text-blue-900 font-bold uppercase text-[10px]">Village / Tole:</span> <strong className="text-slate-900 block">{permStreet}</strong></p>
               </div>
             </div>
 
             {/* Permanent (Old Citizenship) */}
-            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-800 block border-b border-slate-100 pb-1">
+            <div className="address-box p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
+              <span className="address-box-title text-[10px] font-black uppercase tracking-wider text-slate-800 block border-b border-slate-100 pb-1">
                 Permanent Address (Old Citizenship)
               </span>
               <div className="space-y-1">
-                <p><span className="text-slate-500 font-semibold">Country:</span> <strong>{oldCountry}</strong></p>
-                <p><span className="text-slate-500 font-semibold">Zone (अञ्चल):</span> <strong>{oldZone}</strong></p>
-                <p><span className="text-slate-500 font-semibold">District:</span> <strong>{oldDistrict}</strong></p>
-                <p><span className="text-slate-500 font-semibold">Municipality/VDC:</span> <strong>{oldMunicipality}</strong></p>
-                <p><span className="text-slate-500 font-semibold">Ward No:</span> <strong>{oldWard}</strong></p>
-                <p className="pt-0.5 border-t border-slate-100"><span className="text-blue-900 font-bold uppercase text-[10px]">Village / Tole:</span> <strong className="text-slate-900 block">{oldStreet}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Country:</span> <strong>{oldCountry}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Zone (अञ्चल):</span> <strong>{oldZone}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">District:</span> <strong>{oldDistrict}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Municipality/VDC:</span> <strong>{oldMunicipality}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Ward No:</span> <strong>{oldWard}</strong></p>
+                <p className="address-line pt-0.5 border-t border-slate-100"><span className="text-blue-900 font-bold uppercase text-[10px]">Village / Tole:</span> <strong className="text-slate-900 block">{oldStreet}</strong></p>
               </div>
             </div>
 
             {/* Mailing Address */}
-            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-800 block border-b border-slate-100 pb-1">
+            <div className="address-box p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
+              <span className="address-box-title text-[10px] font-black uppercase tracking-wider text-slate-800 block border-b border-slate-100 pb-1">
                 Mailing / Correspondence Address
               </span>
               <div className="space-y-1">
-                <p><span className="text-slate-500 font-semibold">Country:</span> <strong>{mailCountry}</strong></p>
-                <p><span className="text-slate-500 font-semibold">Province:</span> <strong>{mailProvince}</strong></p>
-                <p><span className="text-slate-500 font-semibold">District:</span> <strong>{mailDistrict}</strong></p>
-                <p><span className="text-slate-500 font-semibold">Municipality/GP:</span> <strong>{mailMunicipality}</strong></p>
-                <p><span className="text-slate-500 font-semibold">Ward No:</span> <strong>{mailWard}</strong></p>
-                <p className="pt-0.5 border-t border-slate-100"><span className="text-blue-900 font-bold uppercase text-[10px]">Village / Tole:</span> <strong className="text-slate-900 block">{mailStreet}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Country:</span> <strong>{mailCountry}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Province:</span> <strong>{mailProvince}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">District:</span> <strong>{mailDistrict}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Municipality/GP:</span> <strong>{mailMunicipality}</strong></p>
+                <p className="address-line"><span className="text-slate-500 font-semibold">Ward No:</span> <strong>{mailWard}</strong></p>
+                <p className="address-line pt-0.5 border-t border-slate-100"><span className="text-blue-900 font-bold uppercase text-[10px]">Village / Tole:</span> <strong className="text-slate-900 block">{mailStreet}</strong></p>
                 {mailForeign && <p className="text-[11px] text-slate-500 italic">Foreign: {mailForeign}</p>}
               </div>
             </div>
@@ -625,13 +941,13 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
         </div>
 
         {/* Section 5: Academic Qualifications Table */}
-        <div className="space-y-2">
-          <div className="text-[10px] font-black uppercase tracking-widest text-blue-900">6. Academic Qualifications</div>
+        <div className="table-wrap space-y-2">
+          <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-blue-900">6. Academic Qualifications</div>
           {academicList.length === 0 ? (
             <p className="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl">No academic records provided.</p>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-slate-300">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="official-table w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-300 text-slate-700 font-black text-[10px] uppercase tracking-wider">
                     <th className="p-2 border-r border-slate-300">S.N.</th>
@@ -665,24 +981,24 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
 
         {/* Section 6: Council Registration Details */}
         {(data.councilDetails?.councilName || (data as any).councilName || data.councilDetails?.regNo || (data as any).councilRegNo) && (
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div className="text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">7. Professional Council Registration</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+          <div className="form-card bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-blue-900 mb-2">7. Professional Council Registration</div>
+            <div className="grid-col-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Council Name</span>
-                <strong className="text-slate-900 uppercase">{data.councilDetails?.councilName || (data as any).councilName || '—'}</strong>
+                <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Council Name</span>
+                <strong className="field-value text-slate-900 uppercase">{data.councilDetails?.councilName || (data as any).councilName || '—'}</strong>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Registration No.</span>
-                <strong className="text-blue-900 font-mono font-black">{data.councilDetails?.regNo || (data as any).councilRegNo || '—'}</strong>
+                <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Registration No.</span>
+                <strong className="field-value text-blue-900 font-mono font-black">{data.councilDetails?.regNo || (data as any).councilRegNo || '—'}</strong>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Registration Type</span>
-                <strong className="text-slate-800 uppercase">{data.councilDetails?.type || (data as any).councilRegType || '—'}</strong>
+                <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Registration Type</span>
+                <strong className="field-value text-slate-800 uppercase">{data.councilDetails?.type || (data as any).councilRegType || '—'}</strong>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Reg. Date / Validity</span>
-                <strong className="text-slate-800">{data.councilDetails?.regDate || (data as any).councilRegDate || '—'}</strong>
+                <span className="field-label text-[10px] uppercase font-bold text-slate-500 block">Reg. Date / Validity</span>
+                <strong className="field-value text-slate-800">{data.councilDetails?.regDate || (data as any).councilRegDate || '—'}</strong>
               </div>
             </div>
           </div>
@@ -690,10 +1006,10 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
 
         {/* Section 7: Training Details (if any) */}
         {trainingList.length > 0 && (
-          <div className="space-y-2">
-            <div className="text-[10px] font-black uppercase tracking-widest text-blue-900">8. Training & Certifications</div>
+          <div className="table-wrap space-y-2">
+            <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-blue-900">8. Training & Certifications</div>
             <div className="overflow-x-auto rounded-xl border border-slate-300">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="official-table w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-300 text-slate-700 font-black text-[10px] uppercase tracking-wider">
                     <th className="p-2 border-r border-slate-300">S.N.</th>
@@ -727,10 +1043,10 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
 
         {/* Section 8: Work Experience (if any) */}
         {workList.length > 0 && (
-          <div className="space-y-2">
-            <div className="text-[10px] font-black uppercase tracking-widest text-blue-900">9. Work Experience</div>
+          <div className="table-wrap space-y-2">
+            <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-blue-900">9. Work Experience</div>
             <div className="overflow-x-auto rounded-xl border border-slate-300">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="official-table w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-300 text-slate-700 font-black text-[10px] uppercase tracking-wider">
                     <th className="p-2 border-r border-slate-300">S.N.</th>
@@ -763,25 +1079,25 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
         )}
 
         {/* Section 9: Payment Verification Details */}
-        <div className="bg-sky-50/60 p-4 rounded-xl border border-sky-200">
-          <div className="text-[10px] font-black uppercase tracking-widest text-sky-950 mb-2">10. Application Fee & Payment Details</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs items-center">
+        <div className="payment-card bg-sky-50/60 p-4 rounded-xl border border-sky-200">
+          <div className="card-sec-title text-[10px] font-black uppercase tracking-widest text-sky-950 mb-2">10. Application Fee & Payment Details</div>
+          <div className="grid-col-3 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs items-center">
             <div>
-              <span className="text-[10px] uppercase font-bold text-sky-700 block">Payment Mode</span>
-              <strong className="text-slate-900">{data.payment?.mode || 'eSewa / QR / Bank Transfer'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-sky-700 block">Payment Mode</span>
+              <strong className="field-value text-slate-900">{data.payment?.mode || 'eSewa / QR / Bank Transfer'}</strong>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-sky-700 block">Payment Voucher / Txn No.</span>
-              <strong className="text-blue-900 font-mono font-black text-sm">{voucherNo}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-sky-700 block">Payment Voucher / Txn No.</span>
+              <strong className="field-value text-blue-900 font-mono font-black text-sm">{voucherNo}</strong>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-sky-700 block">Payment Date</span>
-              <strong className="text-slate-800">{data.payment?.paymentDate || data.paymentDate || '—'}</strong>
+              <span className="field-label text-[10px] uppercase font-bold text-sky-700 block">Payment Date</span>
+              <strong className="field-value text-slate-800">{data.payment?.paymentDate || data.paymentDate || '—'}</strong>
             </div>
           </div>
 
           {voucherSrc && (
-            <div className="mt-3 pt-3 border-t border-sky-200/60 flex items-center gap-3">
+            <div className="no-print mt-3 pt-3 border-t border-sky-200/60 flex items-center gap-3">
               <span className="text-[10px] font-bold uppercase text-sky-800">Attached Receipt:</span>
               <a 
                 href={voucherSrc} 
@@ -796,24 +1112,24 @@ export const ApplicationFormPrintView: React.FC<ApplicationFormPrintViewProps> =
         </div>
 
         {/* Section 10: Official Declaration & Signatures */}
-        <div className="pt-4 border-t-2 border-slate-300 space-y-8">
-          <div className="text-[11px] text-slate-600 leading-relaxed italic bg-slate-50 p-3 rounded-lg border border-slate-200">
+        <div className="pt-4 border-t-2 border-slate-300 space-y-6" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+          <div className="declaration-card text-[11px] text-slate-600 leading-relaxed italic bg-slate-50 p-3 rounded-lg border border-slate-200">
             <strong>Applicant Declaration:</strong> I hereby declare that all information furnished in this application is true, complete, and accurate to the best of my knowledge and belief. If any information or document is found to be false, counterfeit, or forged at any stage, my application and appointment shall be cancelled automatically without any notice.
           </div>
 
-          <div className="grid grid-cols-2 gap-8 pt-4">
-            <div className="space-y-1 text-center sm:text-left">
-              <div className="border-b border-slate-400 w-48 sm:w-56 mb-2"></div>
-              <p className="text-xs font-black uppercase text-slate-900">Candidate Signature</p>
-              <p className="text-[10px] text-slate-500">Name: {fullNameEn}</p>
-              <p className="text-[10px] text-slate-500">Date: {formatDate(data.submittedAt || data.createdAt) || '____/____/________'}</p>
+          <div className="signatures-row grid grid-cols-2 gap-8 pt-4">
+            <div className="sig-block space-y-1 text-center sm:text-left">
+              <div className="sig-line border-b border-slate-400 w-48 sm:w-56 mb-2"></div>
+              <p className="sig-role text-xs font-black uppercase text-slate-900">Candidate Signature</p>
+              <p className="sig-meta text-[10px] text-slate-500">Name: {fullNameEn}</p>
+              <p className="sig-meta text-[10px] text-slate-500">Date: {formatDate(data.submittedAt || data.createdAt) || '____/____/________'}</p>
             </div>
 
-            <div className="space-y-1 text-center sm:text-right flex flex-col items-center sm:items-end">
-              <div className="border-b border-slate-400 w-48 sm:w-56 mb-2"></div>
-              <p className="text-xs font-black uppercase text-slate-900">Hospital Verification Officer</p>
-              <p className="text-[10px] text-slate-500">Dwarika Hospital Administration</p>
-              <p className="text-[10px] text-slate-500">Seal & Signature</p>
+            <div className="sig-block space-y-1 text-center sm:text-right flex flex-col items-center sm:items-end">
+              <div className="sig-line border-b border-slate-400 w-48 sm:w-56 mb-2"></div>
+              <p className="sig-role text-xs font-black uppercase text-slate-900">Hospital Verification Officer</p>
+              <p className="sig-meta text-[10px] text-slate-500">Dwarika Hospital Administration</p>
+              <p className="sig-meta text-[10px] text-slate-500">Seal & Signature</p>
             </div>
           </div>
         </div>
