@@ -4,9 +4,7 @@ import {
   AlertTriangle,
   PhoneCall,
   ArrowLeft,
-  ShieldAlert,
   Clock,
-  ExternalLink,
   Building2,
 } from 'lucide-react';
 
@@ -105,8 +103,6 @@ export function PageStatusProvider({ children }: { children: React.ReactNode }) 
 }
 
 export function BlockedPageNotice({ page }: { page?: PageStatusData }) {
-  const isAdmin = typeof window !== 'undefined' && Boolean(localStorage.getItem('admin_token'));
-
   const title =
     page?.noticeTitle?.trim() ||
     `${page?.name || 'This Page'} is Temporarily Unavailable`;
@@ -122,22 +118,6 @@ export function BlockedPageNotice({ page }: { page?: PageStatusData }) {
         <div className="bg-white rounded-3xl border border-amber-200 shadow-xl overflow-hidden text-center relative">
           {/* Top amber accent bar */}
           <div className="h-3 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600" />
-
-          {/* Admin Banner if logged in */}
-          {isAdmin && (
-            <div className="bg-amber-100/90 border-b border-amber-200 px-4 py-2 text-xs font-semibold text-amber-900 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <ShieldAlert className="h-4 w-4 text-amber-700 shrink-0" />
-                Admin Notice: This page is currently set to <strong>BLOCKED</strong> in the Admin Console.
-              </span>
-              <a
-                href="/admin/page-status"
-                className="underline font-bold text-amber-950 hover:text-black inline-flex items-center gap-1"
-              >
-                Change in Admin <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          )}
 
           <div className="p-8 sm:p-12 space-y-6">
             {/* Header Icon */}
