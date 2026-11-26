@@ -14,6 +14,9 @@ import LabReport from '../models/LabReport.js';
 import Registration from '../models/Registration.js';
 import Applicant from '../models/Applicant.js';
 import SiteSettings from '../models/SiteSettings.js';
+import Medicine from '../models/Medicine.js';
+import { uniqueSlug } from '../utils/slug.js';
+import mongoose from 'mongoose';
 import { upload } from '../middleware/upload.js';
 import * as mediaController from '../controllers/mediaController.js';
 import { created, success, fail } from '../utils/ApiResponse.js';
@@ -415,6 +418,176 @@ publicRouter.post(
   mediaController.uploadOne
 );
 
+// Shared handler for clinical pharmacy requisition submission -> syncs with Medicine Master
+async function handlePharmacyRequisition(req, res) {
+  const {
+    customerInfo = {},
+    medicines = [],
+    financials = {},
+    subtotal = 0,
+    netTotal = 0,
+    prescriptionUrl = '',
+  } = req.body;
+
+  // Support single item or array of items
+  const items = Array.isArray(medicines)
+    ? medicines
+    : req.body.name
+    ? [req.body]
+    : [];
+
+  if (items.length === 0) {
+    return fail(res, 'At least one medicine item is required in the requisition', 400);
+  }
+
+  const customerName = (customerInfo.name || '').trim();
+  const customerPhone = (customerInfo.phone || '').trim();
+  const addressParts = [
+    customerInfo.tole,
+    customerInfo.ward ? `Ward ${customerInfo.ward}` : '',
+    customerInfo.municipality,
+    customerInfo.district,
+    customerInfo.province,
+    customerInfo.country || 'Nepal',
+  ].filter(Boolean);
+  const formattedAddress = addressParts.join(', ');
+
+  const processedMedicines = [];
+
+  for (const item of items) {
+    const rawName = String(item.name || item.brandName || '').trim();
+    if (!rawName) continue;
+
+    const requestedQty = Math.max(1, Number(item.quantity) || 1);
+    const unitRate = Number(item.rate) || 0;
+    const lineTotal = Number(item.total) || requestedQty * unitRate;
+
+    const requisitionNote = [
+      customerName ? `Requisition for: ${customerName}` : 'Clinical Pharmacy Requisition',
+      customerPhone ? `Contact: ${customerPhone}` : '',
+      formattedAddress ? `Location: ${formattedAddress}` : '',
+      customerInfo.panVatNo ? `PAN/VAT: ${customerInfo.panVatNo}` : '',
+      `Qty: ${requestedQty} ${item.unit || 'Pcs'}`,
+      `Rate: Rs. ${unitRate}`,
+      `Total: Rs. ${lineTotal}`,
+      prescriptionUrl ? `Prescription: ${prescriptionUrl}` : '',
+      `Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+    ]
+      .filter(Boolean)
+      .join(' | ');
+
+    // Match existing medicine case-insensitively
+    const escapedName = rawName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    let medDoc = await Medicine.findOne({
+      $or: [
+        { name: new RegExp(`^${escapedName}$`, 'i') },
+        ...(item._id && mongoose.Types.ObjectId.isValid(item._id) ? [{ _id: item._id }] : []),
+      ],
+    });
+
+    if (medDoc) {
+      // Update existing medicine record and bring it to the top of Medicine Master
+      medDoc.quantity = requestedQty;
+      medDoc.totalAmount = lineTotal;
+      if (unitRate > 0) medDoc.rate = unitRate;
+      if (item.form) medDoc.form = item.form;
+      if (item.strength) medDoc.strength = item.strength;
+      if (item.unit) medDoc.unit = item.unit;
+      if (item.genericName && (!medDoc.genericName || medDoc.genericName === medDoc.name)) {
+        medDoc.genericName = item.genericName;
+      }
+      if (item.supplierName && !medDoc.supplierName) {
+        medDoc.supplierName = item.supplierName;
+      }
+      medDoc.status = 'published';
+      medDoc.description = requisitionNote;
+      if (typeof medDoc.stock === 'number' && medDoc.stock > 0) {
+        medDoc.stock = Math.max(0, medDoc.stock - requestedQty);
+      }
+      await medDoc.save();
+      processedMedicines.push(medDoc);
+    } else {
+      // Create new medicine record in Medicine Master
+      const slugVal = await uniqueSlug(Medicine, rawName);
+      medDoc = await Medicine.create({
+        name: rawName,
+        genericName: item.genericName?.trim() || rawName,
+        brandName: item.brandName?.trim() || rawName,
+        companyName: item.companyName?.trim() || '',
+        supplierName: item.supplierName?.trim() || 'Pharmacy Requisition',
+        group: item.group || 'Medicine',
+        form: item.form || 'Tab.',
+        strength: item.strength || 'NA',
+        unit: item.unit || 'Pcs',
+        rate: unitRate,
+        quantity: requestedQty,
+        totalAmount: lineTotal,
+        stock: item.stock !== undefined && item.stock !== null ? Number(item.stock) : 50,
+        minStockAlert: 10,
+        stockStatus: 'In Stock',
+        status: 'published',
+        slug: slugVal,
+        description: requisitionNote,
+      });
+      processedMedicines.push(medDoc);
+    }
+  }
+
+  // Also log order into Enquiry so administration has clinical requisition records
+  try {
+    const medSummaryList = items
+      .map(
+        (m, idx) =>
+          `${idx + 1}. ${m.name} (${m.form || 'Tab.'} ${m.strength || ''}) - Qty: ${m.quantity || 1} ${m.unit || 'Pcs'} @ Rs. ${m.rate || 0} = Rs. ${m.total || 0}`
+      )
+      .join('\n');
+
+    await Enquiry.create({
+      name: customerName || 'Clinical Pharmacy Patient',
+      email: customerInfo.email || '',
+      phone: customerPhone || '',
+      subject: `Pharmacy Requisition - ${customerName || 'Patient'} (NPR ${netTotal || subtotal})`,
+      message: `PRESCRIPTION & MEDICINE REQUISITION ORDER\n\nPatient Details:\n- Name: ${customerName || 'N/A'}\n- Phone: ${customerPhone || 'N/A'}\n- PAN/VAT: ${customerInfo.panVatNo || 'N/A'}\n- Address: ${formattedAddress || 'N/A'}\n\nPrescription Document:\n${prescriptionUrl ? prescriptionUrl : 'No file attached'}\n\nRequisitioned Items:\n${medSummaryList}\n\nFinancial Breakdown:\n- Gross Subtotal: NPR ${subtotal}\n- Discount: NPR ${financials.discount || 0}\n- Adjustment: NPR ${financials.adjustment || 0}\n- Delivery: NPR ${financials.deliveryCharge || 0}\n- Net Payable: NPR ${netTotal}`,
+      address: formattedAddress,
+      source: 'pharmacy-requisition',
+      status: 'new',
+      meta: {
+        customerInfo,
+        medicines: items,
+        financials,
+        subtotal,
+        netTotal,
+        prescriptionUrl,
+        processedCount: processedMedicines.length,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to log requisition enquiry:', err);
+  }
+
+  return created(
+    res,
+    {
+      items: processedMedicines,
+      count: processedMedicines.length,
+      customer: customerName,
+      netTotal,
+    },
+    'Pharmacy requisition submitted successfully and recorded in Medicine Master'
+  );
+}
+
+// Pharmacy Requisition Submissions (Public) -> syncs with Medicine Master
+publicRouter.post(
+  '/medicines/requisition',
+  asyncHandler(handlePharmacyRequisition)
+);
+
+publicRouter.post(
+  '/medicines',
+  asyncHandler(handlePharmacyRequisition)
+);
+
 // Applicant Login for Online Registration
 publicRouter.post(
   '/applicant/login',
@@ -561,6 +734,21 @@ router.post(
 router.post(
   '/registrations',
   asyncHandler(handleRegistrationSubmission)
+);
+
+router.post(
+  '/medicines/requisition',
+  asyncHandler(handlePharmacyRequisition)
+);
+
+router.post(
+  '/medicines',
+  asyncHandler(handlePharmacyRequisition)
+);
+
+router.post(
+  '/pharmacy/requisition',
+  asyncHandler(handlePharmacyRequisition)
 );
 
 router.get(

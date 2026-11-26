@@ -82,3 +82,10 @@ export async function submitAppointment(payload: unknown) {
     body: JSON.stringify(payload),
   });
 }
+
+export async function submitPharmacyRequisition(payload: unknown) {
+  return request('/public/medicines/requisition', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}

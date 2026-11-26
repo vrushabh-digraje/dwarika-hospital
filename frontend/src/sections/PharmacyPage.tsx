@@ -10,7 +10,7 @@ import { cn } from '../lib/utils';
 import { 
     PROVINCES, DISTRICTS_BY_PROVINCE, GET_MUNICIPALITIES 
 } from '../constants/nepalData';
-import { cmsPublic } from '../lib/cmsClient';
+import { cmsPublic, submitPharmacyRequisition } from '../lib/cmsClient';
 
 // Helper to convert number to words
 const numberToWords = (num: number): string => {
@@ -308,6 +308,11 @@ const PharmacyPage = () => {
     const [groupFilter, setGroupFilter] = useState<'All' | 'Medicine' | 'Surgical' | 'Extra Item'>('All');
     const [inStockOnly, setInStockOnly] = useState(false);
     const [isBarDropdownOpen, setIsBarDropdownOpen] = useState(false);
+    const [submittedOrderInfo, setSubmittedOrderInfo] = useState<{
+        customerName: string;
+        itemCount: number;
+        netTotal: number;
+    } | null>(null);
 
     const [currentEntry, setCurrentEntry] = useState({
         form: 'Tab.',
@@ -461,11 +466,82 @@ const PharmacyPage = () => {
     };
 
     const handleSubmit = async () => {
-        if (medicines.length === 0) return;
+        if (medicines.length === 0) {
+            alert('Please add at least one medicine to Section III Requisition table before submitting.');
+            return;
+        }
+
         setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsLoading(false);
-        alert('Requisition Submitted Successfully');
+        try {
+            // 1. Upload prescription file if attached
+            let prescriptionUrl = '';
+            if (generalMedDetails.prescriptionFile) {
+                try {
+                    const fd = new FormData();
+                    fd.append('file', generalMedDetails.prescriptionFile);
+                    fd.append('folder', 'pharmacy');
+                    const uploadRes = await fetch('/api/public/upload', {
+                        method: 'POST',
+                        body: fd,
+                    });
+                    if (uploadRes.ok) {
+                        const uploadJson = await uploadRes.json();
+                        prescriptionUrl = uploadJson?.data?.url || '';
+                    }
+                } catch (upErr) {
+                    console.warn('Prescription upload skipped:', upErr);
+                }
+            }
+
+            // 2. Submit requisition to backend (which persists directly into Medicine Master)
+            const payload = {
+                customerInfo: {
+                    ...customerInfo,
+                    name: customerInfo.name.trim() || 'Pharmacy Walk-in Patient',
+                },
+                medicines,
+                financials,
+                subtotal,
+                netTotal,
+                prescriptionUrl,
+            };
+
+            await submitPharmacyRequisition(payload);
+
+            const submittedCount = medicines.length;
+            const submittedTotal = netTotal;
+            const submittedCust = customerInfo.name.trim() || 'Pharmacy Walk-in Patient';
+
+            // 3. Clear requisition table and inputs
+            setMedicines([]);
+            setCurrentEntry({ form: 'Tab.', name: '', strength: '', quantity: '', unit: 'Pcs', rate: '' });
+            setSelectedMedicine(null);
+            setGeneralMedDetails({ genericName: '', options: [], prescriptionFile: null });
+            if (fileInputRef.current) fileInputRef.current.value = '';
+
+            // 4. Refresh public catalog from CMS to reflect any newly created medicines
+            cmsPublic.medicines({ limit: 200 })
+                .then(res => {
+                    if (res.items && res.items.length > 0) {
+                        setCatalogMedicines(res.items);
+                    }
+                })
+                .catch(() => {});
+
+            // 5. Show confirmation modal
+            setSubmittedOrderInfo({
+                customerName: submittedCust,
+                itemCount: submittedCount,
+                netTotal: submittedTotal,
+            });
+
+            alert(`Requisition Submitted Successfully!\n\n${submittedCount} medicine item(s) totaling NPR ${submittedTotal.toLocaleString()} have been saved and are now visible in the Admin Console under Medicine Master.`);
+        } catch (err: any) {
+            console.error('Requisition submission error:', err);
+            alert('Failed to submit requisition: ' + (err?.message || 'Please check server connection and try again.'));
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const cardCls = "bg-white rounded-[32px] border-2 border-slate-100 shadow-xl shadow-slate-200/50 p-10";
@@ -1123,6 +1199,67 @@ const PharmacyPage = () => {
                     <p className="text-[12px] text-slate-500 font-black uppercase tracking-[0.5em]">Dwarika Clinical Management Standard • 2026 Verification</p>
                 </div>
             </div>
+
+            {/* Requisition Submission Success Modal */}
+            <AnimatePresence>
+                {submittedOrderInfo && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-white rounded-[32px] p-8 sm:p-10 max-w-lg w-full shadow-2xl border-2 border-slate-100 text-center space-y-6 relative overflow-hidden"
+                        >
+                            <button 
+                                onClick={() => setSubmittedOrderInfo(null)}
+                                className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
+                                <CheckCircle2 className="w-10 h-10" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-widest rounded-full">
+                                    Synchronized with Medicine Master
+                                </span>
+                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Requisition Submitted</h3>
+                                <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+                                    Your order for <strong className="text-slate-900">{submittedOrderInfo.customerName}</strong> containing <strong className="text-blue-700">{submittedOrderInfo.itemCount} medicine(s)</strong> has been recorded in the database and is now accessible in the Admin Console.
+                                </p>
+                            </div>
+
+                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-700 text-left space-y-2">
+                                <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                                    <span className="text-slate-500 font-medium">Customer / Patient:</span>
+                                    <span className="font-black text-slate-900">{submittedOrderInfo.customerName}</span>
+                                </div>
+                                <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                                    <span className="text-slate-500 font-medium">Items Stored:</span>
+                                    <span className="text-blue-700 font-black">{submittedOrderInfo.itemCount} Items in Medicine Master</span>
+                                </div>
+                                <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                                    <span className="text-slate-500 font-medium">Net Valuation:</span>
+                                    <span className="text-emerald-700 font-black font-outfit text-sm">NPR {submittedOrderInfo.netTotal.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 font-medium">Admin Destination:</span>
+                                    <span className="text-blue-600 font-black">/admin/medicines</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setSubmittedOrderInfo(null)}
+                                className="w-full py-4 bg-blue-700 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-blue-700/20 transition-all active:scale-95"
+                            >
+                                Continue & Done
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
