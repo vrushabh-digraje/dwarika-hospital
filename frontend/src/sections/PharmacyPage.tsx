@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
     Pill, Send, Loader2, 
     Plus, Trash2, Edit2, Upload, CheckCircle2, Info, Hash, Phone, User, MapPin,
-    Check, X, ArrowDown
+    X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -732,100 +732,6 @@ const PharmacyPage = () => {
                                                 </div>
                                             )}
                                         </div>
-
-                                        {/* Selected Medicine Information Card */}
-                                        {selectedMedicine && (
-                                            <motion.div
-                                                initial={{ opacity: 0, scale: 0.98 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                className="rounded-3xl border-2 border-blue-500/40 bg-gradient-to-br from-blue-50/90 to-sky-50/60 p-5 shadow-sm space-y-3.5"
-                                            >
-                                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-blue-200/60 pb-3">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
-                                                            <Check className="w-4 h-4 stroke-[3]" />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">
-                                                                Selected Medicine Details
-                                                            </h4>
-                                                            <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
-                                                                Auto-filled in Section III below
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <span className={cn(
-                                                        "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-xs border flex items-center gap-1.5",
-                                                        selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
-                                                            ? "bg-rose-100 text-rose-800 border-rose-300"
-                                                            : "bg-emerald-100 text-emerald-800 border-emerald-300"
-                                                    )}>
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                                                        {selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
-                                                            ? 'Not Available'
-                                                            : 'Available'}
-                                                    </span>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                                                    <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Medicine Name</span>
-                                                        <span className="font-black text-slate-900 block mt-0.5 truncate">{selectedMedicine.name}</span>
-                                                    </div>
-                                                    <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Generic Name</span>
-                                                        <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.genericName}</span>
-                                                    </div>
-                                                    <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Brand Name</span>
-                                                        <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.brandName || selectedMedicine.name}</span>
-                                                    </div>
-                                                    <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Manufacturer / Company</span>
-                                                        <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.companyName || 'Standard Formulation'}</span>
-                                                    </div>
-                                                    <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Form & Strength</span>
-                                                        <span className="font-bold text-slate-800 block mt-0.5">{selectedMedicine.form} {selectedMedicine.strength && selectedMedicine.strength !== 'NA' ? selectedMedicine.strength : ''}</span>
-                                                    </div>
-                                                    <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Unit</span>
-                                                        <span className="font-bold text-slate-800 block mt-0.5">{selectedMedicine.unit}</span>
-                                                    </div>
-                                                    <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Category / Group</span>
-                                                        <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.group || 'Hospital Formulary'}</span>
-                                                    </div>
-                                                    <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Availability</span>
-                                                        <span className={cn(
-                                                            "font-black block mt-0.5",
-                                                            selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
-                                                                ? "text-rose-700"
-                                                                : "text-emerald-700"
-                                                        )}>
-                                                            {selectedMedicine.stockStatus === 'Out of Stock' || (selectedMedicine.stock !== undefined && selectedMedicine.stock <= 0)
-                                                                ? 'Not Available'
-                                                                : 'Available'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="pt-1 flex items-center justify-end">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const el = document.getElementById('requisition-items-section');
-                                                            el?.scrollIntoView({ behavior: 'smooth' });
-                                                        }}
-                                                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all"
-                                                    >
-                                                        <span>Jump to Section III Requisition</span>
-                                                        <ArrowDown className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            </motion.div>
-                                        )}
                                     </div>
                                 </div>
 
