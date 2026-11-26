@@ -587,7 +587,7 @@ const PharmacyPage = () => {
                                             <div className="w-1.5 h-8 bg-blue-600 rounded-full" />
                                             <div>
                                                 <h3 className="text-2xl font-black text-slate-900 tracking-tight uppercase">II. Medicine Specification</h3>
-                                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Fast Search by Generic, Brand, Supplier, or Medicine</p>
+                                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Fast Search by Generic, Brand, or Medicine</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-200">
@@ -597,12 +597,12 @@ const PharmacyPage = () => {
                                     
                                     <div className="space-y-4">
                                         <div className="space-y-1.5">
-                                            <label className={labelCls}>Search Medicine (Generic, Brand, Supplier, or Medicine Name)</label>
+                                            <label className={labelCls}>Search Medicine (Generic, Brand, or Medicine Name)</label>
                                             <div className="relative group">
                                                 <input 
                                                     value={generalMedDetails.genericName} 
                                                     onChange={(e) => setGeneralMedDetails(prev => ({ ...prev, genericName: e.target.value }))}
-                                                    placeholder="Search Generic (e.g. Pantoprazole), Brand (e.g. Pantop), Supplier (e.g. Parul)..." 
+                                                    placeholder="Search Generic (e.g. Pantoprazole), Brand (e.g. Pantop)..." 
                                                     className={cn(inputCls, "pl-14 pr-12 !py-4 text-sm shadow-sm group-hover:border-blue-400 transition-all")} 
                                                 />
                                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
@@ -708,11 +708,6 @@ const PharmacyPage = () => {
                                                                         <p className={cn("text-[10px] font-semibold truncate mt-0.5", isSelected ? "text-blue-100" : "text-slate-500")}>
                                                                             {med.genericName}
                                                                         </p>
-                                                                        {med.supplierName && (
-                                                                            <p className={cn("text-[9px] truncate mt-0.5", isSelected ? "text-blue-200" : "text-slate-400")}>
-                                                                                Supplier: {med.supplierName}
-                                                                            </p>
-                                                                        )}
                                                                     </div>
 
                                                                     <div className="flex items-center justify-end pt-1 border-t border-current/10">
@@ -782,12 +777,12 @@ const PharmacyPage = () => {
                                                         <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.genericName}</span>
                                                     </div>
                                                     <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Brand / Company</span>
-                                                        <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.brandName || selectedMedicine.companyName || selectedMedicine.name}</span>
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Brand Name</span>
+                                                        <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.brandName || selectedMedicine.name}</span>
                                                     </div>
                                                     <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Supplier Name</span>
-                                                        <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.supplierName || 'Hospital Central Store'}</span>
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Manufacturer / Company</span>
+                                                        <span className="font-bold text-slate-800 block mt-0.5 truncate">{selectedMedicine.companyName || 'Standard Formulation'}</span>
                                                     </div>
                                                     <div className="bg-white/80 rounded-2xl p-3 border border-blue-100">
                                                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Form & Strength</span>
@@ -941,7 +936,7 @@ const PharmacyPage = () => {
                                                             <p className="text-xs font-black text-slate-900 uppercase truncate">{sug.name}</p>
                                                             <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase font-bold shrink-0">{sug.form}</span>
                                                         </div>
-                                                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{sug.genericName} • {sug.supplierName || 'Hospital Supply'}</p>
+                                                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{sug.genericName} • {sug.companyName || sug.brandName || 'Hospital Formulary'}</p>
                                                     </div>
                                                     <div className="text-right shrink-0">
                                                         <span className={cn(
@@ -1034,11 +1029,6 @@ const PharmacyPage = () => {
                                                 <span className="text-slate-500 font-normal">({selectedMedicine.genericName})</span>
                                             )}
                                         </span>
-                                        {selectedMedicine?.supplierName && (
-                                            <span className="text-slate-600 text-[11px]">
-                                                Supplier: <strong className="text-slate-800">{selectedMedicine.supplierName}</strong>
-                                            </span>
-                                        )}
                                         {selectedMedicine && (
                                             <span className={cn(
                                                 "px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 border",
